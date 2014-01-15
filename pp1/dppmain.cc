@@ -5,7 +5,10 @@
  */
  
 #include "scanner.h"
-#include <stdio.h>
+#include <string>
+#include <iostream>
+
+using namespace std;
 
 /* Function: main()
  * ----------------
@@ -19,8 +22,41 @@
  */
 int main(int argc, char *argv[])
 {
-  int ch;
-  while ((ch = getc(stdin)) != EOF)
-    putc(ch, stdout);
-  return 0;
+	int ch;
+	bool quote = false;
+	string s;
+	while ((ch = cin.get()) != EOF)
+	{
+		if (ch == '"')
+			quote = !quote;
+		if (ch == '/')
+		{
+			if (!quote)
+			{
+				ch = cin.get();
+				if (ch == '/')
+				{
+					getline(cin, s);
+					putc('\n', stdout);
+					continue;
+				}
+				if (ch == '*')
+				{
+					getline(cin, s, '*');
+					ch = cin.get();
+					if (ch == '/')
+						continue;
+					else
+					{
+						cerr << "Comment doesn't terminate" << endl;
+						exit(1);
+					}
+				}
+				else
+					putc('/', stdout);
+			}
+		}
+		putc(ch, stdout);
+	}
+	return 0;
 }
