@@ -7,6 +7,8 @@
 #include "scanner.h"
 #include <string>
 #include <iostream>
+#include <unordered_map>
+#include <sstream>
 
 using namespace std;
 
@@ -22,51 +24,146 @@ using namespace std;
  */
 int main(int argc, char *argv[])
 {
+	unordered_map<string, string> macros;
+	unordered_map<string, bool> macroValid;
+	istringstream iss;
+	string s, NAME;
 	int ch;
 	bool quote = false;
-	string s;
+
+	
 	while ((ch = cin.get()) != EOF)
 	{
 		//toggle quote if inside a string literal
 		if (ch == '"')
 			quote = !quote;
 		
-		if (ch == '/')
+		//check for comments
+		if (ch == '/' && !quote)
 		{
-			if (!quote)
+			ch = cin.get();
+			//enter if single line comment "//"
+			if (ch == '/')
 			{
-				ch = cin.get();
-				//enters if single line comment "//"
-				if (ch == '/')
+				getline(cin, s);
+				putc('\n', stdout);
+				continue;
+			}
+			//enter if multi line comment "/*"
+			if (ch == '*')
+			{
+				while (ch != '/')
 				{
-					getline(cin, s);
-					putc('\n', stdout);
-					continue;
-				}
-				//enters if multi line comment "/*"
-				if (ch == '*')
-				{
-					while (ch != '/')
+					if (!getline(cin, s, '*'))
 					{
-						if (!getline(cin, s, '*'))
-						{
-							cerr << "Comment doesn't terminate" << endl;
-							exit(1);
-						}
-						
-						for (auto it = s.begin(); it != s.end(); ++it)
-							if (*it == '\n')
-								putc('\n', stdout);
-						
-						ch = cin.get();
+						cerr << "Comment doesn't terminate" << endl;
+						exit(1);
 					}
+					
+					//iterate through comment, add newlines
+					for (auto it = s.begin(); it != s.end(); ++it)
+						if (*it == '\n')
+							putc('\n', stdout);
+					
+					ch = cin.get();
+				}
+				continue;
+			}
+			//enter if not a comment
+			else
+				putc('/', stdout);
+		}
+		
+		//check for macros
+		if (ch == '#' && !quote)
+		{
+			ch = cin.get();
+			//check for define
+			if (ch == 'd')
+			{
+				cin.unget();
+				getline(cin, s);
+				iss.str(s);
+				getline(iss, s, ' ');
+				//first word is define
+				if (s == "define")
+				{
+					getline(iss, NAME, ' ');
+					iss.unget();
+					//must have space between NAME and replacement
+					if (iss.get() != ' ')
+					{
+						cerr << "misuse of macro\n" << endl;
+						iss.clear();
+						continue;
+					}
+					for (auto it = NAME.begin(); it!= NAME.end(); ++it)
+					{
+						//NAME can only be uppercase
+						if (*it < 'A' || *it > 'Z')
+						{
+							cerr << "NAME must be uppercase\n" << endl;
+							iss.clear();
+							continue;
+						}
+					}
+					getline(iss, s);
+					
+					macros[NAME] = s;
+					macroValid[NAME] = true;
+						
+					cout << '\n';
 					continue;
 				}
 				else
-					putc('/', stdout);
+				{
+					cerr << "misuse of macro\n" << endl;
+					iss.clear();
+					continue;
+				}
+			}
+			//check for macro in hashtable
+			else if (ch >= 'A' && ch <= 'Z')
+			{
+				NAME = ch;
+				while (!macroValid[NAME])
+				{
+					ch = cin.get();
+					//ch must be uppercase
+					if (ch < 'A' || ch > 'Z')
+					{
+						cerr << "\nmacro not found\n" << endl;
+						break;
+					}
+					else
+						NAME.push_back(ch);
+				}
+				//check to see if while loop wasnt broken
+				if (macroValid[NAME])
+				{
+					cout << macros[NAME];
+					continue;
+				}
+			}
+			//dispose of line, print error
+			else
+			{
+				cerr << "misused macro\n" << endl;
+				getline(cin, s);
+				continue;
 			}
 		}
-		putc(ch, stdout);
+		
+		cout << (char)ch;
 	}
 	return 0;
 }
+
+
+
+
+
+
+
+
+
