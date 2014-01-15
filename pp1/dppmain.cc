@@ -27,30 +27,40 @@ int main(int argc, char *argv[])
 	string s;
 	while ((ch = cin.get()) != EOF)
 	{
+		//toggle quote if inside a string literal
 		if (ch == '"')
 			quote = !quote;
+		
 		if (ch == '/')
 		{
 			if (!quote)
 			{
 				ch = cin.get();
+				//enters if single line comment "//"
 				if (ch == '/')
 				{
 					getline(cin, s);
 					putc('\n', stdout);
 					continue;
 				}
+				//enters if multi line comment "/*"
 				if (ch == '*')
 				{
-					getline(cin, s, '*');
-					ch = cin.get();
-					if (ch == '/')
-						continue;
-					else
+					while (ch != '/')
 					{
-						cerr << "Comment doesn't terminate" << endl;
-						exit(1);
+						if (!getline(cin, s, '*'))
+						{
+							cerr << "Comment doesn't terminate" << endl;
+							exit(1);
+						}
+						
+						for (auto it = s.begin(); it != s.end(); ++it)
+							if (*it == '\n')
+								putc('\n', stdout);
+						
+						ch = cin.get();
 					}
+					continue;
 				}
 				else
 					putc('/', stdout);

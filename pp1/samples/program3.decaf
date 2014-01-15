@@ -13,7 +13,7 @@ class Cow extends Animal {
 
 void main() {
   class Cow betsy;
-  betsy = New(Cow);
+  betsy = New(Cow); 
   betsy.height = 0xa2;
   betsy.weight = 1.456;
   besty.name = "Betsy";
