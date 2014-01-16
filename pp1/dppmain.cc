@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
 			{
 				cin.unget();
 				getline(cin, s);
+				iss.clear();
 				iss.str(s);
 				getline(iss, s, ' ');
 				//first word is define
@@ -94,7 +95,6 @@ int main(int argc, char *argv[])
 					if (iss.get() != ' ')
 					{
 						cerr << "misuse of macro\n" << endl;
-						iss.clear();
 						continue;
 					}
 					for (auto it = NAME.begin(); it!= NAME.end(); ++it)
@@ -103,7 +103,6 @@ int main(int argc, char *argv[])
 						if (*it < 'A' || *it > 'Z')
 						{
 							cerr << "NAME must be uppercase\n" << endl;
-							iss.clear();
 							continue;
 						}
 					}
@@ -118,7 +117,6 @@ int main(int argc, char *argv[])
 				else
 				{
 					cerr << "misuse of macro\n" << endl;
-					iss.clear();
 					continue;
 				}
 			}
@@ -138,7 +136,7 @@ int main(int argc, char *argv[])
 					else
 						NAME.push_back(ch);
 				}
-				//check to see if while loop wasnt broken
+				//if macro found, replace NAME
 				if (macroValid[NAME])
 				{
 					cout << macros[NAME];
