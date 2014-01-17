@@ -1,4 +1,4 @@
-/* File:  scanner.l
+/* File:	scanner.l
  * ----------------
  * Lex inupt file to generate the scanner for the compiler.
  */
@@ -15,16 +15,20 @@
 #include "scanner.h"
 #include "utility.h" // for PrintDebug()
 #include "errors.h"
+#include <sstream>
+#include <math.h>
+
+using namespace std;
 
 /* Global variable: yylval
  * -----------------------
  * This global variable is how we get attribute information about the token
  * just scanned to the client. The scanner sets the global variable
- * appropriately and since it's global the client can just read it.  In the
+ * appropriately and since it's global the client can just read it.	In the
  * future, this variable will be declared for us in the y.tab.c file
  * produced by Yacc, but for now, we declare it manually.
  */
-YYSTYPE yylval;  // manually declared for pp1, later Yacc provides
+YYSTYPE yylval;	// manually declared for pp1, later Yacc provides
 
 /* Global variable: yylloc
  * -----------------------
@@ -38,7 +42,7 @@ struct yyltype yylloc; // manually dclared for pp1, later Yacc provides
  * This flex built-in macro can be defined to provide an action which is
  * always executed prior to any matched rule's action. Basically, it is
  * a way of having a piece of code common to all actions factored out to
- * this routine.  We already defined it for you and left the empty
+ * this routine.	We already defined it for you and left the empty
  * function DoBeforeEachAction ready for your use as needed. It will
  * be called once for each pattern scanned from the file, before
  * executing its action.
@@ -46,20 +50,125 @@ struct yyltype yylloc; // manually dclared for pp1, later Yacc provides
 static void DoBeforeEachAction(); 
 #define YY_USER_ACTION DoBeforeEachAction();
 
+
+int lineNum = 1;
+int colNum = 1;
+istringstream iss;
+
+
 %}
 
  /* The section before the first %% is the Definitions section of the lex
-  * input file. Here is where you set options for the scanner, define lex
-  * states, and can set up definitions to give names to regular expressions
-  * as a simple substitution mechanism that allows for more readable
-  * entries in the Rules section later. 
-  */
+	* input file. Here is where you set options for the scanner, define lex
+	* states, and can set up definitions to give names to regular expressions
+	* as a simple substitution mechanism that allows for more readable
+	* entries in the Rules section later. 
+	*/
 
 
-%%             /* BEGIN RULES SECTION */
+VOID					void
+INT						int
+DOUBLE				double
+BOOL					bool
+STRING				string
+EXTENDS				extends
+IMPLEMENTS		implements
+FOR						for
+WHILE					while
+CLASS					class
+INTERFACE			interface
+IF						if
+ELSE					else
+RETURN				return
+NULL					null
+THIS					this
+BREAK					break
+NEW						New
+NEWARRAY			NewArray
+IDENTIFIER		[a-zA-Z][a-zA-Z0-9]*
+
+OPERATOR			\+|-|\*|\/|%|<|>|=|!|;|,|\.|\[|\]|\(|\)|\{|\}
+LESSEQUAL			<=
+GREATEQUAL		>=
+EQUAL					==
+NOTEQUAL			!=
+AND						&&
+OR						\|\|
+
+LITERAL				\".*\"
+INTCONST			[0-9]+
+HEX						0x[0-9a-fA-F]+
+DOUBCONST			[0-9]+\.[0-9]*
+DOUBEXP				[0-9]+\.[0-9]*[E|e][\+|-]?[0-9]+
+BOOLCONST			true|false
+
+
+%%						 /* BEGIN RULES SECTION */
  /* All patterns and actions should be placed between the start and stop
-  * %% markers which delimit the Rules section. 
-  */ 
+	* %% markers which delimit the Rules section. 
+	*/ 
+
+
+
+
+
+
+{VOID}				return T_Void;
+{INT}					return T_Int;
+{DOUBLE}			return T_Double;
+{BOOL}				return T_Bool;
+{STRING}			return T_String;
+{EXTENDS}			return T_Extends;
+{IMPLEMENTS}	return T_Implements;
+{FOR}					return T_For;
+{WHILE}				return T_While;
+{CLASS}				return T_Class;
+{INTERFACE}		return T_Interface;
+{IF}					return T_If;
+{ELSE}				return T_Else;
+{RETURN}			return T_Return;
+{NULL}				return T_Null;
+{THIS}				return T_This;
+{BREAK}				return T_Break;
+{NEW}					return T_New;
+{NEWARRAY}		return T_NewArray;
+{LITERAL}			yylval.stringConstant = yytext; return T_StringConstant;
+
+{IDENTIFIER}	return T_Identifier;
+
+{OPERATOR}		return *yytext;
+
+{LESSEQUAL}		return T_LessEqual;
+{GREATEQUAL}	return T_GreaterEqual;
+{EQUAL}				return T_Equal;
+{NOTEQUAL}		return T_NotEqual;
+{AND}					return T_And;
+{OR}					return T_Or;
+
+{DOUBEXP}			{
+								string s = yytext;
+								string num, exp;
+								auto it = s.begin();
+								for (it; *it != 'e' && *it != 'E'; ++it)
+									num.push_back(*it);
+								it++;
+								for (it; it != s.end(); ++it)
+									exp.push_back(*it);
+								yylval.doubleConstant = atof(num.c_str()) * pow(10, atoi(exp.c_str()));
+								return T_DoubleConstant;
+							}
+{DOUBCONST}		yylval.doubleConstant = atof(yytext); return T_DoubleConstant;
+
+{INTCONST}		yylval.integerConstant = atoi(yytext); return T_IntConstant;
+{HEX}					yylval.integerConstant = strtol(yytext, NULL, 16); return T_IntConstant;
+
+
+
+\t						colNum += 7; //apparently the solution views \t as 8 columns, yyleng+7=8
+\n						lineNum++; colNum = 1;
+.
+
+
 
 
 %%
@@ -72,7 +181,7 @@ static void DoBeforeEachAction();
 
 /* Function: InitScanner
  * ---------------------
- * This function will be called before any calls to yylex().  It is designed
+ * This function will be called before any calls to yylex().	It is designed
  * to give you an opportunity to do anything that must be done to initialize
  * the scanner (set global variables, configure starting state, etc.). One
  * thing it already does for you is assign the value of the global variable
@@ -84,9 +193,12 @@ static void DoBeforeEachAction();
  */
 void InitScanner()
 {
-    PrintDebug("lex", "Initializing scanner");
-    yy_flex_debug = false;
+	PrintDebug("lex", "Initializing scanner");
+	yy_flex_debug = false;
 }
+
+
+
 
 
 /* Function: DoBeforeEachAction()
@@ -96,4 +208,8 @@ void InitScanner()
  */
 static void DoBeforeEachAction()
 {
+	yylloc.first_column = colNum;
+	yylloc.last_column = colNum + yyleng - 1;
+	yylloc.first_line = lineNum;
+	colNum += yyleng;
 }
