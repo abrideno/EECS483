@@ -5,6 +5,7 @@
  */
  
 #include "scanner.h"
+#include "errors.h"
 #include <string>
 #include <iostream>
 #include <unordered_map>
@@ -28,8 +29,9 @@ int main(int argc, char *argv[])
 	unordered_map<string, bool> macroValid;
 	istringstream iss;
 	string s, NAME;
-	int ch;
+	int ch, lineNum = 1;
 	bool quote = false;
+	ReportError error;
 
 	
 	while ((ch = cin.get()) != EOF)
@@ -46,7 +48,8 @@ int main(int argc, char *argv[])
 			if (ch == '/')
 			{
 				getline(cin, s);
-				putc('\n', stdout);
+				cout << '\n';
+				lineNum++;
 				continue;
 			}
 			//enter if multi line comment "/*"
@@ -56,14 +59,19 @@ int main(int argc, char *argv[])
 				{
 					if (!getline(cin, s, '*'))
 					{
-						cerr << "Comment doesn't terminate" << endl;
+						error.UntermComment();
 						exit(1);
 					}
 					
 					//iterate through comment, add newlines
 					for (auto it = s.begin(); it != s.end(); ++it)
+					{
 						if (*it == '\n')
-							putc('\n', stdout);
+						{
+							cout << '\n';
+							lineNum++;
+						}
+					}
 					
 					ch = cin.get();
 				}
@@ -71,7 +79,7 @@ int main(int argc, char *argv[])
 			}
 			//enter if not a comment
 			else
-				putc('/', stdout);
+				cout << '/';
 		}
 		
 		//check for macros
@@ -83,6 +91,7 @@ int main(int argc, char *argv[])
 			{
 				cin.unget();
 				getline(cin, s);
+				lineNum++;
 				iss.clear();
 				iss.str(s);
 				getline(iss, s, ' ');
@@ -94,7 +103,8 @@ int main(int argc, char *argv[])
 					//must have space between NAME and replacement
 					if (iss.get() != ' ')
 					{
-						cerr << "misuse of macro\n" << endl;
+						error.InvalidDirective(lineNum - 1);
+						cout << '\n';
 						continue;
 					}
 					for (auto it = NAME.begin(); it!= NAME.end(); ++it)
@@ -102,7 +112,7 @@ int main(int argc, char *argv[])
 						//NAME can only be uppercase
 						if (*it < 'A' || *it > 'Z')
 						{
-							cerr << "NAME must be uppercase\n" << endl;
+							error.InvalidDirective(lineNum - 1);
 							continue;
 						}
 					}
@@ -116,7 +126,13 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
-					cerr << "misuse of macro\n" << endl;
+					getline(iss, s);
+					cin.putback('\n');
+					for (auto it = s.rbegin(); it != s.rend(); ++it)
+						cin.putback(*it);
+					cin.putback(' ');
+					lineNum--;
+					error.InvalidDirective(lineNum);
 					continue;
 				}
 			}
@@ -130,7 +146,9 @@ int main(int argc, char *argv[])
 					//ch must be uppercase
 					if (ch < 'A' || ch > 'Z')
 					{
-						cerr << "\nmacro not found\n" << endl;
+						while (isalpha(ch))
+							ch = cin.get();
+						error.InvalidDirective(lineNum);
 						break;
 					}
 					else
@@ -146,11 +164,14 @@ int main(int argc, char *argv[])
 			//dispose of line, print error
 			else
 			{
-				cerr << "misused macro\n" << endl;
-				getline(cin, s);
-				continue;
+				error.InvalidDirective(lineNum);
+				ch = cin.get();
+				while (isalpha(ch))
+					ch = cin.get();
 			}
 		}
+		if (ch == '\n')
+			lineNum++;
 		
 		cout << (char)ch;
 	}

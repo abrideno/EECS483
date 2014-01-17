@@ -134,7 +134,23 @@ BOOLCONST			true|false
 {NEWARRAY}		return T_NewArray;
 {LITERAL}			yylval.stringConstant = yytext; return T_StringConstant;
 
-{IDENTIFIER}	return T_Identifier;
+{BOOLCONST}		yylval.boolConstant = strcmp(yytext, "false"); return T_BoolConstant;
+
+{IDENTIFIER}	{
+								//if length > 32, report error
+								if (yyleng > 31)
+								{
+									ReportError error;
+									error.LongIdentifier(&yylloc, yytext);
+									yyleng = 31;
+								}
+								//put yytext into identifier
+								int i;
+								for (i = 0; i < yyleng; i++)
+									yylval.identifier[i] = *(yytext + i);
+								yylval.identifier[i] = '\0';
+								return T_Identifier;
+							}
 
 {OPERATOR}		return *yytext;
 
@@ -145,22 +161,12 @@ BOOLCONST			true|false
 {AND}					return T_And;
 {OR}					return T_Or;
 
-{DOUBEXP}			{
-								string s = yytext;
-								string num, exp;
-								auto it = s.begin();
-								for (it; *it != 'e' && *it != 'E'; ++it)
-									num.push_back(*it);
-								it++;
-								for (it; it != s.end(); ++it)
-									exp.push_back(*it);
-								yylval.doubleConstant = atof(num.c_str()) * pow(10, atoi(exp.c_str()));
-								return T_DoubleConstant;
-							}
+{DOUBEXP}			yylval.doubleConstant = atof(yytext); return T_DoubleConstant;
 {DOUBCONST}		yylval.doubleConstant = atof(yytext); return T_DoubleConstant;
 
 {INTCONST}		yylval.integerConstant = atoi(yytext); return T_IntConstant;
 {HEX}					yylval.integerConstant = strtol(yytext, NULL, 16); return T_IntConstant;
+
 
 
 
