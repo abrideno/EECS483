@@ -157,7 +157,7 @@ SPACE					[ ]
 {BOOLCONST}		yylval.boolConstant = strcmp(yytext, "false"); return T_BoolConstant;
 
 {IDENTIFIER}	{
-								//if length > 32, report error
+								//if length > 31, report error
 								if (yyleng > 31)
 								{
 									error.LongIdentifier(&yylloc, yytext);
@@ -190,7 +190,7 @@ SPACE					[ ]
 
 
 
-\t						colNum += 7; //apparently the solution views \t as 8 columns, yyleng+7=8
+\t						colNum += 8 - ((colNum-1) % 8);
 \n						lineNum++; colNum = 1;
 {SPACE}
 .							error.UnrecogChar(&yylloc, *yytext);

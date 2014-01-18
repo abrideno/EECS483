@@ -23,6 +23,7 @@ using namespace std;
  * the preprocessor should echo stdin to stdout making the transformations
  * to strip comments and handle preprocessor directives.
  */
+ 
 int main(int argc, char *argv[])
 {
 	unordered_map<string, string> macros;
@@ -119,8 +120,7 @@ int main(int argc, char *argv[])
 					getline(iss, s);
 					
 					macros[NAME] = s;
-					macroValid[NAME] = true;
-						
+
 					cout << '\n';
 					continue;
 				}
@@ -137,27 +137,24 @@ int main(int argc, char *argv[])
 				}
 			}
 			//check for macro in hashtable
-			else if (ch >= 'A' && ch <= 'Z')
+			else if (isalpha(ch))
 			{
-				NAME = ch;
-				while (!macroValid[NAME])
+				NAME = "";
+				while (isalpha(ch))
 				{
-					ch = cin.get();
-					//ch must be uppercase
-					if (ch < 'A' || ch > 'Z')
-					{
-						while (isalpha(ch))
-							ch = cin.get();
-						error.InvalidDirective(lineNum);
-						break;
-					}
-					else
 						NAME.push_back(ch);
+						ch = cin.get();
 				}
+				cin.unget();				
 				//if macro found, replace NAME
-				if (macroValid[NAME])
+				if (macros.find(NAME) != macros.end())
 				{
 					cout << macros[NAME];
+					continue;
+				}
+				else
+				{
+					error.InvalidDirective(lineNum);
 					continue;
 				}
 			}
