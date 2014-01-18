@@ -104,7 +104,7 @@ HEX						0[x|X][0-9a-fA-F]+
 DOUBCONST			[0-9]+\.[0-9]*
 DOUBEXP				[0-9]+\.[0-9]*[E|e][\+|-]?[0-9]+
 BOOLCONST			true|false
-
+SPACE					[ ]
 
 
 
@@ -192,7 +192,7 @@ BOOLCONST			true|false
 
 \t						colNum += 7; //apparently the solution views \t as 8 columns, yyleng+7=8
 \n						lineNum++; colNum = 1;
-
+{SPACE}
 .							error.UnrecogChar(&yylloc, *yytext);
 
 
