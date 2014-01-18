@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 		//toggle quote if inside a string literal
 		if (ch == '"')
 			quote = !quote;
-		
+	
 		//check for comments
 		if (ch == '/' && !quote)
 		{
@@ -168,8 +168,10 @@ int main(int argc, char *argv[])
 			}
 		}
 		if (ch == '\n')
+		{
 			lineNum++;
-		
+			quote = false;
+		}
 		cout << (char)ch;
 	}
 	return 0;

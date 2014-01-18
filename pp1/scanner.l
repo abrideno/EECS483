@@ -97,7 +97,7 @@ AND						&&
 OR						\|\|
 
 LITERAL				\"[^"\n]*\"
-HANDLE				\"[^"]*\n
+HANDLE				\"[^"\n]*\n
 
 INTCONST			[0-9]+
 HEX						0[x|X][0-9a-fA-F]+
