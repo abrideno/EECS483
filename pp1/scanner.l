@@ -54,6 +54,7 @@ static void DoBeforeEachAction();
 int lineNum = 1;
 int colNum = 1;
 istringstream iss;
+ReportError error;
 
 
 %}
@@ -85,7 +86,7 @@ THIS					this
 BREAK					break
 NEW						New
 NEWARRAY			NewArray
-IDENTIFIER		[a-zA-Z][a-zA-Z0-9]*
+IDENTIFIER		[a-zA-Z][a-zA-Z0-9_]*
 
 OPERATOR			\+|-|\*|\/|%|<|>|=|!|;|,|\.|\[|\]|\(|\)|\{|\}
 LESSEQUAL			<=
@@ -95,12 +96,16 @@ NOTEQUAL			!=
 AND						&&
 OR						\|\|
 
-LITERAL				\".*\"
+LITERAL				\"[^"\n]*\"
+HANDLE				\"[^"]*\n
+
 INTCONST			[0-9]+
-HEX						0x[0-9a-fA-F]+
+HEX						0[x|X][0-9a-fA-F]+
 DOUBCONST			[0-9]+\.[0-9]*
 DOUBEXP				[0-9]+\.[0-9]*[E|e][\+|-]?[0-9]+
 BOOLCONST			true|false
+
+
 
 
 %%						 /* BEGIN RULES SECTION */
@@ -132,15 +137,29 @@ BOOLCONST			true|false
 {BREAK}				return T_Break;
 {NEW}					return T_New;
 {NEWARRAY}		return T_NewArray;
-{LITERAL}			yylval.stringConstant = yytext; return T_StringConstant;
 
+{HANDLE}			{
+								string s = yytext;
+								//erase all newlines
+								for (auto it = s.begin(); it != s.end(); ++it)
+								{
+									if (*it == '\n')
+									{
+										s.erase(it);
+										it--;
+										lineNum++;
+									}
+								}
+								error.UntermString(&yylloc, s.c_str()); 
+								colNum = 1;
+							}
+{LITERAL}			yylval.stringConstant = yytext; return T_StringConstant;
 {BOOLCONST}		yylval.boolConstant = strcmp(yytext, "false"); return T_BoolConstant;
 
 {IDENTIFIER}	{
 								//if length > 32, report error
 								if (yyleng > 31)
 								{
-									ReportError error;
 									error.LongIdentifier(&yylloc, yytext);
 									yyleng = 31;
 								}
@@ -164,16 +183,17 @@ BOOLCONST			true|false
 {DOUBEXP}			yylval.doubleConstant = atof(yytext); return T_DoubleConstant;
 {DOUBCONST}		yylval.doubleConstant = atof(yytext); return T_DoubleConstant;
 
-{INTCONST}		yylval.integerConstant = atoi(yytext); return T_IntConstant;
 {HEX}					yylval.integerConstant = strtol(yytext, NULL, 16); return T_IntConstant;
+{INTCONST}		yylval.integerConstant = atoi(yytext); return T_IntConstant;
+
 
 
 
 
 \t						colNum += 7; //apparently the solution views \t as 8 columns, yyleng+7=8
 \n						lineNum++; colNum = 1;
-.
 
+.							error.UnrecogChar(&yylloc, *yytext);
 
 
 
