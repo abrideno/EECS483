@@ -1,6 +1,22 @@
 
-*** Error line 2.
-  x = 123.4.554;
-    ^
-*** syntax error
-
+   Program: 
+  1   ClassDecl: 
+  1      Identifier: Cow
+  2      VarDecl: 
+            Type: int
+  2         Identifier: height
+  3      VarDecl: 
+            Type: bool
+  3         Identifier: isSpotted
+  4      FnDecl: 
+            (return type) Type: void
+  4         Identifier: Moo
+            (body) StmtBlock: 
+ 10   FnDecl: 
+         (return type) Type: void
+ 10      Identifier: main
+         (body) StmtBlock: 
+ 13         Call: 
+ 13            FieldAccess: 
+ 13               Identifier: betsy
+ 13            Identifier: Moo

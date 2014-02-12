@@ -26,7 +26,7 @@ for file in $tests; do
     echo -ne "\E[37m[\E[32mPASSED\E[37m] "; tput sgr0;
   else
     echo -ne "\E[37m[\E[31mFAILED\E[37m] "; tput sgr0;
-    diff out ${file%.*}.out
+    #diff out ${file%.*}.out
   fi
   echo""
   echo "------------------------------------"
