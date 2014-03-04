@@ -127,5 +127,19 @@ class PrintStmt : public Stmt
     void PrintChildren(int indentLevel);
 };
 
+class SwitchStmt : public ConditionalStmt
+{
+  protected:
+    Expr *expr;
+   
+  public:
+    SwitchStmt(Expr * expr, 
+    void PrintChildren(int indentLevel);
+    const char *GetPrintNameForNode() { return "SwitchStmt"; }
+}
+
+class Case : public SwitchStmt
+{
+  
 
 #endif
