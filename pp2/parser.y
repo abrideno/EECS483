@@ -196,7 +196,7 @@ VarDecl   :    Var ';'              {$$=$1;}
           ; 
 
 Var       :    Type T_Identifier    {Identifier *ident = new Identifier(@2,$2);
-									 $$ = new VarDecl(ident,$1);}
+									 $$ = new VarDecl(ident,$1); }
           ;
 
 VarList   :    VarList ',' Var {
