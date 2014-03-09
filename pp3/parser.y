@@ -18,8 +18,29 @@ using namespace std;
 
 
 void yyerror(const char *msg); // standard error-handling routine
-unordered_map<int, vector<string> > variablesInScope; //map scope level to variables in scope
+unordered_map<int, vector<Decl*> >variablesInScope; //map scope level to variables in scope
 int scopeLevel = 0; //TODO find how to get scopelevel
+ReportError RE;
+
+void checkDecls(Decl* newDecl)
+{
+    bool duplicate = false;
+    for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
+    {
+        ostringstream oss;
+        ostringstream oss2;
+        oss << *it;
+        oss2 << newDecl;
+        if (oss.str() == oss2.str())
+        {
+            RE.DeclConflict(newDecl, *it);
+            duplicate = true;
+            break;
+        }
+    }
+    if (!duplicate)
+        variablesInScope[scopeLevel].push_back(newDecl);
+}
 
 %}
 
@@ -117,8 +138,14 @@ Program   :    DeclList            {
           ;
 
 
-DeclList  :    DeclList Decl        { ($$=$1)->Append($2); }
-          |    Decl                 { ($$ = new List<Decl*>)->Append($1); }
+DeclList  :    DeclList Decl        { 
+                                    ($$=$1)->Append($2);
+                                    checkDecls($2);
+                                    }
+          |    Decl                 { 
+                                    ($$ = new List<Decl*>)->Append($1);
+                                    checkDecls($1);
+                                    }
           ;
 
 Decl      :    ClassDecl
@@ -132,10 +159,10 @@ VarDecl   :    Variable ';'
  
 Variable  :    Type T_Identifier    { 
                                     $$ = new VarDecl(new Identifier(@2, $2), $1); 
-                                    auto variableList = variablesInScope[scopeLevel];
+                                    /*auto variableList = variablesInScope[scopeLevel];
                                     ostringstream oss;
                                     oss << $1 << ' ' << $2;
-                                    variablesInScope[scopeLevel].push_back(oss.str());
+                                    variablesInScope[scopeLevel].push_back(oss.str());*/
                                     /*
                                     for (int i = 0; i < variablesInScope[scopeLevel].size(); i++)
                                       cout << variablesInScope[scopeLevel][i] << endl;
