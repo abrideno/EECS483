@@ -5,6 +5,8 @@
 #include "ast_decl.h"
 #include "ast_type.h"
 #include "ast_stmt.h"
+
+using namespace std;
         
          
 Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
@@ -18,6 +20,10 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     (type=t)->SetParent(this);
 }
   
+Type* VarDecl::GetType()
+{
+    return type;
+}
 
 ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<Decl*> *m) : Decl(n) {
     // extends can be NULL, impl & mem may be empty lists but cannot be NULL

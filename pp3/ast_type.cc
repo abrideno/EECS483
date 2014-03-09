@@ -13,6 +13,8 @@
  * directly access them and share the built-in types where needed rather that
  * creates lots of copies.
  */
+ 
+using namespace std;
 
 Type *Type::intType    = new Type("int");
 Type *Type::doubleType = new Type("double");

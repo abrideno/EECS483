@@ -36,6 +36,7 @@ class VarDecl : public Decl
     Type *type;
     
   public:
+    Type* GetType();
     VarDecl(Identifier *name, Type *type);
 };
 

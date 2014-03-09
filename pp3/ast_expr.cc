@@ -8,6 +8,7 @@
 #include <string.h>
 #include "errors.h"
 
+using namespace std;
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
     value = val;
@@ -33,6 +34,7 @@ Operator::Operator(yyltype loc, const char *tok) : Node(loc) {
 CompoundExpr::CompoundExpr(Expr *l, Operator *o, Expr *r) 
   : Expr(Join(l->GetLocation(), r->GetLocation())) {
     Assert(l != NULL && o != NULL && r != NULL);
+    
     (op=o)->SetParent(this);
     (left=l)->SetParent(this); 
     (right=r)->SetParent(this);

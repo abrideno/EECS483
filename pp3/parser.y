@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <typeinfo>
 
 using namespace std;
 
@@ -19,16 +20,16 @@ using namespace std;
 
 void yyerror(const char *msg); // standard error-handling routine
 unordered_map<int, vector<Decl*> >variablesInScope; //map scope level to variables in scope
-int scopeLevel = 0; //TODO find how to get scopelevel
 ReportError RE;
 
-void checkDecls(Decl* newDecl)
+void checkConflict(Decl* newDecl)
 {
+    int scopeLevel = 0; //TODO: Find scopeLevel
+    Node * n = newDecl;
     bool duplicate = false;
     for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
     {
-        ostringstream oss;
-        ostringstream oss2;
+        ostringstream oss, oss2;
         oss << *it;
         oss2 << newDecl;
         if (oss.str() == oss2.str())
@@ -40,6 +41,28 @@ void checkDecls(Decl* newDecl)
     }
     if (!duplicate)
         variablesInScope[scopeLevel].push_back(newDecl);
+}
+
+void checkIfDeclared(Identifier * id)
+{
+    int scopeLevel = 0;
+    bool found = false;
+    for (int i = 0; i <= scopeLevel && !found; i++)
+    {
+        for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
+        {
+            ostringstream oss, oss2;
+            oss << *it;
+            oss2 << id;
+            if (oss.str() == oss2.str())
+            {
+                 found = true;
+                 break;
+            }
+        }
+    }
+    if (!found)
+        RE.IdentifierNotDeclared(id, LookingForVariable); //second argument is reasonT
 }
 
 %}
@@ -140,11 +163,11 @@ Program   :    DeclList            {
 
 DeclList  :    DeclList Decl        { 
                                     ($$=$1)->Append($2);
-                                    checkDecls($2);
+                                    //checkDecls($2);
                                     }
           |    Decl                 { 
                                     ($$ = new List<Decl*>)->Append($1);
-                                    checkDecls($1);
+                                    //checkDecls($1);
                                     }
           ;
 
@@ -158,16 +181,8 @@ VarDecl   :    Variable ';'
           ;
  
 Variable  :    Type T_Identifier    { 
-                                    $$ = new VarDecl(new Identifier(@2, $2), $1); 
-                                    /*auto variableList = variablesInScope[scopeLevel];
-                                    ostringstream oss;
-                                    oss << $1 << ' ' << $2;
-                                    variablesInScope[scopeLevel].push_back(oss.str());*/
-                                    /*
-                                    for (int i = 0; i < variablesInScope[scopeLevel].size(); i++)
-                                      cout << variablesInScope[scopeLevel][i] << endl;
-                                    cout << endl;
-                                    */
+                                    $$ = new VarDecl(new Identifier(@2, $2), $1);
+                                    checkConflict($$);
                                     }
           ;
 
@@ -191,7 +206,10 @@ IntfList  :    IntfList FnHeader ';'
           ;
 
 ClassDecl :    T_Class T_Identifier OptExt OptImpl '{' FieldList '}'
-                                    { $$ = new ClassDecl(new Identifier(@2, $2), $3, $4, $6); }
+                                    { 
+                                    $$ = new ClassDecl(new Identifier(@2, $2), $3, $4, $6); 
+                                    checkConflict($$);
+                                    }
           ; 
                 
 OptExt    :    T_Extends T_Identifier    
@@ -233,7 +251,10 @@ FormalList:    FormalList ',' Variable
           |    Variable             { ($$ = new List<VarDecl*>)->Append($1); }
           ;
 
-FnDecl    :    FnHeader StmtBlock   { ($$=$1)->SetFunctionBody($2); }
+FnDecl    :    FnHeader StmtBlock   { 
+                                    ($$=$1)->SetFunctionBody($2); 
+                                    checkConflict($$);
+                                    }
           ;
 
 StmtBlock :    '{' VarDecls StmtList '}' 
@@ -269,7 +290,9 @@ Stmt      :    OptExpr ';'          { $$ = $1; }
           |    T_Break ';'          { $$ = new BreakStmt(@1); }
           ;
 
-LValue    :    T_Identifier          { $$ = new FieldAccess(NULL, new Identifier(@1, $1)); }
+LValue    :    T_Identifier          { 
+                                     $$ = new FieldAccess(NULL, new Identifier(@1, $1));
+                                     }
           |    Expr '.' T_Identifier { $$ = new FieldAccess($1, new Identifier(@3, $3)); } 
           |    Expr '[' Expr ']'     { $$ = new ArrayAccess(Join(@1, @4), $1, $3); }
           ;
@@ -288,8 +311,12 @@ Expr      :    LValue               { $$ = $1; }
           |    Call
           |    Constant
           |    LValue '=' Expr      { $$ = new AssignExpr($1, new Operator(@2,"="), $3); }
-          |    Expr '+' Expr        { $$ = new ArithmeticExpr($1, new Operator(@2, "+"), $3); }
-          |    Expr '-' Expr        { $$ = new ArithmeticExpr($1, new Operator(@2, "-"), $3); }
+          |    Expr '+' Expr        { 
+                                    $$ = new ArithmeticExpr($1, new Operator(@2, "+"), $3);
+                                    }
+          |    Expr '-' Expr        { 
+                                    $$ = new ArithmeticExpr($1, new Operator(@2, "-"), $3); 
+                                    }
           |    Expr '/' Expr        { $$ = new ArithmeticExpr($1, new Operator(@2,"/"), $3); }
           |    Expr '*' Expr        { $$ = new ArithmeticExpr($1, new Operator(@2,"*"), $3); }
           |    Expr '%' Expr        { $$ = new ArithmeticExpr($1, new Operator(@2,"%"), $3); }
@@ -317,7 +344,9 @@ Expr      :    LValue               { $$ = $1; }
           |    T_This               { $$ = new This(@1); }
           ;
 
-Constant  :    T_IntConstant        { $$ = new IntConstant(@1,$1); }
+Constant  :    T_IntConstant        { 
+                                    $$ = new IntConstant(@1,$1); 
+                                    }
           |    T_BoolConstant       { $$ = new BoolConstant(@1,$1); }
           |    T_DoubleConstant     { $$ = new DoubleConstant(@1,$1); }
           |    T_StringConstant     { $$ = new StringConstant(@1,$1); }
