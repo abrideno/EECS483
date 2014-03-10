@@ -33,7 +33,7 @@ class Expr : public Stmt
   public:
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
-    virtual Type* CheckResultType() { return Type::errorType; }
+    virtual Type* CheckResultType() { return type; }
 };
 
 /* This node type is used for those places where an expression is optional.
@@ -109,7 +109,7 @@ class CompoundExpr : public Expr
     
     
   public:
-    virtual Type* CheckResultType() { return Type::errorType; }
+    virtual Type* CheckResultType() { return type; }
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
     CompoundExpr(Operator *op, Expr *rhs);             // for unary
 };
@@ -132,7 +132,8 @@ class RelationalExpr : public CompoundExpr
 class EqualityExpr : public CompoundExpr 
 {
   public:
-    EqualityExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
+    Type* CheckResultType();
+    EqualityExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { CheckResultType(); }
     const char *GetPrintNameForNode() { return "EqualityExpr"; }
 };
 

@@ -121,6 +121,32 @@ Type* RelationalExpr::CheckResultType() //op == (< > <= >=)
 
 Type* AssignExpr::CheckResultType() //op == '='
 {
+    Assert(left && right);
+    Type* R = right->CheckResultType();
+    Type* L = left->CheckResultType();
+    if (L == Type::errorType || R == Type::errorType)
+    {
+        cout << L << ' ' << op << ' ' << R << endl;
+        type = Type::errorType;
+        return type;
+    }
+    else if (L != R)
+    {
+        cout << L << ' ' << op << ' ' << R << endl;
+        ReportError::IncompatibleOperands(op, L, R);
+        type = Type::errorType;
+        return type;
+    }
+    else
+    {
+        cout << L << ' ' << op << ' ' << R << endl;
+        type = L;
+        return type;
+    }
+}
+
+Type* EqualityExpr::CheckResultType() //op == (== !=)
+{
     if (type)
         return type;
     Assert(left && right);
@@ -139,12 +165,11 @@ Type* AssignExpr::CheckResultType() //op == '='
     }
     else
     {
-        type = L;
+        cout << L << ' ' << op << ' ' << R << endl;
+        type = Type::boolType;
         return type;
     }
 }
-
-
 
 Operator::Operator(yyltype loc, const char *tok) : Node(loc) {
     Assert(tok != NULL);
