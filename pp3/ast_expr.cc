@@ -74,7 +74,12 @@ Type* ArithmeticExpr::CheckResultType()
     }
     else //op == '-'
     {
-        if (R != Type::intType && R != Type::doubleType)
+        if (R == Type::errorType)
+        {
+            type = Type::errorType;
+            return type;
+        }
+        else if (R != Type::intType && R != Type::doubleType)
         {
             ReportError::IncompatibleOperand(op, R);
             type = Type::errorType;
@@ -126,25 +131,23 @@ Type* AssignExpr::CheckResultType() //op == '='
     Type* L = left->CheckResultType();
     if (L == Type::errorType || R == Type::errorType)
     {
-        cout << L << ' ' << op << ' ' << R << endl;
         type = Type::errorType;
         return type;
     }
     else if (L != R)
     {
-        cout << L << ' ' << op << ' ' << R << endl;
         ReportError::IncompatibleOperands(op, L, R);
         type = Type::errorType;
         return type;
     }
     else
     {
-        cout << L << ' ' << op << ' ' << R << endl;
         type = L;
         return type;
     }
 }
 
+//XXX the two operands may also be two objects or an object and null
 Type* EqualityExpr::CheckResultType() //op == (== !=)
 {
     if (type)
@@ -165,9 +168,55 @@ Type* EqualityExpr::CheckResultType() //op == (== !=)
     }
     else
     {
-        cout << L << ' ' << op << ' ' << R << endl;
         type = Type::boolType;
         return type;
+    }
+}
+
+Type* LogicalExpr::CheckResultType()
+{
+    if (type)
+        return type;
+    Assert(right);
+    Type* R = right->CheckResultType();
+    if (left) //op == (&& ||)
+    {
+        Type* L = left->CheckResultType();
+        if (L == Type::errorType || R == Type::errorType)
+        {
+            type = Type::errorType;
+            return type;
+        }            
+        else if (L != Type::boolType || R != Type::boolType)
+        {
+            ReportError::IncompatibleOperands(op, L, R);
+            type = Type::errorType;
+            return type;
+        }
+        else
+        {
+            type = Type::boolType;
+            return type;   
+        }
+    }
+    else //op == '!'
+    {
+        if (R == Type::errorType)
+        {
+            type = Type::errorType;
+            return type;
+        }
+        else if (R != Type::boolType)
+        {
+            ReportError::IncompatibleOperand(op, R);
+            type = Type::errorType;
+            return type;
+        }
+        else
+        {
+            type = Type::boolType;
+            return type;
+        }
     }
 }
 

@@ -140,8 +140,9 @@ class EqualityExpr : public CompoundExpr
 class LogicalExpr : public CompoundExpr 
 {
   public:
-    LogicalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
-    LogicalExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
+    Type* CheckResultType();
+    LogicalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { CheckResultType(); }
+    LogicalExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) { CheckResultType();}
     const char *GetPrintNameForNode() { return "LogicalExpr"; }
 };
 
