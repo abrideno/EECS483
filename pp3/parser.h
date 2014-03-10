@@ -17,6 +17,12 @@
 #include "ast_decl.h"
 #include "ast_expr.h"
 #include "ast_stmt.h"
+#include <unordered_map> 
+#include <vector>
+
+using namespace std;
+
+
 
  
 // Next, we want to get the exported defines for the token codes and
@@ -29,7 +35,7 @@
 // Managing C headers can be such a mess! 
 
 #ifndef YYBISON                 
-#include "y.tab.h"              
+#include "y.tab.h"           
 #endif
 
 int yyparse();              // Defined in the generated y.tab.c file

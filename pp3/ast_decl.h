@@ -16,6 +16,12 @@
 #include "ast.h"
 #include "ast_type.h"
 #include "list.h"
+#include <unordered_map>
+#include <vector>
+#include <utility>
+
+using namespace std;
+
 
 class Identifier;
 class Stmt;
@@ -26,6 +32,7 @@ class Decl : public Node
     Identifier *id;
   
   public:
+    virtual Type* GetType() = 0;
     Decl(Identifier *name);
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
 };
@@ -36,7 +43,7 @@ class VarDecl : public Decl
     Type *type;
     
   public:
-    Type* GetType();
+    Type* GetType() { return type; }
     VarDecl(Identifier *name, Type *type);
 };
 
@@ -46,8 +53,10 @@ class ClassDecl : public Decl
     List<Decl*> *members;
     NamedType *extends;
     List<NamedType*> *implements;
-
+    Type* type;
+    
   public:
+    Type* GetType() { return type; }
     ClassDecl(Identifier *name, NamedType *extends, 
               List<NamedType*> *implements, List<Decl*> *members);
 };
@@ -56,8 +65,9 @@ class InterfaceDecl : public Decl
 {
   protected:
     List<Decl*> *members;
-    
+    Type* type;
   public:
+    Type* GetType() { return type; }
     InterfaceDecl(Identifier *name, List<Decl*> *members);
 };
 
@@ -69,8 +79,12 @@ class FnDecl : public Decl
     Stmt *body;
     
   public:
+    Type* GetType() { return returnType; }
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
 };
+
+
+extern unordered_map<int, vector<Decl*> >variablesInScope; //map scope level to variables in scope
 
 #endif

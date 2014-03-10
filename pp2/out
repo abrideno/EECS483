@@ -1,6 +1,1 @@
-
-*** Error line 12.
-	switch (n) {
-        ^^^^^^
-*** syntax error
-
+./test: line 20: ./dcc: No such file or directory

@@ -17,10 +17,9 @@
 using namespace std;
 
 
+unordered_map<int, vector<Decl*> >variablesInScope; //map scope level to variables in scope
 
 void yyerror(const char *msg); // standard error-handling routine
-unordered_map<int, vector<Decl*> >variablesInScope; //map scope level to variables in scope
-ReportError RE;
 
 void checkConflict(Decl* newDecl)
 {
@@ -34,7 +33,7 @@ void checkConflict(Decl* newDecl)
         oss2 << newDecl;
         if (oss.str() == oss2.str())
         {
-            RE.DeclConflict(newDecl, *it);
+            ReportError::DeclConflict(newDecl, *it);
             duplicate = true;
             break;
         }
@@ -62,7 +61,7 @@ void checkIfDeclared(Identifier * id)
         }
     }
     if (!found)
-        RE.IdentifierNotDeclared(id, LookingForVariable); //second argument is reasonT
+        ReportError::IdentifierNotDeclared(id, LookingForVariable); //second argument is reasonT
 }
 
 %}

@@ -15,6 +15,7 @@
 
 #include "ast.h"
 #include "ast_stmt.h"
+#include "ast_type.h"
 #include "list.h"
 
 class NamedType; // for new
@@ -23,9 +24,11 @@ class Type; // for NewArray
 
 class Expr : public Stmt 
 {
+
   public:
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
+    virtual Type* CheckResultType() { return Type::errorType; }
 };
 
 /* This node type is used for those places where an expression is optional.
@@ -42,6 +45,7 @@ class IntConstant : public Expr
     int value;
   
   public:
+    Type* CheckResultType();
     IntConstant(yyltype loc, int val);
 };
 
@@ -51,6 +55,7 @@ class DoubleConstant : public Expr
     double value;
     
   public:
+    Type* CheckResultType();
     DoubleConstant(yyltype loc, double val);
 };
 
@@ -60,6 +65,7 @@ class BoolConstant : public Expr
     bool value;
     
   public:
+    Type* CheckResultType();
     BoolConstant(yyltype loc, bool val);
 };
 
@@ -69,12 +75,14 @@ class StringConstant : public Expr
     char *value;
     
   public:
+    Type* CheckResultType();
     StringConstant(yyltype loc, const char *val);
 };
 
 class NullConstant: public Expr 
 {
   public: 
+    Type* CheckResultType();
     NullConstant(yyltype loc) : Expr(loc) {}
 };
 
@@ -94,7 +102,9 @@ class CompoundExpr : public Expr
     Operator *op;
     Expr *left, *right; // left will be NULL if unary
     
+    
   public:
+    Type* CheckResultType();
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
     CompoundExpr(Operator *op, Expr *rhs);             // for unary
 };
@@ -137,6 +147,7 @@ class AssignExpr : public CompoundExpr
 class LValue : public Expr 
 {
   public:
+    Type * CheckResultType() { return Type::intType; }
     LValue(yyltype loc) : Expr(loc) {}
 };
 
@@ -167,6 +178,7 @@ class FieldAccess : public LValue
     Identifier *field;
     
   public:
+    Type* CheckResultType();
     FieldAccess(Expr *base, Identifier *field); //ok to pass NULL base
 };
 

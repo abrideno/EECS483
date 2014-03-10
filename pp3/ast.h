@@ -51,10 +51,8 @@ class Node
 
 class Identifier : public Node 
 {
-  protected:
-    char *name;
-    
   public:
+    char *name;    
     Identifier(yyltype loc, const char *name);
     friend std::ostream& operator<<(std::ostream& out, Identifier *id) { return out << id->name; }
 };
