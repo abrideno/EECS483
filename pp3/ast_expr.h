@@ -109,7 +109,7 @@ class CompoundExpr : public Expr
     
     
   public:
-    Type* CheckResultType();
+    virtual Type* CheckResultType() { return Type::errorType; }
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
     CompoundExpr(Operator *op, Expr *rhs);             // for unary
 };
@@ -117,14 +117,16 @@ class CompoundExpr : public Expr
 class ArithmeticExpr : public CompoundExpr 
 {
   public:
-    ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { }
-    ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) { }
+    Type* CheckResultType();
+    ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { CheckResultType(); }
+    ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) { CheckResultType(); }
 };
 
 class RelationalExpr : public CompoundExpr 
 {
   public:
-    RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
+    Type* CheckResultType();
+    RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { CheckResultType(); }
 };
 
 class EqualityExpr : public CompoundExpr 
@@ -145,7 +147,8 @@ class LogicalExpr : public CompoundExpr
 class AssignExpr : public CompoundExpr 
 {
   public:
-    AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
+    Type* CheckResultType();
+    AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { CheckResultType(); }
     const char *GetPrintNameForNode() { return "AssignExpr"; }
 };
 

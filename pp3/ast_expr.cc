@@ -40,14 +40,15 @@ NullConstant::NullConstant(yyltype loc) : Expr(loc) {
     type = Type::nullType;
 }
 
-Type* CompoundExpr::CheckResultType()
+Type* ArithmeticExpr::CheckResultType()
 {
     if (type)
         return type;
-    Type* L = left->CheckResultType();
+    Assert(right);
     Type* R = right->CheckResultType();
-    if (left)
+    if (left) //op == (+ - * / %)
     {
+        Type* L = left->CheckResultType();
         if (L == Type::errorType || R == Type::errorType)
         {
             type = Type::errorType;
@@ -71,11 +72,79 @@ Type* CompoundExpr::CheckResultType()
             return type;   
         }
     }
-    else
+    else //op == '-'
     {
-        return right->CheckResultType();
+        if (R != Type::intType && R != Type::doubleType)
+        {
+            ReportError::IncompatibleOperand(op, R);
+            type = Type::errorType;
+            return type;
+        }
+        else
+        {
+            type = R;
+            return type;
+        }
     }
 }
+
+Type* RelationalExpr::CheckResultType() //op == (< > <= >=)
+{
+    if (type)
+        return type;
+    Assert(left && right);
+    Type* R = right->CheckResultType();
+    Type* L = left->CheckResultType();
+    if (L == Type::errorType || R == Type::errorType)
+    {
+        type = Type::errorType;
+        return type;
+    }            
+    else if (L != R)
+    {
+        ReportError::IncompatibleOperands(op, L, R);
+        type = Type::errorType;
+        return type;
+    }
+    else if ((L != Type::intType && L != Type::doubleType) || (R != Type::intType && R != Type::doubleType))
+    {
+        ReportError::IncompatibleOperands(op, L, R);
+        type = Type::errorType;
+        return type;
+    }
+    else
+    {
+        type = Type::boolType;
+        return type;   
+    }
+}
+
+Type* AssignExpr::CheckResultType() //op == '='
+{
+    if (type)
+        return type;
+    Assert(left && right);
+    Type* R = right->CheckResultType();
+    Type* L = left->CheckResultType();
+    if (L == Type::errorType || R == Type::errorType)
+    {
+        type = Type::errorType;
+        return type;
+    }
+    else if (L != R)
+    {
+        ReportError::IncompatibleOperands(op, L, R);
+        type = Type::errorType;
+        return type;
+    }
+    else
+    {
+        type = L;
+        return type;
+    }
+}
+
+
 
 Operator::Operator(yyltype loc, const char *tok) : Node(loc) {
     Assert(tok != NULL);
@@ -88,7 +157,6 @@ CompoundExpr::CompoundExpr(Expr *l, Operator *o, Expr *r)
     (op=o)->SetParent(this);
     (left=l)->SetParent(this); 
     (right=r)->SetParent(this);
-    CheckResultType();
 }
 
 CompoundExpr::CompoundExpr(Operator *o, Expr *r) 
