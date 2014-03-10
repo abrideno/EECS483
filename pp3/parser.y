@@ -19,6 +19,16 @@ using namespace std;
 
 unordered_map<int, vector<Decl*> >variablesInScope; //map scope level to variables in scope
 
+/*int curNodeID = 0, maxNodeID = 0;
+unordered_map<int, variablesInScope*> IDToScope;
+unordered_map<string, vector<Decl*> > classToScope;
+
+struct variablesInScope
+{
+    vector<Decl*> decls;
+    variablesInScope * parent;
+}*/
+
 void yyerror(const char *msg); // standard error-handling routine
 
 void checkConflict(Decl* newDecl)
@@ -309,16 +319,24 @@ OptExpr   :    Expr                 { $$ = $1; }
 Expr      :    LValue               { $$ = $1; }
           |    Call
           |    Constant
-          |    LValue '=' Expr      { $$ = new AssignExpr($1, new Operator(@2,"="), $3); }
+          |    LValue '=' Expr      { $$ = new AssignExpr($1, new Operator(@2,"="), $3); 
+                                    
+                                    }
           |    Expr '+' Expr        { 
                                     $$ = new ArithmeticExpr($1, new Operator(@2, "+"), $3);
                                     }
           |    Expr '-' Expr        { 
                                     $$ = new ArithmeticExpr($1, new Operator(@2, "-"), $3); 
                                     }
-          |    Expr '/' Expr        { $$ = new ArithmeticExpr($1, new Operator(@2,"/"), $3); }
-          |    Expr '*' Expr        { $$ = new ArithmeticExpr($1, new Operator(@2,"*"), $3); }
-          |    Expr '%' Expr        { $$ = new ArithmeticExpr($1, new Operator(@2,"%"), $3); }
+          |    Expr '/' Expr        { 
+                                    $$ = new ArithmeticExpr($1, new Operator(@2,"/"), $3); 
+                                    }
+          |    Expr '*' Expr        { 
+                                    $$ = new ArithmeticExpr($1, new Operator(@2,"*"), $3);
+                                    }
+          |    Expr '%' Expr        { 
+                                    $$ = new ArithmeticExpr($1, new Operator(@2,"%"), $3);
+                                    }
           |    Expr T_Equal Expr    { $$ = new EqualityExpr($1, new Operator(@2,"=="), $3); }
           |    Expr T_NotEqual Expr { $$ = new EqualityExpr($1, new Operator(@2,"!="), $3); }
           |    Expr '<' Expr        { $$ = new RelationalExpr($1, new Operator(@2,"<"), $3); }
@@ -331,7 +349,9 @@ Expr      :    LValue               { $$ = $1; }
           |    Expr T_Or Expr       { $$ = new LogicalExpr($1, new Operator(@2,"||"), $3); }
           |    '(' Expr ')'         { $$ = $2; }
           |    '-' Expr  %prec T_UnaryMinus 
-                                    { $$ = new ArithmeticExpr(new Operator(@1,"-"), $2); }
+                                    { 
+                                    $$ = new ArithmeticExpr(new Operator(@1,"-"), $2); 
+                                    }
           |    '!' Expr             { $$ = new LogicalExpr(new Operator(@1,"!"), $2); }
           |    T_ReadInteger '(' ')'   
                                     { $$ = new ReadIntegerExpr(Join(@1,@3)); }

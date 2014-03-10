@@ -18,12 +18,17 @@
 #include "ast_type.h"
 #include "list.h"
 
+
+using namespace std;
+
 class NamedType; // for new
 class Type; // for NewArray
 
 
 class Expr : public Stmt 
 {
+  protected:
+    Type * type;
 
   public:
     Expr(yyltype loc) : Stmt(loc) {}
@@ -45,7 +50,7 @@ class IntConstant : public Expr
     int value;
   
   public:
-    Type* CheckResultType();
+    Type* CheckResultType() { return type; }
     IntConstant(yyltype loc, int val);
 };
 
@@ -55,7 +60,7 @@ class DoubleConstant : public Expr
     double value;
     
   public:
-    Type* CheckResultType();
+    Type* CheckResultType() { return type; }
     DoubleConstant(yyltype loc, double val);
 };
 
@@ -65,7 +70,7 @@ class BoolConstant : public Expr
     bool value;
     
   public:
-    Type* CheckResultType();
+    Type* CheckResultType() { return type; }
     BoolConstant(yyltype loc, bool val);
 };
 
@@ -75,15 +80,15 @@ class StringConstant : public Expr
     char *value;
     
   public:
-    Type* CheckResultType();
+    Type* CheckResultType() { return type; }
     StringConstant(yyltype loc, const char *val);
 };
 
 class NullConstant: public Expr 
 {
   public: 
-    Type* CheckResultType();
-    NullConstant(yyltype loc) : Expr(loc) {}
+    Type* CheckResultType() { return type; }
+    NullConstant(yyltype loc);
 };
 
 class Operator : public Node 
@@ -112,8 +117,8 @@ class CompoundExpr : public Expr
 class ArithmeticExpr : public CompoundExpr 
 {
   public:
-    ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
-    ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
+    ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { }
+    ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) { }
 };
 
 class RelationalExpr : public CompoundExpr 

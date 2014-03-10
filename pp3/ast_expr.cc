@@ -17,61 +17,59 @@ using namespace std;
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
     value = val;
-    
-}
-
-Type* IntConstant::CheckResultType()
-{
-    return Type::intType;
+    type = Type::intType;
 }
 
 DoubleConstant::DoubleConstant(yyltype loc, double val) : Expr(loc) {
     value = val;
+    type = Type::doubleType;
 }
-
-Type* DoubleConstant::CheckResultType()
-{
-    return Type::doubleType;
-}
-
 
 BoolConstant::BoolConstant(yyltype loc, bool val) : Expr(loc) {
     value = val;
-}
-
-Type* BoolConstant::CheckResultType()
-{
-    return Type::boolType;
+    type = Type::boolType;
 }
 
 StringConstant::StringConstant(yyltype loc, const char *val) : Expr(loc) {
     Assert(val != NULL);
     value = strdup(val);
+    type = Type::stringType;
 }
 
-Type* StringConstant::CheckResultType()
-{
-    return Type::stringType;
-}
-
-Type* NullConstant::CheckResultType()
-{
-    return Type::nullType;
+NullConstant::NullConstant(yyltype loc) : Expr(loc) {
+    type = Type::nullType;
 }
 
 Type* CompoundExpr::CheckResultType()
 {
+    if (type)
+        return type;
+    Type* L = left->CheckResultType();
+    Type* R = right->CheckResultType();
     if (left)
     {
-        if (left->CheckResultType() == Type::errorType || right->CheckResultType() == Type::errorType)
-            return Type::errorType;
-        else if (left->CheckResultType() != right->CheckResultType())
+        if (L == Type::errorType || R == Type::errorType)
         {
-            ReportError::IncompatibleOperands(op, left->CheckResultType(), right->CheckResultType());
-            return Type::errorType;
+            type = Type::errorType;
+            return type;
+        }            
+        else if (L != R)
+        {
+            ReportError::IncompatibleOperands(op, L, R);
+            type = Type::errorType;
+            return type;
+        }
+        else if ((L != Type::intType && L != Type::doubleType) || (R != Type::intType && R != Type::doubleType))
+        {
+            ReportError::IncompatibleOperands(op, L, R);
+            type = Type::errorType;
+            return type;
         }
         else
-            return left->CheckResultType();
+        {
+            type = L;
+            return type;   
+        }
     }
     else
     {
@@ -83,6 +81,7 @@ Operator::Operator(yyltype loc, const char *tok) : Node(loc) {
     Assert(tok != NULL);
     strncpy(tokenString, tok, sizeof(tokenString));
 }
+
 CompoundExpr::CompoundExpr(Expr *l, Operator *o, Expr *r) 
   : Expr(Join(l->GetLocation(), r->GetLocation())) {
     Assert(l != NULL && o != NULL && r != NULL);
@@ -122,6 +121,7 @@ Type* FieldAccess::CheckResultType()
             }
         }
     }
+    ReportError::IdentifierNotDeclared(field, LookingForVariable);
     return Type::errorType;
 }
      
