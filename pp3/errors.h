@@ -82,7 +82,7 @@ class ReportError
  // Errors used by semantic analyzer for array acesss & NewArray
   static void BracketsOnNonArray(Expr *baseExpr); 
   static void SubscriptNotInteger(Expr *subscriptExpr);
-  static void NewArraySizeNotInteger(Expr *sizeExpr);
+  static void NewArraySizeNotInteger(Expr *sizeExpr); //XXX done
 
 
   // Errors used by semantic analyzer for function/method calls
@@ -92,7 +92,7 @@ class ReportError
 
 
   // Errors used by semantic analyzer for field access
-  static void FieldNotFoundInBase(Identifier *field, Type *base); //XXX working on
+  static void FieldNotFoundInBase(Identifier *field, Type *base);
   static void InaccessibleField(Identifier *field, Type *base);
 
 

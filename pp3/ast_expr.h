@@ -213,6 +213,7 @@ class NewExpr : public Expr
     NamedType *cType;
     
   public:
+    Type* CheckResultType() { return type; }
     NewExpr(yyltype loc, NamedType *clsType);
 };
 
@@ -223,6 +224,7 @@ class NewArrayExpr : public Expr
     Type *elemType;
     
   public:
+    Type* CheckResultType() { return type; }
     NewArrayExpr(yyltype loc, Expr *sizeExpr, Type *elemType);
 };
 

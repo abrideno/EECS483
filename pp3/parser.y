@@ -39,21 +39,25 @@ void checkConflict(yyltype loc, Decl* newDecl)
     if (t.str() != "int" && t.str() != "double" && t.str() != "void" && t.str() != "bool"
          && t.str() != "null" && t.str() != "string" && t.str() != "error" && t.str() != "class")
     {
-        bool found = false;
-        for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
+        string s = t.str();        
+        if (s[s.length()-1] != ']') //for arrays
         {
-            ostringstream oss, oss2;
-            oss << *it;
-            if (oss.str() == t.str())
+            bool found = false;
+            for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
             {
-                found = true;
-                break;
+                ostringstream oss, oss2;
+                oss << *it;
+                if (oss.str() == t.str())
+                {
+                    found = true;
+                    break;
+                }
             }
-        }
-        if (!found)
-        {
-            ReportError::IdentifierNotDeclared(new Identifier(loc, t.str().c_str()), LookingForClass);
-            return;
+            if (!found)
+            {
+                ReportError::IdentifierNotDeclared(new Identifier(loc, t.str().c_str()), LookingForClass);
+                return;
+            }
         }
     }
     for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)

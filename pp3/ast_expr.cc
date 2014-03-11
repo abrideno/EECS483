@@ -134,7 +134,7 @@ Type* AssignExpr::CheckResultType() //op == '='
         type = Type::errorType;
         return type;
     }
-    else if (L != R)
+    if (L != R)
     {
         ReportError::IncompatibleOperands(op, L, R);
         type = Type::errorType;
@@ -330,10 +330,13 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)
 }
 
 
+
 NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) { 
   Assert(c != NULL);
   (cType=c)->SetParent(this);
+  type = cType;
 }
+
 
 
 
@@ -342,6 +345,18 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     Assert(sz != NULL && et != NULL);
     (size=sz)->SetParent(this); 
     (elemType=et)->SetParent(this);
+    
+    Type* t = sz->CheckResultType();
+    if (t != Type::intType)
+    {
+        ReportError::NewArraySizeNotInteger(sz);
+        type = Type::errorType;
+        return;
+    }
+    ostringstream oss;
+    oss << et;
+    oss << "[]";
+    type = new Type(oss.str().c_str());
 }
 
        
