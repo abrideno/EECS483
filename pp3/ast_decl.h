@@ -30,9 +30,11 @@ class Decl : public Node
 {
   protected:
     Identifier *id;
+    Type* type;
   
   public:
     virtual Type* GetType() = 0;
+    virtual int numArgs() { return 0; }
     Decl(Identifier *name);
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
 };
@@ -40,7 +42,6 @@ class Decl : public Node
 class VarDecl : public Decl 
 {
   protected:
-    Type *type;
     
   public:
     Type* GetType() { return type; }
@@ -53,7 +54,6 @@ class ClassDecl : public Decl
     List<Decl*> *members;
     NamedType *extends;
     List<NamedType*> *implements;
-    Type* type;
     
   public:
     Type* GetType() { return type; }
@@ -65,7 +65,7 @@ class InterfaceDecl : public Decl
 {
   protected:
     List<Decl*> *members;
-    Type* type;
+    
   public:
     Type* GetType() { return type; }
     InterfaceDecl(Identifier *name, List<Decl*> *members);
@@ -80,11 +80,13 @@ class FnDecl : public Decl
     
   public:
     Type* GetType() { return returnType; }
+    int numArgs() { return formals->NumElements(); }
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
 };
 
 
 extern unordered_map<int, vector<Decl*> >variablesInScope; //map scope level to variables in scope
+extern unordered_map<int, vector<Decl*> >functionsInScope;
 
 #endif

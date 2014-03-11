@@ -64,18 +64,18 @@ class ReportError
 
   
   // Errors used by semantic analyzer for declarations
-  static void DeclConflict(Decl *newDecl, Decl *prevDecl);
+  static void DeclConflict(Decl *newDecl, Decl *prevDecl); // XXX need scope
   static void OverrideMismatch(Decl *fnDecl);
   static void InterfaceNotImplemented(Decl *classDecl, Type *intfType);
 
 
   // Errors used by semantic analyzer for identifiers
-  static void IdentifierNotDeclared(Identifier *ident, reasonT whyNeeded);
+  static void IdentifierNotDeclared(Identifier *ident, reasonT whyNeeded); // XXX need scope
 
   
   // Errors used by semantic analyzer for expressions
-  static void IncompatibleOperand(Operator *op, Type *rhs); // unary
-  static void IncompatibleOperands(Operator *op, Type *lhs, Type *rhs); // binary
+  static void IncompatibleOperand(Operator *op, Type *rhs); // unary XXX done
+  static void IncompatibleOperands(Operator *op, Type *lhs, Type *rhs); // binary XXX done
   static void ThisOutsideClassScope(This *th);
 
   
@@ -86,7 +86,7 @@ class ReportError
 
 
   // Errors used by semantic analyzer for function/method calls
-  static void NumArgsMismatch(Identifier *fnIdentifier, int numExpected, int numGiven);
+  static void NumArgsMismatch(Identifier *fnIdentifier, int numExpected, int numGiven); //XXX working on
   static void ArgMismatch(Expr *arg, int argIndex, Type *given, Type *expected);
   static void PrintArgMismatch(Expr *arg, int argIndex, Type *given);
 

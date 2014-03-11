@@ -34,8 +34,6 @@ void yyerror(const char *msg); // standard error-handling routine
 void checkConflict(Decl* newDecl)
 {
     int scopeLevel = 0; //TODO: Find scopeLevel
-    Node * n = newDecl;
-    bool duplicate = false;
     for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
     {
         ostringstream oss, oss2;
@@ -44,12 +42,10 @@ void checkConflict(Decl* newDecl)
         if (oss.str() == oss2.str())
         {
             ReportError::DeclConflict(newDecl, *it);
-            duplicate = true;
-            break;
+            return;
         }
     }
-    if (!duplicate)
-        variablesInScope[scopeLevel].push_back(newDecl);
+    variablesInScope[scopeLevel].push_back(newDecl);
 }
 
 void checkIfDeclared(Identifier * id)

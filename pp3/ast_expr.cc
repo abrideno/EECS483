@@ -277,12 +277,41 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
 
 
 
-Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)  {
+Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)  
+{
     Assert(f != NULL && a != NULL); // b can be be NULL (just means no explicit base)
     base = b;
     if (base) base->SetParent(this);
     (field=f)->SetParent(this);
     (actuals=a)->SetParentAll(this);
+    
+    
+    int scopeLevel = 0; //TODO: seriously, scope level
+    bool found = false;
+    int numArgs;
+    for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
+    {
+        ostringstream oss, oss2;
+        oss << *it;
+        oss2 << f;
+        if (oss.str() == oss2.str())
+        {
+            found = true;
+            numArgs = (*it)->numArgs();
+            break;
+        }
+    }
+    if (!found)
+    {
+        ReportError::IdentifierNotDeclared(f, LookingForFunction);
+        return;
+    }
+    if (a->NumElements() != numArgs)
+    {
+        ReportError::NumArgsMismatch(f, numArgs, a->NumElements());
+        return;
+    }
+    
 }
 
 
