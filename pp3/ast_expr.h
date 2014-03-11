@@ -237,6 +237,5 @@ class ReadLineExpr : public Expr
   public:
     ReadLineExpr(yyltype loc) : Expr (loc) {}
 };
-
     
 #endif

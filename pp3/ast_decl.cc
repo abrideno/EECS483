@@ -46,6 +46,12 @@ FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
     body = NULL;
 }
 
+Type* FnDecl::argType(int n)
+{
+    VarDecl* decl = formals->Nth(n);
+    return decl->GetType();
+}
+
 void FnDecl::SetFunctionBody(Stmt *b) { 
     (body=b)->SetParent(this);
 }

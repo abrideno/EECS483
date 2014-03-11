@@ -86,13 +86,13 @@ class ReportError
 
 
   // Errors used by semantic analyzer for function/method calls
-  static void NumArgsMismatch(Identifier *fnIdentifier, int numExpected, int numGiven); //XXX working on
-  static void ArgMismatch(Expr *arg, int argIndex, Type *given, Type *expected);
+  static void NumArgsMismatch(Identifier *fnIdentifier, int numExpected, int numGiven); //XXX done
+  static void ArgMismatch(Expr *arg, int argIndex, Type *given, Type *expected); //XXX done
   static void PrintArgMismatch(Expr *arg, int argIndex, Type *given);
 
 
   // Errors used by semantic analyzer for field access
-  static void FieldNotFoundInBase(Identifier *field, Type *base);
+  static void FieldNotFoundInBase(Identifier *field, Type *base); //XXX working on
   static void InaccessibleField(Identifier *field, Type *base);
 
 

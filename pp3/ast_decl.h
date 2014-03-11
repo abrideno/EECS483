@@ -33,16 +33,16 @@ class Decl : public Node
     Type* type;
   
   public:
+    Decl(Identifier *name);
+    
     virtual Type* GetType() = 0;
     virtual int numArgs() { return 0; }
-    Decl(Identifier *name);
+    virtual Type* argType(int n) { return type; }
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
 };
 
 class VarDecl : public Decl 
 {
-  protected:
-    
   public:
     Type* GetType() { return type; }
     VarDecl(Identifier *name, Type *type);
@@ -81,6 +81,7 @@ class FnDecl : public Decl
   public:
     Type* GetType() { return returnType; }
     int numArgs() { return formals->NumElements(); }
+    Type* argType(int n);
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
 };

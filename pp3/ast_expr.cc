@@ -289,7 +289,8 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)
     int scopeLevel = 0; //TODO: seriously, scope level
     bool found = false;
     int numArgs;
-    for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
+    auto it = variablesInScope[scopeLevel].begin();
+    while (it != variablesInScope[scopeLevel].end())
     {
         ostringstream oss, oss2;
         oss << *it;
@@ -300,6 +301,7 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)
             numArgs = (*it)->numArgs();
             break;
         }
+        it++;
     }
     if (!found)
     {
@@ -310,6 +312,15 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)
     {
         ReportError::NumArgsMismatch(f, numArgs, a->NumElements());
         return;
+    }
+    for (int i = 0; i < a->NumElements(); i++)
+    {
+        Type* type1 = a->Nth(i)->CheckResultType();
+        Type* type2 = (*it)->argType(i);
+        if (type1 != type2)
+        {
+            ReportError::ArgMismatch(a->Nth(i), i+1, type1, type2);
+        }
     }
     
 }
