@@ -31,9 +31,31 @@ struct variablesInScope
 
 void yyerror(const char *msg); // standard error-handling routine
 
-void checkConflict(Decl* newDecl)
+void checkConflict(yyltype loc, Decl* newDecl)
 {
     int scopeLevel = 0; //TODO: Find scopeLevel
+    ostringstream t;
+    t << newDecl->GetType();
+    if (t.str() != "int" && t.str() != "double" && t.str() != "void" && t.str() != "bool"
+         && t.str() != "null" && t.str() != "string" && t.str() != "error" && t.str() != "class")
+    {
+        bool found = false;
+        for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
+        {
+            ostringstream oss, oss2;
+            oss << *it;
+            if (oss.str() == t.str())
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            ReportError::IdentifierNotDeclared(new Identifier(loc, t.str().c_str()), LookingForClass);
+            return;
+        }
+    }
     for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
     {
         ostringstream oss, oss2;
@@ -47,7 +69,7 @@ void checkConflict(Decl* newDecl)
     }
     variablesInScope[scopeLevel].push_back(newDecl);
 }
-
+/*
 void checkIfDeclared(Identifier * id)
 {
     int scopeLevel = 0;
@@ -69,7 +91,7 @@ void checkIfDeclared(Identifier * id)
     if (!found)
         ReportError::IdentifierNotDeclared(id, LookingForVariable); //second argument is reasonT
 }
-
+*/
 %}
 
  
@@ -168,11 +190,9 @@ Program   :    DeclList            {
 
 DeclList  :    DeclList Decl        { 
                                     ($$=$1)->Append($2);
-                                    //checkDecls($2);
                                     }
           |    Decl                 { 
                                     ($$ = new List<Decl*>)->Append($1);
-                                    //checkDecls($1);
                                     }
           ;
 
@@ -187,7 +207,7 @@ VarDecl   :    Variable ';'
  
 Variable  :    Type T_Identifier    { 
                                     $$ = new VarDecl(new Identifier(@2, $2), $1);
-                                    checkConflict($$);
+                                    checkConflict(@1, $$);
                                     }
           ;
 
@@ -213,7 +233,7 @@ IntfList  :    IntfList FnHeader ';'
 ClassDecl :    T_Class T_Identifier OptExt OptImpl '{' FieldList '}'
                                     { 
                                     $$ = new ClassDecl(new Identifier(@2, $2), $3, $4, $6); 
-                                    checkConflict($$);
+                                    checkConflict(@1, $$);
                                     }
           ; 
                 
@@ -258,7 +278,7 @@ FormalList:    FormalList ',' Variable
 
 FnDecl    :    FnHeader StmtBlock   { 
                                     ($$=$1)->SetFunctionBody($2); 
-                                    checkConflict($$);
+                                    checkConflict(@1, $$);
                                     }
           ;
 

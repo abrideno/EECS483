@@ -35,6 +35,7 @@ class Decl : public Node
   public:
     Decl(Identifier *name);
     
+    Identifier* GetID() {return id;}
     virtual Type* GetType() = 0;
     virtual int numArgs() { return 0; }
     virtual Type* argType(int n) { return type; }

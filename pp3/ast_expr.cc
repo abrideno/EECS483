@@ -259,12 +259,14 @@ Type* FieldAccess::CheckResultType()
             oss2 << field;
             if (oss.str() == oss2.str())
             {
-                return (*it)->GetType();
+                type = (*it)->GetType();
+                return type;
             }
         }
     }
     ReportError::IdentifierNotDeclared(field, LookingForVariable);
-    return Type::errorType;
+    type = Type::errorType;
+    return type;
 }
      
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
@@ -273,6 +275,8 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
     base = b; 
     if (base) base->SetParent(this); 
     (field=f)->SetParent(this);
+    CheckResultType();
+    
 }
 
 

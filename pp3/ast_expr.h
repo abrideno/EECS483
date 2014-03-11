@@ -157,7 +157,7 @@ class AssignExpr : public CompoundExpr
 class LValue : public Expr 
 {
   public:
-    Type * CheckResultType() { return Type::intType; }
+    virtual Type * CheckResultType() { return Type::errorType; }
     LValue(yyltype loc) : Expr(loc) {}
 };
 
