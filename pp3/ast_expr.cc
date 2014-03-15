@@ -40,6 +40,10 @@ NullConstant::NullConstant(yyltype loc) : Expr(loc) {
     type = Type::nullType;
 }
 
+void ArithmeticExpr::Check(){
+	Type *throwaway = CheckResultType(); 
+}
+
 Type* ArithmeticExpr::CheckResultType()
 {
     if (type)
@@ -93,6 +97,10 @@ Type* ArithmeticExpr::CheckResultType()
     }
 }
 
+void ReportError::Check(){
+	Type *throwaway = CheckResultType(); 
+}
+
 Type* RelationalExpr::CheckResultType() //op == (< > <= >=)
 {
     if (type)
@@ -117,11 +125,14 @@ Type* RelationalExpr::CheckResultType() //op == (< > <= >=)
         type = Type::errorType;
         return type;
     }
-    else
-    {
-        type = Type::boolType;
-        return type;   
-    }
+    
+    type = Type::boolType;
+    return type;   
+    
+}
+
+void AssignExpr::Check(){
+	Type *throwaway = CheckResultType(); 
 }
 
 Type* AssignExpr::CheckResultType() //op == '='
@@ -145,6 +156,10 @@ Type* AssignExpr::CheckResultType() //op == '='
         type = L;
         return type;
     }
+}
+
+void EqualityExpr::Check(){
+	Type *throwaway = CheckResultType(); 
 }
 
 //XXX the two operands may also be two objects or an object and null
@@ -171,6 +186,10 @@ Type* EqualityExpr::CheckResultType() //op == (== !=)
         type = Type::boolType;
         return type;
     }
+}
+
+void LogicalExpr::Check(){
+	Type *throwaway = CheckResultType(); 
 }
 
 Type* LogicalExpr::CheckResultType()
@@ -240,6 +259,22 @@ CompoundExpr::CompoundExpr(Operator *o, Expr *r)
     (op=o)->SetParent(this);
     (right=r)->SetParent(this);
 }
+
+void CompoundExpr::addLevel(Slevel *parent){
+	scope->Parent = parent; 
+	
+	if(left!=NULL){
+		left->addLevel(scope); 
+	}
+	right->addLevel(scope); 
+}
+
+void CompoundExpr::Check(){
+	if(left!=NULL){
+		left->Check(); 
+	}
+	right->Check(); 
+}
    
   
 ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
@@ -247,25 +282,56 @@ ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
     (subscript=s)->SetParent(this);
 }
 
+void ArrayAccess::addLevel(Scope *parent){
+	scope->Parent = parent; 
+	
+	subscript->addLevel(scope); 
+	base->addLevel(scope); 
+
+}
+
+Type* ArrayAccess::CheckResultType(){
+	ArrayType *temp = dynamic_cast<ArrayType*>(base->CheckResultType()); // is calling this function multiple times going to have issues with repeated Error handling
+	if(temp == NULL){
+		return Type::errorType; 
+	}
+   
+	return temp->getArrayType(); //considering making public to prevent function use 
+}
+
+Type* ArrayAccess::Check(){
+	base->Check(); 
+	subscript->Check(); 
+
+	if(dynamic_cast<ArrayType*>(base->CheckResultType()) == NULL){
+		ReportError::BracketsOnNonArray(base);
+	}
+	
+	if(subscript->CheckResultType() != Type::intType){
+		ReportError::SubscriptNotInteger(subscript); 
+	}
+}
+
 Type* FieldAccess::CheckResultType()
 {
-    int scopeLevel = 0; //TODO: find scopeLevel
-    for (int i = 0; i <= scopeLevel; i++)
-    {
-        for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
-        {
-            ostringstream oss, oss2;
-            oss << *it;
-            oss2 << field;
-            if (oss.str() == oss2.str())
-            {
-                return (*it)->GetType();
-            }
-        }
-    }
-    ReportError::IdentifierNotDeclared(field, LookingForVariable);
-    return Type::errorType;
-}
+	Slevel *temp = scope; 
+   //  //int scopeLevel = 0; //TODO: find scopeLevel
+//     for (int i = 0; i <= scopeLevel; i++)
+//     {
+//         for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
+//         {
+//             ostringstream oss, oss2;
+//             oss << *it;
+//             oss2 << field;
+//             if (oss.str() == oss2.str())
+//             {
+//                 return (*it)->GetType();
+//             }
+//         }
+//     }
+//     ReportError::IdentifierNotDeclared(field, LookingForVariable);
+//     return Type::errorType;
+ }
      
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
   : LValue(b? Join(b->GetLocation(), f->GetLocation()) : *f->GetLocation()) {
@@ -286,31 +352,31 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)
     (actuals=a)->SetParentAll(this);
     
     
-    int scopeLevel = 0; //TODO: seriously, scope level
-    bool found = false;
-    int numArgs;
-    for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
-    {
-        ostringstream oss, oss2;
-        oss << *it;
-        oss2 << f;
-        if (oss.str() == oss2.str())
-        {
-            found = true;
-            numArgs = (*it)->numArgs();
-            break;
-        }
-    }
-    if (!found)
-    {
-        ReportError::IdentifierNotDeclared(f, LookingForFunction);
-        return;
-    }
-    if (a->NumElements() != numArgs)
-    {
-        ReportError::NumArgsMismatch(f, numArgs, a->NumElements());
-        return;
-    }
+    // int scopeLevel = 0; //TODO: seriously, scope level
+//     bool found = false;
+//     int numArgs;
+//     for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
+//     {
+//         ostringstream oss, oss2;
+//         oss << *it;
+//         oss2 << f;
+//         if (oss.str() == oss2.str())
+//         {
+//             found = true;
+//             numArgs = (*it)->numArgs();
+//             break;
+//         }
+//     }
+//     if (!found)
+//     {
+//         ReportError::IdentifierNotDeclared(f, LookingForFunction);
+//         return;
+//     }
+//     if (a->NumElements() != numArgs)
+//     {
+//         ReportError::NumArgsMismatch(f, numArgs, a->NumElements());
+//         return;
+//     }
     
 }
 
@@ -320,7 +386,14 @@ NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) {
   (cType=c)->SetParent(this);
 }
 
-
+void NewExpr::Check(){
+	Decl *temp = Program::parentScope->stable->LookUp(cType->fetchKey()); 
+	ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
+	
+	if(cDec == NULL){
+		ReportError::IdentifierNotDeclared(cType->GetId(), LookingForClass); 
+	}
+}
 
 
 NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
@@ -329,4 +402,26 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     (elemType=et)->SetParent(this);
 }
 
-       
+NewArrayExpr::addLevel(Slevel *parent){
+	scope->Parent = parent; 
+	
+	size->addLevel(scope); 
+}
+
+NewArrayExpr::Check(){
+	size->Check();  
+	
+	if(size->CheckResultType != Type::intType){
+		ReportError::NewArraySizeNotInteger(size); 
+	}
+	
+	if(elemType->isBasicType() || elemType != Type::voidType){
+		return; 
+	}
+	
+	Decl *temp = Program::parentScope->stable->LookUp(elemType->fetchKey());
+	ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
+	if(cDec != NULL){
+		ReportError::IdentifierNotDeclared(elemType,LookingForType);
+	} 
+}   

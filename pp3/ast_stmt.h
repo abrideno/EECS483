@@ -15,26 +15,62 @@
 
 #include "list.h"
 #include "ast.h"
+#include "hashtable.h"
 
 class Decl;
 class VarDecl;
 class Expr;
+class ClassDecl; 
+class LoopStmt; 
+class FnDecl; 
+
+class Slevel
+{
+	public: 
+	Hashtable <Decl*> stable; 
+	Slevel *Parent;	
+	ClassDecl *cDecl; 
+	LoopStmt *lStmt;
+	FnDecl* fDecl;  
+ 		 
+ 		
+ 	public: 
+ 		Slevel() : stable(new Hashtable <Decl*>) , Parent(NULL), cDecl(NULL), lStmt(NULL), fDecl(NULL) {}
+
+ 	    void add(Decl *decl); 
+ 	    
+ 	    FnDecl* getfDecl() { return fDecl; } 
+ 	    
+ 	    LoopStmt* getlStmt(){ return lStmt; }
+ 	
+};
   
 class Program : public Node
 {
+  public:
+  	 static Slevel *parentScope; 
+  	 
   protected:
      List<Decl*> *decls;
      
   public:
      Program(List<Decl*> *declList);
      void Check();
+     void addLevel(); 
 };
 
 class Stmt : public Node
 {
+  public: 
+  	Slevel *scope; 
+  	
   public:
-     Stmt() : Node() {}
-     Stmt(yyltype loc) : Node(loc) {}
+     Stmt() : Node(), scope(new Slevel) {}
+     Stmt(yyltype loc) : Node(loc), scope(new Slevel) {}
+     
+     virtual void addLevel(Slevel *parent); 
+     virtual void Check(); 
+     
 };
 
 class StmtBlock : public Stmt 
@@ -45,6 +81,8 @@ class StmtBlock : public Stmt
     
   public:
     StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
+    void addLevel(Slevel *parent); 
+    void Check(); 
 };
 
   
@@ -56,6 +94,8 @@ class ConditionalStmt : public Stmt
   
   public:
     ConditionalStmt(Expr *testExpr, Stmt *body);
+    virtual void addLevel(Slevel *parent); 
+    virtual void Check(); 
 };
 
 class LoopStmt : public ConditionalStmt 
@@ -63,6 +103,7 @@ class LoopStmt : public ConditionalStmt
   public:
     LoopStmt(Expr *testExpr, Stmt *body)
             : ConditionalStmt(testExpr, body) {}
+    void addLevel(Slevel *parent); 
 };
 
 class ForStmt : public LoopStmt 
@@ -87,12 +128,16 @@ class IfStmt : public ConditionalStmt
   
   public:
     IfStmt(Expr *test, Stmt *thenBody, Stmt *elseBody);
+    void addLevel(Slevel *parent); 
+    void Check(); 
 };
 
 class BreakStmt : public Stmt 
 {
   public:
     BreakStmt(yyltype loc) : Stmt(loc) {}
+    
+    void Check(); 
 };
 
 class ReturnStmt : public Stmt  
@@ -102,6 +147,10 @@ class ReturnStmt : public Stmt
   
   public:
     ReturnStmt(yyltype loc, Expr *expr);
+    
+    void addLevel(Slevel *parent); 
+    void Check(); 
+    
 };
 
 class PrintStmt : public Stmt
@@ -111,6 +160,9 @@ class PrintStmt : public Stmt
     
   public:
     PrintStmt(List<Expr*> *arguments);
+    
+    void addLevel(Slevel *parent); 
+    void Check(); 
 };
 
 

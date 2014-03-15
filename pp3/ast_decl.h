@@ -15,37 +15,41 @@
 
 #include "ast.h"
 #include "ast_type.h"
+#include "ast_stmt.h"
 #include "list.h"
-#include <unordered_map>
-#include <vector>
-#include <utility>
 
 using namespace std;
 
-
 class Identifier;
+class Type;
 class Stmt;
+class InterfaceDecl; 
 
 class Decl : public Node 
 {
-  protected:
+  public:
     Identifier *id;
     Type* type;
-  
+    Slevel *scope; 
+
   public:
-    virtual Type* GetType() = 0;
+    virtual Type* CheckResultType() = 0;
     virtual int numArgs() { return 0; }
     Decl(Identifier *name);
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
+    virtual bool match(Decl* compare); 
+    virtual void addLevel(Slevel *parent);
+    virtual void Check(); 
 };
 
 class VarDecl : public Decl 
 {
   protected:
-    
+    Type *type; 
   public:
-    Type* GetType() { return type; }
+    Type* CheckResultType() { return type; }
     VarDecl(Identifier *name, Type *type);
+    void Check(); 
 };
 
 class ClassDecl : public Decl 
@@ -56,9 +60,13 @@ class ClassDecl : public Decl
     List<NamedType*> *implements;
     
   public:
-    Type* GetType() { return type; }
+    Type* CheckResultType() { return type; }
     ClassDecl(Identifier *name, NamedType *extends, 
               List<NamedType*> *implements, List<Decl*> *members);
+    void addLevel(Slevel *parent); 
+    void Check(); 
+    
+    //extends implements TODO 
 };
 
 class InterfaceDecl : public Decl 
@@ -67,8 +75,11 @@ class InterfaceDecl : public Decl
     List<Decl*> *members;
     
   public:
-    Type* GetType() { return type; }
+   // Type* CheckResultType() { return type; }
     InterfaceDecl(Identifier *name, List<Decl*> *members);
+    
+    void addLevel(Slevel *parent); 
+    void Check(); 
 };
 
 class FnDecl : public Decl 
@@ -79,14 +90,17 @@ class FnDecl : public Decl
     Stmt *body;
     
   public:
-    Type* GetType() { return returnType; }
+    Type* CheckResultType() { return returnType; }
     int numArgs() { return formals->NumElements(); }
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
+    bool match(Decl *compare); 
+    void addLevel(Slevel *parent); 
+    void Check();
 };
 
 
-extern unordered_map<int, vector<Decl*> >variablesInScope; //map scope level to variables in scope
-extern unordered_map<int, vector<Decl*> >functionsInScope;
+// extern unordered_map<int, vector<Decl*> >variablesInScope; 
+// extern unordered_map<int, vector<Decl*> >functionsInScope;
 
 #endif

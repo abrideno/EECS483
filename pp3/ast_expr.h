@@ -34,6 +34,7 @@ class Expr : public Stmt
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
     virtual Type* CheckResultType() { return type; }
+    virtual void Check(); 
 };
 
 /* This node type is used for those places where an expression is optional.
@@ -51,6 +52,7 @@ class IntConstant : public Expr
   
   public:
     Type* CheckResultType() { return type; }
+    void Check(){}
     IntConstant(yyltype loc, int val);
 };
 
@@ -61,6 +63,7 @@ class DoubleConstant : public Expr
     
   public:
     Type* CheckResultType() { return type; }
+    void Check(){}
     DoubleConstant(yyltype loc, double val);
 };
 
@@ -71,6 +74,7 @@ class BoolConstant : public Expr
     
   public:
     Type* CheckResultType() { return type; }
+    void Check(){}
     BoolConstant(yyltype loc, bool val);
 };
 
@@ -81,6 +85,7 @@ class StringConstant : public Expr
     
   public:
     Type* CheckResultType() { return type; }
+    void Check(){}
     StringConstant(yyltype loc, const char *val);
 };
 
@@ -88,6 +93,7 @@ class NullConstant: public Expr
 {
   public: 
     Type* CheckResultType() { return type; }
+    void Check(){}
     NullConstant(yyltype loc);
 };
 
@@ -110,6 +116,8 @@ class CompoundExpr : public Expr
     
   public:
     virtual Type* CheckResultType() { return type; }
+    virtual void Check();
+    virtual void addLevel(Slevel *parent); 
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
     CompoundExpr(Operator *op, Expr *rhs);             // for unary
 };
@@ -118,6 +126,7 @@ class ArithmeticExpr : public CompoundExpr
 {
   public:
     Type* CheckResultType();
+    void Check();
     ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { CheckResultType(); }
     ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) { CheckResultType(); }
 };
@@ -126,6 +135,7 @@ class RelationalExpr : public CompoundExpr
 {
   public:
     Type* CheckResultType();
+    void Check();
     RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { CheckResultType(); }
 };
 
@@ -133,6 +143,7 @@ class EqualityExpr : public CompoundExpr
 {
   public:
     Type* CheckResultType();
+    void Check();
     EqualityExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { CheckResultType(); }
     const char *GetPrintNameForNode() { return "EqualityExpr"; }
 };
@@ -141,6 +152,7 @@ class LogicalExpr : public CompoundExpr
 {
   public:
     Type* CheckResultType();
+    void Check();
     LogicalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { CheckResultType(); }
     LogicalExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) { CheckResultType();}
     const char *GetPrintNameForNode() { return "LogicalExpr"; }
@@ -150,6 +162,7 @@ class AssignExpr : public CompoundExpr
 {
   public:
     Type* CheckResultType();
+    void Check();
     AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { CheckResultType(); }
     const char *GetPrintNameForNode() { return "AssignExpr"; }
 };
@@ -165,6 +178,8 @@ class This : public Expr
 {
   public:
     This(yyltype loc) : Expr(loc) {}
+    void Check();
+
 };
 
 class ArrayAccess : public LValue 
@@ -174,6 +189,11 @@ class ArrayAccess : public LValue
     
   public:
     ArrayAccess(yyltype loc, Expr *base, Expr *subscript);
+    Type * CheckResultType();
+    void addLevel(Slevel *parent);
+    void Check();
+    
+
 };
 
 /* Note that field access is used both for qualified names
@@ -189,6 +209,8 @@ class FieldAccess : public LValue
     
   public:
     Type* CheckResultType();
+    void Check(); 
+    void addLevel(Slevel *parent); 
     FieldAccess(Expr *base, Identifier *field); //ok to pass NULL base
 };
 
@@ -205,6 +227,9 @@ class Call : public Expr
     
   public:
     Call(yyltype loc, Expr *base, Identifier *field, List<Expr*> *args);
+    Type* CheckResultType();
+    void Check(); 
+    void addLevel(Slevel *parent); 
 };
 
 class NewExpr : public Expr
@@ -214,6 +239,8 @@ class NewExpr : public Expr
     
   public:
     NewExpr(yyltype loc, NamedType *clsType);
+    Type* CheckResultType();
+    void Check(); 
 };
 
 class NewArrayExpr : public Expr
@@ -224,18 +251,25 @@ class NewArrayExpr : public Expr
     
   public:
     NewArrayExpr(yyltype loc, Expr *sizeExpr, Type *elemType);
+    Type* CheckResultType();
+    void Check(); 
+    void addLevel(Slevel *parent);
 };
 
 class ReadIntegerExpr : public Expr
 {
   public:
     ReadIntegerExpr(yyltype loc) : Expr(loc) {}
+    Type* CheckResultType(){return Type::intType}
+    void Check(){}
 };
 
 class ReadLineExpr : public Expr
 {
   public:
     ReadLineExpr(yyltype loc) : Expr (loc) {}
+    Type* CheckResultType(){return Type::intType}
+    void Check(){} 
 };
 
     
