@@ -305,10 +305,15 @@ void ArrayAccess::Check(){
 	base->Check(); 
 	subscript->Check(); 
 
+    /*cout << "Array ACCESS" << endl;
+    Type *t = base->CheckResultType();
+    ostringstream oss;
+    oss << t;
+    oss.str()*/
 	if(dynamic_cast<ArrayType*>(base->CheckResultType()) == NULL){
 		ReportError::BracketsOnNonArray(base);
 	}
-	Debug("yup");
+
 	if(subscript->CheckResultType() != Type::intType){
 		ReportError::SubscriptNotInteger(subscript); 
 	}
@@ -455,13 +460,6 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     (size=sz)->SetParent(this); 
     (elemType=et)->SetParent(this);
     
-    Type* t = sz->CheckResultType();
-    if (t != Type::intType)
-    {
-        ReportError::NewArraySizeNotInteger(sz);
-        type = Type::errorType;
-        return;
-    }
     ostringstream oss;
     oss << et;
     oss << "[]";

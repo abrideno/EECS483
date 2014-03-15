@@ -175,7 +175,7 @@ void FnDecl::Check(){
 	for(int i =0; i<numElem; i++){
 		formals->Nth(i)->Check(); 
 	}
-	//Debug("Function");
+    
 	if(body!= NULL){
 		body->Check(); 
 	}
