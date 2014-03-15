@@ -20,12 +20,6 @@
 
 using namespace std;
 
-void Debug(string s)
-{
-    if (DEBUG)
-        cout << s << endl;
-}
-
 class Type : public Node 
 {
   protected:

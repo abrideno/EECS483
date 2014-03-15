@@ -308,7 +308,6 @@ void ArrayAccess::Check(){
 	if(dynamic_cast<ArrayType*>(base->CheckResultType()) == NULL){
 		ReportError::BracketsOnNonArray(base);
 	}
-	Debug("yup");
 	if(subscript->CheckResultType() != Type::intType){
 		ReportError::SubscriptNotInteger(subscript); 
 	}
