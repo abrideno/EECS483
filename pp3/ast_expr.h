@@ -194,8 +194,6 @@ class ArrayAccess : public LValue
     Type * CheckResultType();
     void addLevel(Slevel *parent);
     void Check();
-    
-
 };
 
 /* Note that field access is used both for qualified names
