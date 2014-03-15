@@ -33,6 +33,8 @@
 #include "location.h"
 #include <iostream>
 
+using namespace std;
+
 class Node 
 {
   protected:
