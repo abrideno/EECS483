@@ -52,7 +52,6 @@ void Program::Check() {
      
      
      for(int i= 0; i< numElems ; i++){
-        cout << decls->Nth(i) << endl;
      	decls->Nth(i)->Check(); 
      }     
 }
@@ -88,15 +87,13 @@ void StmtBlock::addLevel(Slevel *parent){
 
 }
 
-void StmtBlock::Check(){
-    cout << "STATEMENT" << endl;
+void StmtBlock::Check(){\
 	for(int i=0; i<decls->NumElements(); i++){
 		//decls->Nth(i)->Check(); 
 	} 
 	int numElems = stmts->NumElements(); 
 	
 	for(int i=0; i<numElems; i++){
-	    cout << stmts->Nth(i) << endl;
 		stmts->Nth(i)->Check(); 
 	}
 
