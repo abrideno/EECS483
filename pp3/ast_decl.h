@@ -34,8 +34,11 @@ class Decl : public Node
 
   public:
     virtual Type* CheckResultType() = 0;
-    virtual int numArgs() { return 0; }
     Decl(Identifier *name);
+    
+
+    virtual int numArgs() { return 0; }
+    virtual Type* argType(int n) { return type; }
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
     virtual bool match(Decl* compare); 
     virtual void addLevel(Slevel *parent);
@@ -46,6 +49,7 @@ class VarDecl : public Decl
 {
   protected:
     Type *type; 
+
   public:
     Type* CheckResultType() { return type; }
     VarDecl(Identifier *name, Type *type);
@@ -92,6 +96,7 @@ class FnDecl : public Decl
   public:
     Type* CheckResultType() { return returnType; }
     int numArgs() { return formals->NumElements(); }
+    Type* argType(int n);
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
     bool match(Decl *compare); 

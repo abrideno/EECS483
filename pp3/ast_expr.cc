@@ -145,7 +145,7 @@ Type* AssignExpr::CheckResultType() //op == '='
         type = Type::errorType;
         return type;
     }
-    else if (L != R)
+    if (L != R)
     {
         ReportError::IncompatibleOperands(op, L, R);
         type = Type::errorType;
@@ -330,8 +330,10 @@ Type* FieldAccess::CheckResultType()
 //         }
 //     }
 //     ReportError::IdentifierNotDeclared(field, LookingForVariable);
-//     return Type::errorType;
+//      type = Type::errorType;
+//       return type;
  }
+
      
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
   : LValue(b? Join(b->GetLocation(), f->GetLocation()) : *f->GetLocation()) {
@@ -339,6 +341,8 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
     base = b; 
     if (base) base->SetParent(this); 
     (field=f)->SetParent(this);
+    CheckResultType();
+    
 }
 
 
@@ -352,10 +356,11 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)
     (actuals=a)->SetParentAll(this);
     
     
-    // int scopeLevel = 0; //TODO: seriously, scope level
+//  int scopeLevel = 0; //TODO: seriously, scope level
 //     bool found = false;
 //     int numArgs;
-//     for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
+//     auto it = variablesInScope[scopeLevel].begin();
+//     while (it != variablesInScope[scopeLevel].end())
 //     {
 //         ostringstream oss, oss2;
 //         oss << *it;
@@ -366,6 +371,7 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)
 //             numArgs = (*it)->numArgs();
 //             break;
 //         }
+//         it++;
 //     }
 //     if (!found)
 //     {
@@ -377,13 +383,25 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)
 //         ReportError::NumArgsMismatch(f, numArgs, a->NumElements());
 //         return;
 //     }
+//     for (int i = 0; i < a->NumElements(); i++)
+//     {
+//         Type* type1 = a->Nth(i)->CheckResultType();
+//         Type* type2 = (*it)->argType(i);
+//         if (type1 != type2)
+//         {
+//             ReportError::ArgMismatch(a->Nth(i), i+1, type1, type2);
+//         }
+//     }
+   
     
 }
+
 
 
 NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) { 
   Assert(c != NULL);
   (cType=c)->SetParent(this);
+  type = cType;
 }
 
 void NewExpr::Check(){
@@ -396,10 +414,23 @@ void NewExpr::Check(){
 }
 
 
+
 NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     Assert(sz != NULL && et != NULL);
     (size=sz)->SetParent(this); 
     (elemType=et)->SetParent(this);
+    
+    Type* t = sz->CheckResultType();
+    if (t != Type::intType)
+    {
+        ReportError::NewArraySizeNotInteger(sz);
+        type = Type::errorType;
+        return;
+    }
+    ostringstream oss;
+    oss << et;
+    oss << "[]";
+    type = new Type(oss.str().c_str());
 }
 
 NewArrayExpr::addLevel(Slevel *parent){

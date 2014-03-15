@@ -82,12 +82,12 @@ class ReportError
  // Errors used by semantic analyzer for array acesss & NewArray
   static void BracketsOnNonArray(Expr *baseExpr); 
   static void SubscriptNotInteger(Expr *subscriptExpr);
-  static void NewArraySizeNotInteger(Expr *sizeExpr);
+  static void NewArraySizeNotInteger(Expr *sizeExpr); //XXX done
 
 
   // Errors used by semantic analyzer for function/method calls
-  static void NumArgsMismatch(Identifier *fnIdentifier, int numExpected, int numGiven); //XXX working on
-  static void ArgMismatch(Expr *arg, int argIndex, Type *given, Type *expected);
+  static void NumArgsMismatch(Identifier *fnIdentifier, int numExpected, int numGiven); //XXX done
+  static void ArgMismatch(Expr *arg, int argIndex, Type *given, Type *expected); //XXX done
   static void PrintArgMismatch(Expr *arg, int argIndex, Type *given);
 
 

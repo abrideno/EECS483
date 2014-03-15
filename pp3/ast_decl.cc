@@ -16,7 +16,7 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
 }
 
 void Decl::addLevel(Slevel *parent){
-	scopd->Parent = parent; 
+	scope->Parent = parent; 
 }	
 
 
@@ -26,9 +26,9 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
 }
 
 VarDecl::Check(){
-	// if(type->IsPrimitive()){ // Only need to check for ADT's 
-// 		return;   
-// 	}
+	 if(type->isBasicType()){ 
+ 		return;   
+ 	}
 	
 	Slevel *tempS = scope; 
 	while(tempS != NULL){
