@@ -23,8 +23,6 @@ void Slevel::add(Decl *dec){
 	return; 
 }
 
-
-
 Program::Program(List<Decl*> *d) {
     Assert(d != NULL);
     (decls=d)->SetParentAll(this);

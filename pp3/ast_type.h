@@ -31,7 +31,7 @@ class Type : public Node
     virtual void PrintToStream(std::ostream& out) { out << typeName; }
     friend std::ostream& operator<<(std::ostream& out, Type *t) { t->PrintToStream(out); return out; }
 //     virtual bool match(Type *other) { return this == other; }
-	virtual bool isBasicType(){return true;}
+ 	 virtual bool isBasicType(){return true;}
 	 virtual const char* fetchKey(){return typeName;}
 };
 
@@ -44,7 +44,7 @@ class NamedType : public Type
     NamedType(Identifier *id);
     const char* fetchKey(){return id->name;}
     void PrintToStream(std::ostream& out) { out << id; }
-     bool isBasicType(){return false;}
+    bool isBasicType(){return false;}
 
 };
 
@@ -58,7 +58,7 @@ class ArrayType : public Type
     Type* getArrayType(){return elemType;}
     const char* fetchKey(){return elemType->fetchKey();}
     void PrintToStream(std::ostream& out) { out << elemType << "[]"; }
-     bool isBasicType(){return false;}
+//      bool isBasicType(){return false;}
 
 };
 

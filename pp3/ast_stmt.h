@@ -65,17 +65,17 @@ class Stmt : public Node
   	Slevel *scope; 
   	
   public:
-     Stmt() : Node() {}
+     Stmt() : Node(), scope(new Slevel) {}
      Stmt(yyltype loc) : Node(loc), scope(new Slevel) {}
      
      virtual void addLevel(Slevel *parent); 
-     virtual void Check() {} 
+     virtual void Check(); 
      
 };
 
 class StmtBlock : public Stmt 
 {
-  public:
+  protected:
     List<VarDecl*> *decls;
     List<Stmt*> *stmts;
     
@@ -136,7 +136,6 @@ class BreakStmt : public Stmt
 {
   public:
     BreakStmt(yyltype loc) : Stmt(loc) {}
-    
     void Check(); 
 };
 
@@ -162,7 +161,7 @@ class PrintStmt : public Stmt
     PrintStmt(List<Expr*> *arguments);
     
     void addLevel(Slevel *parent); 
-   // void Check(); 
+    void Check(); 
 };
 
 
