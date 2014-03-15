@@ -136,7 +136,6 @@ class BreakStmt : public Stmt
 {
   public:
     BreakStmt(yyltype loc) : Stmt(loc) {}
-    
     void Check(); 
 };
 

@@ -240,7 +240,6 @@ class NewExpr : public Expr
   public:
     Type* CheckResultType() { return type; }
     NewExpr(yyltype loc, NamedType *clsType);
-    Type* CheckResultType();
     void Check(); 
 };
 
@@ -253,7 +252,6 @@ class NewArrayExpr : public Expr
   public:
     Type* CheckResultType() { return type; }
     NewArrayExpr(yyltype loc, Expr *sizeExpr, Type *elemType);
-    Type* CheckResultType();
     void Check(); 
     void addLevel(Slevel *parent);
 };

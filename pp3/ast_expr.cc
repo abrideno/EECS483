@@ -97,7 +97,7 @@ Type* ArithmeticExpr::CheckResultType()
     }
 }
 
-void ReportError::Check(){
+void RelationalExpr::Check(){
 	Type *throwaway = CheckResultType(); 
 }
 
