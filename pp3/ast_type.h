@@ -37,12 +37,12 @@ class Type : public Node
 
 class NamedType : public Type 
 {
-  protected:
+  public:
     Identifier *id;
     
   public:
-    NamedType(Identifier *i);
-    const char* fetchKey(){return i->name;}
+    NamedType(Identifier *id);
+    const char* fetchKey(){return id->name;}
     void PrintToStream(std::ostream& out) { out << id; }
      bool isBasicType(){return false;}
 

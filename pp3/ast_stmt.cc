@@ -7,17 +7,19 @@
 #include "ast_decl.h"
 #include "ast_expr.h"
 
+using namespace std;
+
 Slevel *Program::parentScope = new Slevel(); 
 
-void Slevels::add(Decl *dec){
-	Decl *temp = stable->Lookup(dec->Name()); 
-	
+void Slevel::add(Decl *dec){
+	Decl *temp = stable->Lookup(dec->id->name); 
 	if(temp != NULL){
 		ReportError::DeclConflict(dec,temp); 
+		
 		return; 
 	}
 
-	stable->Enter(dec->Name(), temp);
+	stable->Enter(dec->id->name, dec);
 	return; 
 }
 
@@ -30,6 +32,7 @@ Program::Program(List<Decl*> *d) {
 
 void Program::addLevel() {
 	int numElems = decls->NumElements(); 
+	cout<<"Initial add level"<<endl;
 	for(int i=0; i<numElems; i++){
 		parentScope->add(decls->Nth(i)); 
 	}
@@ -47,7 +50,7 @@ void Program::Check() {
      *      checking itself, which makes for a great use of inheritance
      *      and polymorphism in the node classes.
      */
-     
+     cout<<"Initialized program"<<endl;
      addLevel(); 
      int numElems  = decls->NumElements(); 
      
@@ -58,6 +61,8 @@ void Program::Check() {
 
 void Stmt::addLevel(Slevel *parent){
 	scope->Parent = parent;
+	
+	cout<<parent<<endl;
 }
 
 
@@ -68,19 +73,20 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
 }
 
 void StmtBlock::addLevel(Slevel *parent){
+    cout<<"Getting here in StmtBlock"<<endl;
 	scope->Parent = parent;	
 	int numElems = decls->NumElements(); 
-	
+	cout<<"Number Declarations "<< numElems <<endl;
 	for(int i=0; i<numElems; i++){
-		scope->add(decls->Nth(i)); 
+		parent->add(decls->Nth(i)); 
 	}
 	
-	for(int i=0; i<numElems; i++){
-		decls->Nth(i)->addLevel(scope); 
-	} 
+	//for(int i=0; i<numElems; i++){
+//		decls->Nth(i)->addLevel(scope); 
+//	} 
 	
 	numElems = stmts->NumElements(); 
-	
+	cout<<"Num statements "<< numElems <<endl;
 	for(int i=0; i<numElems; i++){
 		stmts->Nth(i)->addLevel(scope); 
 	}
@@ -88,11 +94,12 @@ void StmtBlock::addLevel(Slevel *parent){
 }
 
 void StmtBlock::Check(){
-	for(int i=0; i<numElems; i++){
+    
+	for(int i=0; i<decls->NumElements(); i++){
 		decls->Nth(i)->Check(); 
 	} 
 	
-	numElems = stmts->NumElements(); 
+	int numElems = stmts->NumElements(); 
 	
 	for(int i=0; i<numElems; i++){
 		stmts->Nth(i)->Check(); 
@@ -124,7 +131,7 @@ void ConditionalStmt::Check(){
 
 void LoopStmt::addLevel(Slevel *parent){
 	 scope->Parent = parent; 
-	 lStmt = this; 
+	 scope->lStmt = this; 
 	 test->addLevel(scope); 
 	 body->addLevel(scope); 
 }
@@ -156,7 +163,7 @@ void IfStmt::Check(){
 	test->Check(); 
 	body->Check(); 
 	
-	if(!(test->CheckResultType == Type::boolType)){
+	if(!(test->CheckResultType() == Type::boolType)){
 		ReportError::TestNotBoolean(test); 
 	}
 	
@@ -195,7 +202,7 @@ void ReturnStmt::Check() {
     bool matched = false; 
 	
 	while(tempS != NULL){
-		if((tempF != NULL) {
+		if(tempF != NULL) {
 		    matched = true; 
 			break; 
 		}
@@ -224,7 +231,7 @@ void PrintStmt::addLevel(Slevel *parent){
 	scope->Parent = parent; 
 	
 	int numElem = args->NumElements(); 
-	for(int i=0; i<numElems; i++){
+	for(int i=0; i<numElem; i++){
 		Type *given = args->Nth(i)->CheckResultType(); 
 		
 		if((given == Type::boolType) || (given == Type::stringType) || (given != Type::intType)) {
@@ -237,6 +244,6 @@ void PrintStmt::addLevel(Slevel *parent){
 	}
 }
 
-}
+
 
 

@@ -46,32 +46,40 @@ void ArithmeticExpr::Check(){
 
 Type* ArithmeticExpr::CheckResultType()
 {
+    cout << "hi!" << endl;
     if (type)
         return type;
+    cout << "where" << endl;
     Assert(right);
     Type* R = right->CheckResultType();
     if (left) //op == (+ - * / %)
     {
+        cout << "am" << endl;
         Type* L = left->CheckResultType();
+        cout << L << ' ' << op << ' ' << R << endl;
         if (L == Type::errorType || R == Type::errorType)
         {
+            cout << "i" << endl;
             type = Type::errorType;
             return type;
         }            
         else if (L != R)
         {
+            cout << "going" << endl;
             ReportError::IncompatibleOperands(op, L, R);
             type = Type::errorType;
             return type;
         }
         else if ((L != Type::intType && L != Type::doubleType) || (R != Type::intType && R != Type::doubleType))
         {
+            cout << "blarg" << endl;
             ReportError::IncompatibleOperands(op, L, R);
             type = Type::errorType;
             return type;
         }
         else
         {
+            cout << "BLARRRRG" << endl;
             type = L;
             return type;   
         }
@@ -97,7 +105,7 @@ Type* ArithmeticExpr::CheckResultType()
     }
 }
 
-void ReportError::Check(){
+void RelationalExpr::Check(){
 	Type *throwaway = CheckResultType(); 
 }
 
@@ -137,22 +145,29 @@ void AssignExpr::Check(){
 
 Type* AssignExpr::CheckResultType() //op == '='
 {
+    cout << "ASSIGN" << endl;
     Assert(left && right);
+    cout << "passed assert" << endl;
     Type* R = right->CheckResultType();
+    cout << "passed right" << endl;
     Type* L = left->CheckResultType();
+    cout << "passed left" << endl;
     if (L == Type::errorType || R == Type::errorType)
     {
+        cout << "errorType" << endl;
         type = Type::errorType;
         return type;
     }
     if (L != R)
     {
+        cout << "L!=R" << endl;
         ReportError::IncompatibleOperands(op, L, R);
         type = Type::errorType;
         return type;
     }
     else
     {
+        cout << "yup" << endl;
         type = L;
         return type;
     }
@@ -282,7 +297,7 @@ ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
     (subscript=s)->SetParent(this);
 }
 
-void ArrayAccess::addLevel(Scope *parent){
+void ArrayAccess::addLevel(Slevel *parent){
 	scope->Parent = parent; 
 	
 	subscript->addLevel(scope); 
@@ -299,7 +314,7 @@ Type* ArrayAccess::CheckResultType(){
 	return temp->getArrayType(); //considering making public to prevent function use 
 }
 
-Type* ArrayAccess::Check(){
+void ArrayAccess::Check(){
 	base->Check(); 
 	subscript->Check(); 
 
@@ -315,24 +330,47 @@ Type* ArrayAccess::Check(){
 Type* FieldAccess::CheckResultType()
 {
 	Slevel *temp = scope; 
-   //  //int scopeLevel = 0; //TODO: find scopeLevel
-//     for (int i = 0; i <= scopeLevel; i++)
-//     {
-//         for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
-//         {
-//             ostringstream oss, oss2;
-//             oss << *it;
-//             oss2 << field;
-//             if (oss.str() == oss2.str())
-//             {
-//                 return (*it)->GetType();
-//             }
-//         }
-//     }
-//     ReportError::IdentifierNotDeclared(field, LookingForVariable);
-//      type = Type::errorType;
-//       return type;
+   /*  //int scopeLevel = 0; //TODO: find scopeLevel
+     for (int i = 0; i <= scopeLevel; i++)
+     {
+         for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
+         {
+             ostringstream oss, oss2;
+             oss << *it;
+             oss2 << field;
+             if (oss.str() == oss2.str())
+             {
+                 return (*it)->GetType();
+             }
+         }
+     }*/
+     if (type)
+        return type;
+     if (base == NULL)
+     {
+        cout<< "base is null"<<endl;
+        Decl* temp = scope->stable->Lookup(field->name);
+        cout << "no parent" << endl;
+        if (!temp)
+        {
+            ReportError::IdentifierNotDeclared(field, LookingForVariable);
+            type = Type::errorType;
+            return type;
+        }
+        type = temp->CheckResultType();
+        return type;
+        
+     }
  }
+ 
+//void FieldAccess::addLevel(Slevel *parent){
+   // scope->Parent = parent; 
+    
+// } 
+
+void FieldAccess::Check(){
+    Type *throwaway = CheckResultType(); 
+}
 
      
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
@@ -341,7 +379,8 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
     base = b; 
     if (base) base->SetParent(this); 
     (field=f)->SetParent(this);
-    CheckResultType();
+   
+    //CheckResultType();
     
 }
 
@@ -405,11 +444,11 @@ NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) {
 }
 
 void NewExpr::Check(){
-	Decl *temp = Program::parentScope->stable->LookUp(cType->fetchKey()); 
+	Decl *temp = Program::parentScope->stable->Lookup(cType->fetchKey()); 
 	ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
 	
 	if(cDec == NULL){
-		ReportError::IdentifierNotDeclared(cType->GetId(), LookingForClass); 
+		ReportError::IdentifierNotDeclared(cType->id, LookingForClass); 
 	}
 }
 
@@ -433,26 +472,26 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     type = new Type(oss.str().c_str());
 }
 
-NewArrayExpr::addLevel(Slevel *parent){
+void NewArrayExpr::addLevel(Slevel *parent){
 	scope->Parent = parent; 
 	
 	size->addLevel(scope); 
 }
 
-NewArrayExpr::Check(){
+void NewArrayExpr::Check(){
 	size->Check();  
 	
-	if(size->CheckResultType != Type::intType){
+	if(size->CheckResultType() != Type::intType){
 		ReportError::NewArraySizeNotInteger(size); 
 	}
 	
-	if(elemType->isBasicType() || elemType != Type::voidType){
+	if(elemType->isBasicType()){
 		return; 
 	}
 	
-	Decl *temp = Program::parentScope->stable->LookUp(elemType->fetchKey());
+	Decl *temp = Program::parentScope->stable->Lookup(elemType->fetchKey());
 	ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
-	if(cDec != NULL){
-		ReportError::IdentifierNotDeclared(elemType,LookingForType);
+	if(cDec == NULL){
+		//ReportError::IdentifierNotDeclared(elemType->fetchKey(),LookingForType);
 	} 
 }   

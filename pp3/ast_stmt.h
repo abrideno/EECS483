@@ -27,7 +27,7 @@ class FnDecl;
 class Slevel
 {
 	public: 
-	Hashtable <Decl*> stable; 
+	Hashtable <Decl*> *stable; 
 	Slevel *Parent;	
 	ClassDecl *cDecl; 
 	LoopStmt *lStmt;
@@ -69,7 +69,7 @@ class Stmt : public Node
      Stmt(yyltype loc) : Node(loc), scope(new Slevel) {}
      
      virtual void addLevel(Slevel *parent); 
-     virtual void Check(); 
+     virtual void Check() {} 
      
 };
 
@@ -162,7 +162,7 @@ class PrintStmt : public Stmt
     PrintStmt(List<Expr*> *arguments);
     
     void addLevel(Slevel *parent); 
-    void Check(); 
+   // void Check(); 
 };
 
 

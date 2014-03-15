@@ -31,7 +31,7 @@ struct variablesInScope
 
 void yyerror(const char *msg); // standard error-handling routine
 
-void checkConflict(yyltype loc, Decl* newDecl)
+/*void checkConflict(yyltype loc, Decl* newDecl)
 {
     int scopeLevel = 0; //TODO: Find scopeLevel
     ostringstream t;
@@ -72,7 +72,7 @@ void checkConflict(yyltype loc, Decl* newDecl)
         }
     }
     variablesInScope[scopeLevel].push_back(newDecl);
-}
+}*/
 /*
 void checkIfDeclared(Identifier * id)
 {
@@ -211,7 +211,7 @@ VarDecl   :    Variable ';'
  
 Variable  :    Type T_Identifier    { 
                                     $$ = new VarDecl(new Identifier(@2, $2), $1);
-                                    checkConflict(@1, $$);
+                                    //checkConflict(@1, $$);
                                     }
           ;
 
@@ -237,7 +237,7 @@ IntfList  :    IntfList FnHeader ';'
 ClassDecl :    T_Class T_Identifier OptExt OptImpl '{' FieldList '}'
                                     { 
                                     $$ = new ClassDecl(new Identifier(@2, $2), $3, $4, $6); 
-                                    checkConflict(@1, $$);
+                                    //checkConflict(@1, $$);
                                     }
           ; 
                 
@@ -282,7 +282,7 @@ FormalList:    FormalList ',' Variable
 
 FnDecl    :    FnHeader StmtBlock   { 
                                     ($$=$1)->SetFunctionBody($2); 
-                                    checkConflict(@1, $$);
+                                    //checkConflict(@1, $$);
                                     }
           ;
 

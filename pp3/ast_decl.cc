@@ -16,6 +16,7 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
 }
 
 void Decl::addLevel(Slevel *parent){
+    cout<<"In Declaration "<<endl;
 	scope->Parent = parent; 
 }	
 
@@ -25,7 +26,7 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     (type=t)->SetParent(this);
 }
 
-VarDecl::Check(){
+void VarDecl::Check(){
 	 if(type->isBasicType()){ 
  		return;   
  	}
@@ -33,12 +34,12 @@ VarDecl::Check(){
 	Slevel *tempS = scope; 
 	while(tempS != NULL){
 		Decl *tempD; 
-		tempD = tempS->stable->LookUp(type->fetchKey()); 
+		tempD = tempS->stable->Lookup(type->fetchKey()); 
 		if(tempD != NULL){
-			ClassDecl *tempC = dynamic_cast<Classdecl*>(tempD); 
+			ClassDecl *tempC = dynamic_cast<ClassDecl*>(tempD); 
 			InterfaceDecl *tempI = dynamic_cast<InterfaceDecl*>(tempD); 
 			if(tempC == NULL && tempI == NULL){
-				type->ReportNotDeclaredIdentifier(LookingForType); 
+				ReportError::IdentifierNotDeclared(id, LookingForType); 
 				return; 
 			}
 		}	
@@ -73,7 +74,7 @@ void ClassDecl::addLevel(Slevel *parent){
 }
 
 void ClassDecl::Check(){
-	int numElem = members->numElements(); 
+	int numElem = members->NumElements(); 
 	
 	for(int i=0; i<numElem; i++){
 		members->Nth(i)->Check(); 
@@ -81,20 +82,21 @@ void ClassDecl::Check(){
 	
 	
 	if(extends != NULL ){
-		Decl *temp = scope->Parent->sTable->LookUp(extends->fetchKey());
+		Decl *temp = scope->Parent->stable->Lookup(extends->fetchKey());
 		ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
 		if(cDec == NULL){
-			extends->ReportNotDeclaredIdentifier(LookingForClass); 
+		    //extends
+			ReportError::IdentifierNotDeclared(id, LookingForClass); 
 		}
 	}
 	
 	if(implements->NumElements() != 0){
 		for(int i=0; i<implements->NumElements(); i++){
-			Decl *temp = scope->Parent->sTable->LookUp(implements->Nth(i)->fetchKey());
+			Decl *temp = scope->Parent->stable->Lookup(implements->Nth(i)->fetchKey());
 			InterfaceDecl *itemp = dynamic_cast<InterfaceDecl*>(temp); 
 			
 			if(itemp == NULL){
-				implements->Nth(i)->ReportNotDeclaredIdentifier(LookingForInterface);
+				ReportError::IdentifierNotDeclared(implements->Nth(i)->id, LookingForInterface);
 			}
 		}
 	}
@@ -146,10 +148,12 @@ void FnDecl::SetFunctionBody(Stmt *b) {
 }
 
 void FnDecl::addLevel(Slevel *parent){
+    cout<<"NOT FUCKING IN HERE"<<endl;
 	scope->Parent=parent; 
 	scope->fDecl = this; 
 	
 	int numElem = formals->NumElements(); 
+	cout<<numElem<<endl;
 	for(int i=0; i<numElem; i++){
 		scope->add(formals->Nth(i)); 
 	}
@@ -187,8 +191,8 @@ bool FnDecl::match(Decl *compare){
 		return false; 
 	}
 	
-	for(int i=0; i<numElem(); i++){
-		if(!(formals->Nth(i)->type ==(temp->formals->Nth(i)->type))){
+	for(int i=0; i<numElem; i++){
+		if(!(formals->Nth(i)->CheckResultType() ==(temp->formals->Nth(i)->CheckResultType()))){
 			return false; 
      	}
     }

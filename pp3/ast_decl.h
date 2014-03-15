@@ -17,6 +17,7 @@
 #include "ast_type.h"
 #include "ast_stmt.h"
 #include "list.h"
+#include "errors.h"
 
 using namespace std;
 
@@ -33,16 +34,16 @@ class Decl : public Node
     Slevel *scope; 
 
   public:
-    virtual Type* CheckResultType() = 0;
+    virtual Type* CheckResultType() {return type;}
     Decl(Identifier *name);
     
 
     virtual int numArgs() { return 0; }
     virtual Type* argType(int n) { return type; }
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
-    virtual bool match(Decl* compare); 
+    virtual bool match(Decl* compare) { return true; }
     virtual void addLevel(Slevel *parent);
-    virtual void Check(); 
+    virtual void Check() {}
 };
 
 class VarDecl : public Decl 
@@ -79,7 +80,7 @@ class InterfaceDecl : public Decl
     List<Decl*> *members;
     
   public:
-   // Type* CheckResultType() { return type; }
+    Type* CheckResultType() { return type; }
     InterfaceDecl(Identifier *name, List<Decl*> *members);
     
     void addLevel(Slevel *parent); 
@@ -96,7 +97,7 @@ class FnDecl : public Decl
   public:
     Type* CheckResultType() { return returnType; }
     int numArgs() { return formals->NumElements(); }
-    Type* argType(int n);
+    //Type* argType(int n);
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
     bool match(Decl *compare); 
