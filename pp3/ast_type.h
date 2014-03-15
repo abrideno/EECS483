@@ -16,9 +16,8 @@
 #include "list.h"
 #include <iostream>
 
-#define DEBUG 1
-
 using namespace std;
+
 
 class Type : public Node 
 {
@@ -27,7 +26,8 @@ class Type : public Node
 
   public :
     static Type *intType, *doubleType, *boolType, *voidType,
-                *nullType, *stringType, *errorType, *intArrType, *doubleArrType, *stringArrType, *boolArrType;
+                *nullType, *stringType, *errorType, *intArrType,
+                *doubleArrType, *stringArrType, *boolArrType;
 
     Type(yyltype loc) : Node(loc) {}
     Type(const char *str);
@@ -61,7 +61,7 @@ class ArrayType : public Type
     Type* getArrayType(){return elemType;}
     const char* fetchKey(){return elemType->fetchKey();}
     void PrintToStream(std::ostream& out) { out << elemType << "[]"; }
-//      bool isBasicType(){return false;}
+//  bool isBasicType(){return false;}
 
 };
 

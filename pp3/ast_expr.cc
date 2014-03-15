@@ -140,6 +140,8 @@ Type* AssignExpr::CheckResultType() //op == '='
 {
 
     Assert(left && right);
+	left->Check(); 
+	right->Check();
     Type* R = right->CheckResultType();
     Type* L = left->CheckResultType();
     if (L == Type::errorType || R == Type::errorType)
@@ -308,6 +310,7 @@ void ArrayAccess::Check(){
 	if(dynamic_cast<ArrayType*>(base->CheckResultType()) == NULL){
 		ReportError::BracketsOnNonArray(base);
 	}
+	
 	if(subscript->CheckResultType() != Type::intType){
 		ReportError::SubscriptNotInteger(subscript); 
 	}
