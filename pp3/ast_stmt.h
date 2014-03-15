@@ -27,7 +27,7 @@ class FnDecl;
 class Slevel
 {
 	public: 
-	Hashtable <Decl*> stable; 
+	Hashtable <Decl*> *stable; 
 	Slevel *Parent;	
 	ClassDecl *cDecl; 
 	LoopStmt *lStmt;

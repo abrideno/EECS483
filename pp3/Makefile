@@ -98,17 +98,17 @@ clean:
 	rm -f $(JUNK) y.output $(PRODUCTS)
 
 # DO NOT DELETE
-ast.o: ast.cc ast.h location.h ast_type.h list.h utility.h ast_decl.h
+ast.o: ast.cc ast.h location.h ast_type.h list.h utility.h ast_decl.h errors.h
 ast_decl.o: ast_decl.cc ast_decl.h ast.h location.h ast_type.h list.h \
- utility.h ast_stmt.h
+ utility.h ast_stmt.h 
 ast_expr.o: ast_expr.cc ast_expr.h ast.h location.h ast_stmt.h list.h \
- utility.h ast_type.h ast_decl.h errors.h
+ utility.h ast_type.h ast_decl.h
 ast_stmt.o: ast_stmt.cc ast_stmt.h list.h utility.h ast.h location.h \
- ast_type.h ast_decl.h ast_expr.h
+ ast_type.h ast_decl.h ast_expr.h 
 ast_type.o: ast_type.cc ast_type.h ast.h location.h list.h utility.h \
- ast_decl.h
+ ast_decl.h 
 errors.o: errors.cc errors.h location.h scanner.h ast_type.h ast.h list.h \
  utility.h ast_expr.h ast_stmt.h ast_decl.h
-utility.o: utility.cc utility.h list.h
+utility.o: utility.cc utility.h list.h 
 main.o: main.cc utility.h errors.h location.h parser.h scanner.h list.h \
  ast.h ast_type.h ast_decl.h ast_expr.h ast_stmt.h y.tab.h

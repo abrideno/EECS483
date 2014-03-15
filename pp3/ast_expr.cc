@@ -10,9 +10,15 @@
 #include "parser.h"
 #include <sstream>
 
+#define DEBUG 0
+
 using namespace std;
 
-
+void Debug(string s)
+{
+    if (DEBUG)
+        cout << s << endl;
+}
 
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
@@ -137,6 +143,7 @@ void AssignExpr::Check(){
 
 Type* AssignExpr::CheckResultType() //op == '='
 {
+
     Assert(left && right);
     Type* R = right->CheckResultType();
     Type* L = left->CheckResultType();
@@ -282,7 +289,7 @@ ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
     (subscript=s)->SetParent(this);
 }
 
-void ArrayAccess::addLevel(Scope *parent){
+void ArrayAccess::addLevel(Slevel *parent){
 	scope->Parent = parent; 
 	
 	subscript->addLevel(scope); 
@@ -299,7 +306,7 @@ Type* ArrayAccess::CheckResultType(){
 	return temp->getArrayType(); //considering making public to prevent function use 
 }
 
-Type* ArrayAccess::Check(){
+void ArrayAccess::Check(){
 	base->Check(); 
 	subscript->Check(); 
 
@@ -314,25 +321,57 @@ Type* ArrayAccess::Check(){
 
 Type* FieldAccess::CheckResultType()
 {
-	Slevel *temp = scope; 
-   //  //int scopeLevel = 0; //TODO: find scopeLevel
-//     for (int i = 0; i <= scopeLevel; i++)
-//     {
-//         for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
-//         {
-//             ostringstream oss, oss2;
-//             oss << *it;
-//             oss2 << field;
-//             if (oss.str() == oss2.str())
-//             {
-//                 return (*it)->GetType();
-//             }
-//         }
-//     }
-//     ReportError::IdentifierNotDeclared(field, LookingForVariable);
-//      type = Type::errorType;
-//       return type;
+
+   /*  //int scopeLevel = 0; //TODO: find scopeLevel
+     for (int i = 0; i <= scopeLevel; i++)
+     {
+         for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
+         {
+             ostringstream oss, oss2;
+             oss << *it;
+             oss2 << field;
+             if (oss.str() == oss2.str())
+             {
+                 return (*it)->GetType();
+             }
+         }
+     }*/
+     if (type)
+        return type;
+     Slevel* tempScope;
+     if (base == NULL)
+     {
+        tempScope = scope;
+        Decl* temp;
+        while (tempScope != NULL)
+        {
+            temp = tempScope->stable->Lookup(field->name);
+            if (!temp)
+                tempScope = tempScope->Parent;
+            else
+                break;
+        }
+        if (!temp)
+        {
+            ReportError::IdentifierNotDeclared(field, LookingForVariable);
+            type = Type::errorType;
+            return type;
+        }
+        
+        type = temp->CheckResultType();
+        return type;
+        
+     }
  }
+ 
+//void FieldAccess::addLevel(Slevel *parent){
+   // scope->Parent = parent; 
+    
+// } 
+
+void FieldAccess::Check(){
+    Type *throwaway = CheckResultType(); 
+}
 
      
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
@@ -341,7 +380,8 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
     base = b; 
     if (base) base->SetParent(this); 
     (field=f)->SetParent(this);
-    CheckResultType();
+   
+    //CheckResultType();
     
 }
 
@@ -405,11 +445,11 @@ NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) {
 }
 
 void NewExpr::Check(){
-	Decl *temp = Program::parentScope->stable->LookUp(cType->fetchKey()); 
+	Decl *temp = Program::parentScope->stable->Lookup(cType->fetchKey()); 
 	ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
 	
 	if(cDec == NULL){
-		ReportError::IdentifierNotDeclared(cType->GetId(), LookingForClass); 
+		ReportError::IdentifierNotDeclared(cType->id, LookingForClass); 
 	}
 }
 
@@ -433,26 +473,26 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     type = new Type(oss.str().c_str());
 }
 
-NewArrayExpr::addLevel(Slevel *parent){
+void NewArrayExpr::addLevel(Slevel *parent){
 	scope->Parent = parent; 
 	
 	size->addLevel(scope); 
 }
 
-NewArrayExpr::Check(){
+void NewArrayExpr::Check(){
 	size->Check();  
 	
-	if(size->CheckResultType != Type::intType){
+	if(size->CheckResultType() != Type::intType){
 		ReportError::NewArraySizeNotInteger(size); 
 	}
 	
-	if(elemType->isBasicType() || elemType != Type::voidType){
+	if(elemType->isBasicType()){
 		return; 
 	}
 	
-	Decl *temp = Program::parentScope->stable->LookUp(elemType->fetchKey());
+	Decl *temp = Program::parentScope->stable->Lookup(elemType->fetchKey());
 	ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
-	if(cDec != NULL){
-		ReportError::IdentifierNotDeclared(elemType,LookingForType);
+	if(cDec == NULL){
+		//ReportError::IdentifierNotDeclared(elemType->fetchKey(),LookingForType);
 	} 
 }   

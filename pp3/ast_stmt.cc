@@ -7,17 +7,19 @@
 #include "ast_decl.h"
 #include "ast_expr.h"
 
+using namespace std;
+
 Slevel *Program::parentScope = new Slevel(); 
 
-void Slevels::add(Decl *dec){
-	Decl *temp = stable->Lookup(dec->Name()); 
-	
+void Slevel::add(Decl *dec){
+	Decl *temp = stable->Lookup(dec->id->name); 
 	if(temp != NULL){
 		ReportError::DeclConflict(dec,temp); 
+		
 		return; 
 	}
 
-	stable->Enter(dec->Name(), temp);
+	stable->Enter(dec->id->name, dec);
 	return; 
 }
 
@@ -45,9 +47,8 @@ void Program::Check() {
      *      checking itself, which makes for a great use of inheritance
      *      and polymorphism in the node classes.
      */
-     
      addLevel(); 
-     int numElems  = decls->NumElements(); 
+     int numElems = decls->NumElements(); 
      
      for(int i= 0; i< numElems ; i++){
      	decls->Nth(i)->Check(); 
@@ -55,6 +56,7 @@ void Program::Check() {
 }
 
 void Stmt::addLevel(Slevel *parent){
+    scope = new Slevel;
 	scope->Parent = parent;
 }
 
@@ -66,19 +68,18 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
 }
 
 void StmtBlock::addLevel(Slevel *parent){
+    scope = new Slevel;
 	scope->Parent = parent;	
 	int numElems = decls->NumElements(); 
-	
 	for(int i=0; i<numElems; i++){
 		scope->add(decls->Nth(i)); 
 	}
 	
-	for(int i=0; i<numElems; i++){
-		decls->Nth(i)->addLevel(scope); 
-	} 
+	//for(int i=0; i<numElems; i++){
+//		decls->Nth(i)->addLevel(scope); 
+//	} 
 	
 	numElems = stmts->NumElements(); 
-	
 	for(int i=0; i<numElems; i++){
 		stmts->Nth(i)->addLevel(scope); 
 	}
@@ -86,11 +87,10 @@ void StmtBlock::addLevel(Slevel *parent){
 }
 
 void StmtBlock::Check(){
-	for(int i=0; i<numElems; i++){
-		decls->Nth(i)->Check(); 
+	for(int i=0; i<decls->NumElements(); i++){
+		//decls->Nth(i)->Check(); 
 	} 
-	
-	numElems = stmts->NumElements(); 
+	int numElems = stmts->NumElements(); 
 	
 	for(int i=0; i<numElems; i++){
 		stmts->Nth(i)->Check(); 
@@ -105,7 +105,7 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
 }
 
 void ConditionalStmt::addLevel(Slevel *parent){
-   scope->Parent = parent;	
+    scope->Parent = parent;	
     test->addLevel(scope); 
 	body->addLevel(scope); 
 }
@@ -121,8 +121,9 @@ void ConditionalStmt::Check(){
 }
 
 void LoopStmt::addLevel(Slevel *parent){
+     scope = new Slevel;
 	 scope->Parent = parent; 
-	 lStmt = this; 
+	 scope->lStmt = this; 
 	 test->addLevel(scope); 
 	 body->addLevel(scope); 
 }
@@ -140,6 +141,7 @@ IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) {
 }
 
 void IfStmt::addLevel(Slevel *parent){
+    scope = new Slevel;
 	scope->Parent = parent; 
 	
 	test->addLevel(scope); 
@@ -154,7 +156,7 @@ void IfStmt::Check(){
 	test->Check(); 
 	body->Check(); 
 	
-	if(!(test->CheckResultType == Type::boolType)){
+	if(!(test->CheckResultType() == Type::boolType)){
 		ReportError::TestNotBoolean(test); 
 	}
 	
@@ -164,6 +166,7 @@ void IfStmt::Check(){
 }
 
 void BreakStmt::Check(){
+    
 Slevel *temp = scope; 
 	while(temp != NULL) {
 		if( temp->getlStmt() != NULL){
@@ -181,7 +184,7 @@ ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) {
 }
 
 void ReturnStmt::addLevel(Slevel *parent) {
-	scope->Parent = parent; 
+	scope = parent; 
 	
 	expr->addLevel(scope); 
 }
@@ -193,7 +196,7 @@ void ReturnStmt::Check() {
     bool matched = false; 
 	
 	while(tempS != NULL){
-		if((tempF != NULL) {
+		if(tempF != NULL) {
 		    matched = true; 
 			break; 
 		}
@@ -219,10 +222,11 @@ PrintStmt::PrintStmt(List<Expr*> *a) {
 }
 
 void PrintStmt::addLevel(Slevel *parent){
+    scope = new Slevel; //XXX
 	scope->Parent = parent; 
 	
 	int numElem = args->NumElements(); 
-	for(int i=0; i<numElems; i++){
+	for(int i=0; i<numElem; i++){
 		Type *given = args->Nth(i)->CheckResultType(); 
 		
 		if((given == Type::boolType) || (given == Type::stringType) || (given != Type::intType)) {
@@ -235,6 +239,6 @@ void PrintStmt::addLevel(Slevel *parent){
 	}
 }
 
-}
+
 
 

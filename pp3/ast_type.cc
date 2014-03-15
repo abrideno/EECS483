@@ -16,22 +16,23 @@
  
 using namespace std;
 
-Type *Type::intType    = new Type("int");
-Type *Type::doubleType = new Type("double");
-Type *Type::voidType   = new Type("void");
-Type *Type::boolType   = new Type("bool");
-Type *Type::nullType   = new Type("null");
-Type *Type::stringType = new Type("string");
-Type *Type::errorType  = new Type("error"); 
+Type *Type::intType       = new Type("int");
+Type *Type::doubleType    = new Type("double");
+Type *Type::voidType      = new Type("void");
+Type *Type::boolType      = new Type("bool");
+Type *Type::nullType      = new Type("null");
+Type *Type::stringType    = new Type("string");
+Type *Type::errorType     = new Type("error"); 
+Type *Type::intArrType    = new Type("int[]");
+Type *Type::doubleArrType = new Type("double[]");
+Type *Type::stringArrType = new Type("string[]");
+Type *Type::boolArrType   = new Type("bool[]");
 
 Type::Type(const char *n) {
     Assert(n);
     typeName = strdup(n);
 }
 
-
-
-	
 NamedType::NamedType(Identifier *i) : Type(*i->GetLocation()) {
     Assert(i != NULL);
     (id=i)->SetParent(this);
