@@ -1,0 +1,34 @@
+#!/bin/bash
+
+set -u
+
+#Specify custom tests here
+#Add completed test cases
+
+#tests='bad1.decaf bad2.decaf bad2.decaf bad3.decaf bad4.decaf bad5.decaf
+#       bad6.decaf bad7.decaf class.decaf control.decaf expressions.decaf
+#       functions.decaf incrdecr.decaf inheritance.decaf interface.decaf 
+#        matrix.decaf simple.decaf switch.decaf '
+
+#Use for all tests
+tests=`ls samples/*.decaf`
+
+echo ""
+echo "Running the following testbenches: $tests"
+echo "------------------------------------------------------------------------"
+for file in $tests; do
+  ./dcc < ${file%.decaf.*} > out 2>&1
+  echo "====================================="
+  echo $file
+  echo""
+  if cmp -s out ${file%.*}.out 
+  then
+    echo -ne "\E[37m[\E[32mPASSED\E[37m] "; tput sgr0;
+  else
+    echo -ne "\E[37m[\E[31mFAILED\E[37m] "; tput sgr0;
+    #diff out ${file%.*}.out
+  fi
+  echo""
+  echo "------------------------------------"
+done
+echo ""

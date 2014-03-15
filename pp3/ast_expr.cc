@@ -10,7 +10,7 @@
 #include "parser.h"
 #include <sstream>
 
-#define DEBUG 0
+#define DEBUG 1
 
 using namespace std;
 
@@ -313,7 +313,7 @@ void ArrayAccess::Check(){
 	if(dynamic_cast<ArrayType*>(base->CheckResultType()) == NULL){
 		ReportError::BracketsOnNonArray(base);
 	}
-	
+	Debug("yup");
 	if(subscript->CheckResultType() != Type::intType){
 		ReportError::SubscriptNotInteger(subscript); 
 	}

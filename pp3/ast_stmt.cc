@@ -52,6 +52,7 @@ void Program::Check() {
      addLevel(); 
      int numElems = decls->NumElements(); 
      
+     Debug("Program");
      for(int i= 0; i< numElems ; i++){
      	decls->Nth(i)->Check(); 
      }     
