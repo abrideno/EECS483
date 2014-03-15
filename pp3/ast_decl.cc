@@ -10,13 +10,12 @@ using namespace std;
         
          
 Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
-    scope = new Slevel; 
+    //scope = new Slevel; 
     Assert(n != NULL);
     (id=n)->SetParent(this); 
 }
 
 void Decl::addLevel(Slevel *parent){
-    cout<<"In Declaration "<<endl;
 	scope->Parent = parent; 
 }	
 
@@ -59,6 +58,7 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
 }
 
 void ClassDecl::addLevel(Slevel *parent){
+    scope = new Slevel;
 	scope->Parent = parent; 
 	scope->cDecl = this; 
 	
@@ -148,22 +148,25 @@ void FnDecl::SetFunctionBody(Stmt *b) {
 }
 
 void FnDecl::addLevel(Slevel *parent){
-    cout<<"NOT FUCKING IN HERE"<<endl;
+    scope = new Slevel;
 	scope->Parent=parent; 
 	scope->fDecl = this; 
 	
 	int numElem = formals->NumElements(); 
-	cout<<numElem<<endl;
 	for(int i=0; i<numElem; i++){
 		scope->add(formals->Nth(i)); 
 	}
 	
+	//XXX
 	for(int i=0; i<numElem; i++){
 		formals->Nth(i)->addLevel(scope); 
 	}
 	
-	if(body != NULL){
-		body->addLevel(scope); 
+    StmtBlock *block = dynamic_cast<StmtBlock*>(body); 
+	if(block != NULL){
+        block->addLevel(scope
+        );
+		//TODO: add stmtBlocks
 	}
 }
 
@@ -172,7 +175,6 @@ void FnDecl::Check(){
 	for(int i =0; i<numElem; i++){
 		formals->Nth(i)->Check(); 
 	}
-	
 	if(body!= NULL){
 		body->Check(); 
 	}

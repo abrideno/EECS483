@@ -65,7 +65,7 @@ class Stmt : public Node
   	Slevel *scope; 
   	
   public:
-     Stmt() : Node(), scope(new Slevel) {}
+     Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc), scope(new Slevel) {}
      
      virtual void addLevel(Slevel *parent); 
@@ -75,7 +75,7 @@ class Stmt : public Node
 
 class StmtBlock : public Stmt 
 {
-  protected:
+  public:
     List<VarDecl*> *decls;
     List<Stmt*> *stmts;
     

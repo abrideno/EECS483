@@ -10,9 +10,15 @@
 #include "parser.h"
 #include <sstream>
 
+#define DEBUG 0
+
 using namespace std;
 
-
+void Debug(string s)
+{
+    if (DEBUG)
+        cout << s << endl;
+}
 
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
@@ -46,40 +52,32 @@ void ArithmeticExpr::Check(){
 
 Type* ArithmeticExpr::CheckResultType()
 {
-    cout << "hi!" << endl;
     if (type)
         return type;
-    cout << "where" << endl;
     Assert(right);
     Type* R = right->CheckResultType();
     if (left) //op == (+ - * / %)
     {
-        cout << "am" << endl;
         Type* L = left->CheckResultType();
-        cout << L << ' ' << op << ' ' << R << endl;
         if (L == Type::errorType || R == Type::errorType)
         {
-            cout << "i" << endl;
             type = Type::errorType;
             return type;
         }            
         else if (L != R)
         {
-            cout << "going" << endl;
             ReportError::IncompatibleOperands(op, L, R);
             type = Type::errorType;
             return type;
         }
         else if ((L != Type::intType && L != Type::doubleType) || (R != Type::intType && R != Type::doubleType))
         {
-            cout << "blarg" << endl;
             ReportError::IncompatibleOperands(op, L, R);
             type = Type::errorType;
             return type;
         }
         else
         {
-            cout << "BLARRRRG" << endl;
             type = L;
             return type;   
         }
@@ -145,29 +143,23 @@ void AssignExpr::Check(){
 
 Type* AssignExpr::CheckResultType() //op == '='
 {
-    cout << "ASSIGN" << endl;
+
     Assert(left && right);
-    cout << "passed assert" << endl;
     Type* R = right->CheckResultType();
-    cout << "passed right" << endl;
     Type* L = left->CheckResultType();
-    cout << "passed left" << endl;
     if (L == Type::errorType || R == Type::errorType)
     {
-        cout << "errorType" << endl;
         type = Type::errorType;
         return type;
     }
     if (L != R)
     {
-        cout << "L!=R" << endl;
         ReportError::IncompatibleOperands(op, L, R);
         type = Type::errorType;
         return type;
     }
     else
     {
-        cout << "yup" << endl;
         type = L;
         return type;
     }
@@ -329,7 +321,7 @@ void ArrayAccess::Check(){
 
 Type* FieldAccess::CheckResultType()
 {
-	Slevel *temp = scope; 
+
    /*  //int scopeLevel = 0; //TODO: find scopeLevel
      for (int i = 0; i <= scopeLevel; i++)
      {
@@ -346,17 +338,26 @@ Type* FieldAccess::CheckResultType()
      }*/
      if (type)
         return type;
+     Slevel* tempScope;
      if (base == NULL)
      {
-        cout<< "base is null"<<endl;
-        Decl* temp = scope->stable->Lookup(field->name);
-        cout << "no parent" << endl;
+        tempScope = scope;
+        Decl* temp;
+        while (tempScope != NULL)
+        {
+            temp = tempScope->stable->Lookup(field->name);
+            if (!temp)
+                tempScope = tempScope->Parent;
+            else
+                break;
+        }
         if (!temp)
         {
             ReportError::IdentifierNotDeclared(field, LookingForVariable);
             type = Type::errorType;
             return type;
         }
+        
         type = temp->CheckResultType();
         return type;
         
