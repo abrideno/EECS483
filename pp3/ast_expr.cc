@@ -10,15 +10,10 @@
 #include "parser.h"
 #include <sstream>
 
-#define DEBUG 1
 
 using namespace std;
 
-void Debug(string s)
-{
-    if (DEBUG)
-        cout << s << endl;
-}
+
 
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {

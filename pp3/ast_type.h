@@ -16,6 +16,15 @@
 #include "list.h"
 #include <iostream>
 
+#define DEBUG 1
+
+using namespace std;
+
+void Debug(string s)
+{
+    if (DEBUG)
+        cout << s << endl;
+}
 
 class Type : public Node 
 {
