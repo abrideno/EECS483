@@ -24,7 +24,7 @@ class Type : public Node
 
   public :
     static Type *intType, *doubleType, *boolType, *voidType,
-                *nullType, *stringType, *errorType;
+                *nullType, *stringType, *errorType, *intArrType, *doubleArrType, *stringArrType, *boolArrType;
 
     Type(yyltype loc) : Node(loc) {}
     Type(const char *str);
