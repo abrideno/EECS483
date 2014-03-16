@@ -480,6 +480,8 @@ void Call::addLevel(Slevel* parent)
     scope->Parent = parent;
     if (base)
         base->addLevel(scope);
+    for (int i = 0; i < actuals->NumElements(); i++)
+        actuals->Nth(i)->addLevel(scope);
 }
 
 void Call::Check()
@@ -508,13 +510,37 @@ Type* Call::CheckResultType()
         }
         if (!temp)
         {
-            ReportError::IdentifierNotDeclared(field, LookingForVariable);
+            ReportError::IdentifierNotDeclared(field, LookingForFunction);
             type = Type::errorType;
             return type;
         }
-        type = temp->CheckResultType();
-        return type;
-        
+        FnDecl* fd = dynamic_cast<FnDecl*>(temp);
+        if (fd)
+        {
+            List<VarDecl*>* args = fd->formals;
+            if (args->NumElements() != actuals->NumElements())
+            {
+                ReportError::NumArgsMismatch(field, args->NumElements(), actuals->NumElements());
+                type = Type::errorType;
+                return type;
+            }
+            for (int i = 0; i < args->NumElements(); i++)
+            {
+                if (args->Nth(i)->CheckResultType() != actuals->Nth(i)->CheckResultType())
+                {
+                    if (args->Nth(i)->CheckResultType() != Type::errorType && actuals->Nth(i)->CheckResultType() != Type::errorType)
+                        ReportError::ArgMismatch(actuals->Nth(i), i+1, actuals->Nth(i)->CheckResultType(), args->Nth(i)->CheckResultType());
+                    type = Type::errorType;
+                    return type;
+                }
+            }
+            type = fd->returnType;
+            return type;
+        }     
+        else       
+        {
+            return Type::errorType; 
+        }        
      }
      else
      {
@@ -588,7 +614,8 @@ Type* Call::CheckResultType()
                 {
                     if (args->Nth(i)->CheckResultType() != actuals->Nth(i)->CheckResultType())
                     {
-                        ReportError::ArgMismatch(actuals->Nth(i), i+1, actuals->Nth(i)->CheckResultType(), args->Nth(i)->CheckResultType());
+                        if (args->Nth(i)->CheckResultType() != Type::errorType && actuals->Nth(i)->CheckResultType() != Type::errorType)
+                            ReportError::ArgMismatch(actuals->Nth(i), i+1, actuals->Nth(i)->CheckResultType(), args->Nth(i)->CheckResultType());
                         type = Type::errorType;
                         return type;
                     }
