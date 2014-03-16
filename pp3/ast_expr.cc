@@ -323,41 +323,33 @@ void ArrayAccess::Check(){
 
 Type* FieldAccess::CheckResultType()
 {
-
-   /*  //int scopeLevel = 0; //TODO: find scopeLevel
-     for (int i = 0; i <= scopeLevel; i++)
-     {
-         for (auto it = variablesInScope[scopeLevel].begin(); it != variablesInScope[scopeLevel].end(); it++)
-         {
-             ostringstream oss, oss2;
-             oss << *it;
-             oss2 << field;
-             if (oss.str() == oss2.str())
-             {
-                 return (*it)->GetType();
-             }
-         }
-     }*/
      cout << "FIELD ACCESS" << endl;
      if (type)
         return type;
      Slevel* tempScope;
      tempScope = scope;
+     Decl* temp;
      if (base == NULL)
      {
         cout << "base == null" << endl;
-        Decl* temp;
+        cout << field->name << endl;
+        int count = 0;
         while (tempScope != NULL)
         {
+            count++;
             temp = tempScope->stable->Lookup(field->name);
-            if (temp != NULL)
+            if (temp == NULL)
                 tempScope = tempScope->Parent;
             else
                 break;
         }
-        cout << "confusion" << endl;
         if (temp == NULL)
+            cout << "DIDNT FIND IT, YOU HAVE NO IDEA WHAT YOURE DOING" << endl;
+        cout << count << endl;
+        cout << "confusion" << endl;
+        if (!temp)
         {
+            cout << "QWI)HUEOPQIWHROPHQWOPRHQWORIHQOWHROPIWHRPOQWIHROI" << endl;
             ReportError::IdentifierNotDeclared(field, LookingForVariable);
             type = Type::errorType;
             return type;
@@ -370,25 +362,37 @@ Type* FieldAccess::CheckResultType()
      }
      else
      {
-        cout << "base != null" << endl;
+        Decl* cDecl;
         ostringstream oss;
-        cout << "qwkr" << endl;
-        Type *t = dynamic_cast<NamedType*>(base->CheckResultType());
-        if (t == NULL)
-            cout << "fail" << endl;
-        Decl* cDecl = scope->stable->Lookup(t->fetchKey());
+        
+        FieldAccess* fAcc = dynamic_cast<FieldAccess*>(base);
+        cout << fAcc->field  << endl;
+        Type *t = base->CheckResultType();
+        while (tempScope != NULL)
+        {
+            cDecl = tempScope->stable->Lookup(fAcc->field->name);
+            if (cDecl == NULL)
+                tempScope = tempScope->Parent;
+            else
+                break;
+        }
+        cout << "----" << cDecl << endl;
         cout << "seg" << endl;
         if (cDecl == NULL)
         {
-            ReportError::IdentifierNotDeclared2(, LookingForVariable);
+            ReportError::IdentifierNotDeclared(fAcc->field, LookingForVariable);
             type = Type::errorType;
             return type;
         }
         cout << "blarg" << endl;
-        Type* bType = base->CheckResultType();
+        cout << cDecl->CheckResultType() << endl;
+        cout << "FAAAAIL" << endl;
         Slevel *topScope = Program::parentScope; 
-        Decl* cDecl2 = topScope->stable->Lookup(cDecl->id->name);
+        cout << "fault" << endl;
+        Decl* cDecl2 = topScope->stable->Lookup(cDecl->CheckResultType()->fetchKey());
+        cout << cDecl2 << endl;
         ClassDecl* cDecl3 = dynamic_cast<ClassDecl*>(cDecl2);
+        cout << cDecl3 << endl;
         if (!cDecl3)
         {
             ReportError::IdentifierNotDeclared(cDecl->id, LookingForType);
@@ -399,15 +403,22 @@ Type* FieldAccess::CheckResultType()
         {
             bool found = false; 
             int numMem = cDecl3->members->NumElements();
-            for(int i=0; i>numMem; i++){
-                if(cDecl3->members->Nth(i)->id->name == field->name){
+            cout << numMem << endl;
+            for(int i=0; i<numMem; i++){
+                cout << cDecl3->members->Nth(i)->CheckResultType() << " finding " << field->name << endl;
+                cout << cDecl3->members->Nth(i)->id->name << endl;
+                string s, s2;
+                s = cDecl3->members->Nth(i)->id->name;
+                s2 = field->name;
+                if(s == s2){
+                    cout << "found" << endl;
                     type = cDecl3->members->Nth(i)->CheckResultType(); 
                     found = true; 
                     break; 
                 }
             } 
             if(!found){
-                ReportError::FieldNotFoundInBase(field, bType);
+                ReportError::FieldNotFoundInBase(field, t);
                 type = Type::errorType;
                 return type;
             } 

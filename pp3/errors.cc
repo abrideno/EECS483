@@ -124,7 +124,7 @@ void ReportError::IdentifierNotDeclared2(yyltype loc, string name, reasonT whyNe
     static const char *names[] =  {"type", "class", "interface", "variable", "function"};
     Assert(whyNeeded >= 0 && whyNeeded <= sizeof(names)/sizeof(names[0]));
     s << "No declaration found for "<< names[whyNeeded] << " '" << name << "'";
-    EmitError(loc, s.str());
+    EmitError(&loc, s.str());
 }
 
 void ReportError::IncompatibleOperands(Operator *op, Type *lhs, Type *rhs) {
