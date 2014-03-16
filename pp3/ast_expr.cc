@@ -142,18 +142,25 @@ void AssignExpr::Check(){
 
 Type* AssignExpr::CheckResultType() //op == '='
 {
-
+    cout << "ASSIGN CHECK" << endl;
     Assert(left && right);
 	left->Check(); 
+	cout << "left done, checking right" << endl;
 	right->Check();
+	cout << "LEFT & RIGHT CHECKED" << endl;
     Type* R = right->CheckResultType();
     Type* L = left->CheckResultType();
+    cout << "blerg" << endl;
+    cout << L <<  ' ' << op  << endl;
     if (L == Type::errorType || R == Type::errorType)
     {
         type = Type::errorType;
         return type;
     }
-    if (L != R)
+    ostringstream oss, oss2;
+    oss << L;
+    oss2 << R;
+    if (oss.str() != oss2.str())
     {
         ReportError::IncompatibleOperands(op, L, R);
         type = Type::errorType;
@@ -283,7 +290,40 @@ void CompoundExpr::Check(){
 	}
 	right->Check(); 
 }
+
+Type* This::CheckResultType()
+{
+    cout << "no sense made"<< endl;
+    if (type)
+        return type;
+    cout << "type checking this" << endl;
+    ClassDecl* cDecl = scope->Parent->cDecl;
+    if (cDecl)
+    {
+        type = cDecl->CheckResultType();
+        cout << type << " HELLO WORLD" << endl;
+        return type;
+    }
+    else
+    {
+        cout << "FUCK ME" << endl;
+        ReportError::ThisOutsideClassScope(this);
+        type = Type::errorType;
+        return type;
+    }
+}
+
+void This::Check()
+{
+    CheckResultType();
+}
    
+void This::addLevel(Slevel* parent)
+{
+    cout << "added this level" << endl;
+    scope = new Slevel;
+    scope->Parent = parent;
+}
   
 ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
     (base=b)->SetParent(this); 
@@ -327,8 +367,6 @@ void ArrayAccess::Check(){
 
 Type* FieldAccess::CheckResultType()
 {
-     cout << "FIELD ACCESS" << endl;
-     cout << scope << endl;
      if (type)
         return type;
      Slevel* tempScope;
@@ -398,9 +436,13 @@ Type* FieldAccess::CheckResultType()
         Slevel *topScope = Program::parentScope; 
         cout << "fault" << endl;
         Decl* cDecl2 = topScope->stable->Lookup(cDecl->CheckResultType()->fetchKey());
-        cout << cDecl2 << endl;
+        if (!cDecl2)
+        {
+            ReportError::FieldNotFoundInBase(field, t);
+            type = Type::errorType;
+            return type;
+        }
         ClassDecl* cDecl3 = dynamic_cast<ClassDecl*>(cDecl2);
-        cout << cDecl3 << endl;
         if (!cDecl3)
         {
             ReportError::IdentifierNotDeclared(cDecl->id, LookingForType);
@@ -718,6 +760,7 @@ void NewArrayExpr::addLevel(Slevel *parent){
 }
 
 void NewArrayExpr::Check(){
+    cout << "NEW ARRAY CHECK" << endl;
 	size->Check();  
 	
 	if(size->CheckResultType() != Type::intType){

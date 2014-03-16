@@ -180,7 +180,9 @@ class This : public Expr
 {
   public:
     This(yyltype loc) : Expr(loc) {}
-    //void Check();
+    void addLevel(Slevel * parent);
+    void Check();
+    Type* CheckResultType();
 
 };
 

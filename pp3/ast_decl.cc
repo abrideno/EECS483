@@ -184,7 +184,7 @@ void FnDecl::Check(){
 	for(int i =0; i<numElem; i++){
 		formals->Nth(i)->Check(); 
 	}
-    
+    cout << "CHECK BODY" << endl;
 	if(body!= NULL){
 		body->Check(); 
 	}
