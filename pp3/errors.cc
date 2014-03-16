@@ -118,6 +118,15 @@ void ReportError::IdentifierNotDeclared(Identifier *ident, reasonT whyNeeded) {
     EmitError(ident->GetLocation(), s.str());
 }
 
+void ReportError::IdentifierNotDeclared2(yyltype loc, string name, reasonT whyNeeded)
+{
+    ostringstream s;
+    static const char *names[] =  {"type", "class", "interface", "variable", "function"};
+    Assert(whyNeeded >= 0 && whyNeeded <= sizeof(names)/sizeof(names[0]));
+    s << "No declaration found for "<< names[whyNeeded] << " '" << name << "'";
+    EmitError(loc, s.str());
+}
+
 void ReportError::IncompatibleOperands(Operator *op, Type *lhs, Type *rhs) {
     ostringstream s;
     s << "Incompatible operands: " << lhs << " " << op << " " << rhs;

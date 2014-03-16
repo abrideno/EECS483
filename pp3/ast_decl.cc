@@ -61,21 +61,26 @@ void ClassDecl::addLevel(Slevel *parent){
     scope = new Slevel;
 	scope->Parent = parent; 
 	scope->cDecl = this; 
-	
+	cout << "ADD LEVEL" << endl;
 	int numElem = members->NumElements(); 
 	
 	for(int i = 0; i<numElem; i++){
 		scope->add(members->Nth(i)); 
 	}
-
+    cout << "what?" << endl;
+    cout << numElem << endl;
 	for(int i = 0; i<numElem; i++){
-		members->Nth(i)->addLevel(scope); 
+	    VarDecl* vd = dynamic_cast<VarDecl*>(members->Nth(i));
+	    if (!vd) 
+		    members->Nth(i)->addLevel(scope); 
 	}	
+	cout << "finished add level" << endl;
 }
 
 void ClassDecl::Check(){
+    cout << "fail?" << endl;
 	int numElem = members->NumElements(); 
-	
+	cout << "CHECK" << endl;
 	for(int i=0; i<numElem; i++){
 		members->Nth(i)->Check(); 
 	}

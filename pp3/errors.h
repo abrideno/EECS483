@@ -71,6 +71,7 @@ class ReportError
 
   // Errors used by semantic analyzer for identifiers
   static void IdentifierNotDeclared(Identifier *ident, reasonT whyNeeded); // XXX need scope
+  static void IdentifierNotDeclared2(yyltype loc, string name, reasonT whyNeeded);
 
   
   // Errors used by semantic analyzer for expressions

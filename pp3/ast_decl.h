@@ -59,7 +59,7 @@ class VarDecl : public Decl
 
 class ClassDecl : public Decl 
 {
-  protected:
+  public:
     List<Decl*> *members;
     NamedType *extends;
     List<NamedType*> *implements;
