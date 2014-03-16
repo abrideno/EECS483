@@ -542,6 +542,7 @@ Type* Call::CheckResultType()
         Slevel *topScope = Program::parentScope; 
         Decl* cDecl2 = topScope->stable->Lookup(cDecl->CheckResultType()->fetchKey());
         ClassDecl* cDecl3 = dynamic_cast<ClassDecl*>(cDecl2);
+        cout << cDecl3 << endl;
         if (!cDecl3)
         {
             ReportError::IdentifierNotDeclared(cDecl->id, LookingForType);
@@ -550,6 +551,7 @@ Type* Call::CheckResultType()
         }
         else
         {
+            int Nth;
             bool found = false; 
             int numMem = cDecl3->members->NumElements();
             Decl* cDecl4;
@@ -560,6 +562,7 @@ Type* Call::CheckResultType()
                 if(s == s2){
                     type = cDecl3->members->Nth(i)->CheckResultType(); 
                     cDecl4 = cDecl3->members->Nth(i);
+                    Nth = i;
                     found = true; 
                     break; 
                 }
@@ -569,12 +572,28 @@ Type* Call::CheckResultType()
                 type = Type::errorType;
                 return type;
             } 
-            VarDecl* vd = dynamic_cast<VarDecl*>(cDecl4);
-            cout << vd << "!!!!!!" << endl;
-            if (vd)
+            cout << cDecl4 << endl;
+            FnDecl* fd = dynamic_cast<FnDecl*>(cDecl4);
+            cout << fd << "!!!!!!" << endl;
+            if (fd)
             {
-                ReportError::InaccessibleField(field, base->CheckResultType());
-                type = Type::errorType;
+                List<VarDecl*>* args = fd->formals;
+                if (args->NumElements() != actuals->NumElements())
+                {
+                    ReportError::NumArgsMismatch(field, args->NumElements(), actuals->NumElements());
+                    type = Type::errorType;
+                    return type;
+                }
+                for (int i = 0; i < args->NumElements(); i++)
+                {
+                    if (args->Nth(i)->CheckResultType() != actuals->Nth(i)->CheckResultType())
+                    {
+                        ReportError::ArgMismatch(actuals->Nth(i), i+1, actuals->Nth(i)->CheckResultType(), args->Nth(i)->CheckResultType());
+                        type = Type::errorType;
+                        return type;
+                    }
+                }
+                type = fd->returnType;
                 return type;
             }     
             else       

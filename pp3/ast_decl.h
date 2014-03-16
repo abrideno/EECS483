@@ -89,7 +89,7 @@ class InterfaceDecl : public Decl
 
 class FnDecl : public Decl 
 {
-  protected:
+  public:
     List<VarDecl*> *formals;
     Type *returnType;
     Stmt *body;

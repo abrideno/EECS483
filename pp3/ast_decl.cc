@@ -73,6 +73,9 @@ void ClassDecl::addLevel(Slevel *parent){
 	    VarDecl* vd = dynamic_cast<VarDecl*>(members->Nth(i));
 	    if (!vd) 
 		    members->Nth(i)->addLevel(scope); 
+		FnDecl* fd = dynamic_cast<FnDecl*>(members->Nth(i));
+		if (fd)
+		    cout << fd << " FUS RO DAH" << endl;
 	}	
 	cout << "finished add level" << endl;
 }
