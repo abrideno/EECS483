@@ -176,6 +176,7 @@ void FnDecl::addLevel(Slevel *parent){
 }
 
 void FnDecl::Check(){
+    cout << "FNDECL " << this << endl;
 	int numElem = formals->NumElements(); 
 	for(int i =0; i<numElem; i++){
 		formals->Nth(i)->Check(); 

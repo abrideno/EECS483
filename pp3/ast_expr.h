@@ -203,7 +203,7 @@ class ArrayAccess : public LValue
  * and sort it out later. */
 class FieldAccess : public LValue 
 {
-  protected:
+  public:
     Expr *base;	// will be NULL if no explicit base
     Identifier *field;
     
@@ -227,9 +227,9 @@ class Call : public Expr
     
   public:
     Call(yyltype loc, Expr *base, Identifier *field, List<Expr*> *args);
-    //Type* CheckResultType();
-    //void Check(); 
-    //void addLevel(Slevel *parent); 
+    Type* CheckResultType();
+    void Check(); 
+    void addLevel(Slevel *parent); 
 };
 
 class NewExpr : public Expr

@@ -75,10 +75,8 @@ void StmtBlock::addLevel(Slevel *parent){
 	int numElems = decls->NumElements(); 
 	cout << "STMT BLOCK: numElems=" << numElems << endl;
 	for(int i=0; i<numElems; i++){
-	    cout << decls->Nth(i) << endl;
 		scope->add(decls->Nth(i)); 
 	}
-	cout << scope->stable->Lookup("u") << endl;
 	/*for(int i=0; i<numElems; i++){
 		decls->Nth(i)->addLevel(scope); 
 	} */

@@ -412,6 +412,7 @@ Type* FieldAccess::CheckResultType()
             bool found = false; 
             int numMem = cDecl3->members->NumElements();
             cout << numMem << endl;
+            Decl* cDecl4;
             for(int i=0; i<numMem; i++){
                 cout << cDecl3->members->Nth(i)->CheckResultType() << " finding " << field->name << endl;
                 cout << cDecl3->members->Nth(i)->id->name << endl;
@@ -421,6 +422,7 @@ Type* FieldAccess::CheckResultType()
                 if(s == s2){
                     cout << "found" << endl;
                     type = cDecl3->members->Nth(i)->CheckResultType(); 
+                    cDecl4 = cDecl3->members->Nth(i);
                     found = true; 
                     break; 
                 }
@@ -430,14 +432,21 @@ Type* FieldAccess::CheckResultType()
                 type = Type::errorType;
                 return type;
             } 
-            else
+            cout << cDecl4 << " !!!!!!!!" << endl;
+            VarDecl* vd = dynamic_cast<VarDecl*>(cDecl4);
+            if (vd)
+            {
+                ReportError::InaccessibleField(field, base->CheckResultType());
+                type = Type::errorType;
+                return type;
+            }     
+            else       
             {
                 return type; 
             }
-       }
-     }
-
- }
+        }
+    }
+}
  
 void FieldAccess::addLevel(Slevel *parent){
     scope = new Slevel;
@@ -465,6 +474,117 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
     
 }
 
+void Call::addLevel(Slevel* parent)
+{
+    scope = new Slevel;
+    scope->Parent = parent;
+    if (base)
+        base->addLevel(scope);
+}
+
+void Call::Check()
+{
+    CheckResultType();
+}
+
+Type* Call::CheckResultType()
+{
+     cout << "CALL CHECK" << endl;
+     cout << field << endl;
+     if (type)
+        return type;
+     Slevel* tempScope;
+     tempScope = scope;
+     Decl* temp;
+     if (base == NULL)
+     {
+        while (tempScope != NULL)
+        {
+            temp = tempScope->stable->Lookup(field->name);
+            if (temp == NULL)
+                tempScope = tempScope->Parent;
+            else
+                break;
+        }
+        if (!temp)
+        {
+            ReportError::IdentifierNotDeclared(field, LookingForVariable);
+            type = Type::errorType;
+            return type;
+        }
+        type = temp->CheckResultType();
+        return type;
+        
+     }
+     else
+     {
+        Decl* cDecl;
+        ostringstream oss;
+        
+        FieldAccess* fAcc = dynamic_cast<FieldAccess*>(base);
+        Type *t = base->CheckResultType();
+        cout << "Call base checked" << endl;
+        cout << fAcc << endl;
+        while (tempScope != NULL)
+        {
+            cDecl = tempScope->stable->Lookup(fAcc->field->name);
+            if (cDecl == NULL)
+                tempScope = tempScope->Parent;
+            else
+                break;
+        }
+        if (cDecl == NULL)
+        {
+            ReportError::IdentifierNotDeclared(fAcc->field, LookingForVariable);
+            type = Type::errorType;
+            return type;
+        }
+        Slevel *topScope = Program::parentScope; 
+        Decl* cDecl2 = topScope->stable->Lookup(cDecl->CheckResultType()->fetchKey());
+        ClassDecl* cDecl3 = dynamic_cast<ClassDecl*>(cDecl2);
+        if (!cDecl3)
+        {
+            ReportError::IdentifierNotDeclared(cDecl->id, LookingForType);
+            type = Type::errorType;
+            return type;
+        }
+        else
+        {
+            bool found = false; 
+            int numMem = cDecl3->members->NumElements();
+            Decl* cDecl4;
+            for(int i=0; i<numMem; i++){
+                string s, s2;
+                s = cDecl3->members->Nth(i)->id->name;
+                s2 = field->name;
+                if(s == s2){
+                    type = cDecl3->members->Nth(i)->CheckResultType(); 
+                    cDecl4 = cDecl3->members->Nth(i);
+                    found = true; 
+                    break; 
+                }
+            } 
+            if(!found){
+                ReportError::FieldNotFoundInBase(field, t);
+                type = Type::errorType;
+                return type;
+            } 
+            VarDecl* vd = dynamic_cast<VarDecl*>(cDecl4);
+            cout << vd << "!!!!!!" << endl;
+            if (vd)
+            {
+                ReportError::InaccessibleField(field, base->CheckResultType());
+                type = Type::errorType;
+                return type;
+            }     
+            else       
+            {
+                return type; 
+            }
+        }
+    }
+}
+
 
 
 Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)  
@@ -476,9 +596,8 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)
     (actuals=a)->SetParentAll(this);
     
     
-//  int scopeLevel = 0; //TODO: seriously, scope level
-//     bool found = false;
-//     int numArgs;
+     bool found = false;
+     int numArgs;
 //     auto it = variablesInScope[scopeLevel].begin();
 //     while (it != variablesInScope[scopeLevel].end())
 //     {
