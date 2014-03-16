@@ -14,7 +14,11 @@
 using namespace std;
 
 
-
+void Expr::addLevel(Slevel *parent)
+{
+    scope = new Slevel;
+    scope->Parent = parent;
+}
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
     value = val;
@@ -324,6 +328,7 @@ void ArrayAccess::Check(){
 Type* FieldAccess::CheckResultType()
 {
      cout << "FIELD ACCESS" << endl;
+     cout << scope << endl;
      if (type)
         return type;
      Slevel* tempScope;
@@ -368,14 +373,17 @@ Type* FieldAccess::CheckResultType()
         FieldAccess* fAcc = dynamic_cast<FieldAccess*>(base);
         cout << fAcc->field  << endl;
         Type *t = base->CheckResultType();
+        int count = 0;
         while (tempScope != NULL)
         {
+            count++;
             cDecl = tempScope->stable->Lookup(fAcc->field->name);
             if (cDecl == NULL)
                 tempScope = tempScope->Parent;
             else
                 break;
         }
+        cout << count << endl;
         cout << "----" << cDecl << endl;
         cout << "seg" << endl;
         if (cDecl == NULL)
@@ -431,10 +439,15 @@ Type* FieldAccess::CheckResultType()
 
  }
  
-//void FieldAccess::addLevel(Slevel *parent){
-   // scope->Parent = parent; 
+void FieldAccess::addLevel(Slevel *parent){
+    scope = new Slevel;
+    scope->Parent = parent; 
+    Slevel* tempScope = scope;
+    Decl* temp;
+    if (base)
+        base->addLevel(scope);
     
-// } 
+} 
 
 void FieldAccess::Check(){
     Type *throwaway = CheckResultType(); 

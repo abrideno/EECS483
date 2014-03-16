@@ -158,19 +158,19 @@ void FnDecl::addLevel(Slevel *parent){
 	scope->fDecl = this; 
 	
 	int numElem = formals->NumElements(); 
+	cout << "FN DECL: elems=" << numElem << endl;
 	for(int i=0; i<numElem; i++){
 		scope->add(formals->Nth(i)); 
 	}
 	
 	//XXX
-	for(int i=0; i<numElem; i++){
+	/*for(int i=0; i<numElem; i++){
 		formals->Nth(i)->addLevel(scope); 
-	}
+	}*/
 	
     StmtBlock *block = dynamic_cast<StmtBlock*>(body); 
 	if(block != NULL){
-        block->addLevel(scope
-        );
+        block->addLevel(scope);
 		//TODO: add stmtBlocks
 	}
 }

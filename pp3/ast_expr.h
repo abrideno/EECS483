@@ -35,7 +35,7 @@ class Expr : public Stmt
     Expr() : Stmt() {}
     virtual Type* CheckResultType() { return type; }
     virtual void Check() { return; }
-   // virtual void addLevel(Slevel *parent) {} 
+    virtual void addLevel(Slevel *parent);
 };
 
 /* This node type is used for those places where an expression is optional.
@@ -210,7 +210,7 @@ class FieldAccess : public LValue
   public:
     Type* CheckResultType();
     void Check(); 
-    //void addLevel(Slevel *parent){}; 
+    void addLevel(Slevel *parent);
     FieldAccess(Expr *base, Identifier *field); //ok to pass NULL base
 };
 
