@@ -609,7 +609,10 @@ Type* Call::CheckResultType()
             }
             for (int i = 0; i < args->NumElements(); i++)
             {
-                if (args->Nth(i)->CheckResultType() != actuals->Nth(i)->CheckResultType())
+                ostringstream oss, oss2;
+                oss << args->Nth(i)->CheckResultType();
+                oss2 << actuals->Nth(i)->CheckResultType();
+                if (oss.str() != oss2.str())
                 {
                     if (args->Nth(i)->CheckResultType() != Type::errorType && actuals->Nth(i)->CheckResultType() != Type::errorType)
                         ReportError::ArgMismatch(actuals->Nth(i), i+1, actuals->Nth(i)->CheckResultType(), args->Nth(i)->CheckResultType());
@@ -700,7 +703,10 @@ Type* Call::CheckResultType()
                 {
                     if (args->Nth(i)->CheckResultType() != actuals->Nth(i)->CheckResultType())
                     {
-                        if (args->Nth(i)->CheckResultType() != Type::errorType && actuals->Nth(i)->CheckResultType() != Type::errorType)
+                        ostringstream oss, oss2;
+                        oss << args->Nth(i)->CheckResultType();
+                        oss2 << actuals->Nth(i)->CheckResultType();
+                        if (oss.str() != "error" && oss2.str() != "error")
                             ReportError::ArgMismatch(actuals->Nth(i), i+1, actuals->Nth(i)->CheckResultType(), args->Nth(i)->CheckResultType());
                         type = Type::errorType;
                         return type;
