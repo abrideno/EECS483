@@ -290,18 +290,18 @@ Type* This::CheckResultType()
 {
     if (type)
         return type;
-    ClassDecl *cDecl = NULL; 
+    ClassDecl *cDec; 
     Slevel *check = scope;
-    while(check){
-    	if(check->cDecl){
-    		cDecl = check->cDecl;
+    while(check != NULL){
+    	if(check->Parent->cDecl != NULL){
+    		cDec = check->Parent->cDecl;
     		break;
     	}
     	check = check->Parent;
     }
-    if (cDecl)
+    if (cDec)
     {
-        type = cDecl->CheckResultType();
+        type = cDec->CheckResultType();
         return type;
     }
     else
@@ -389,27 +389,35 @@ Type* FieldAccess::CheckResultType()
         	ClassDecl *cDec; 
             Slevel *check = scope;
         
-       	  while(check != NULL){
-    	   	if(check->Parent->cDecl != NULL){
-    	     	cDec = check->Parent->cDecl;
-    	    	break;
-        	}
-        	check = check->Parent;
-           }
+       	  	while(check != NULL){
+    	    	if(check->Parent->cDecl != NULL){
+    	        	cDec = check->Parent->cDecl;
+    	    	    break;
+        	     }
+        	    check = check->Parent;
+            }
         
    	    	if(cDec != NULL){
-   	    	   cout<<"GETTING HERE"<<endl;
+   	    	   cout<< " Getting here" <<endl; 
                Type *t= cDec->checkExtends(cDec->extends,field->name); 
+               cout<<field->name<<endl;
+
 			   if(t == Type::errorType){
+			      cout<<"ERRORTYPE"<<endl;
 			      ReportError::IdentifierNotDeclared(field,LookingForVariable);
 			      type = Type::errorType; 
 			      return type;
 			    }
 			    else{
-			    	return t;
+			    	cout<<"GETTING INTO INACCESSIBLE"<<endl;
+			    	ReportError::InaccessibleField(field,t);
+			    	type=t;
+			    	cout<<"here....."<<endl;
+			    	return type; 
 			    } 
              }
         }
+
         type = temp->CheckResultType();
         return type;
         
@@ -456,6 +464,7 @@ Type* FieldAccess::CheckResultType()
         else
         {
             bool found = false; 
+            bool foundExt = false; 
             int numMem = cDecl3->members->NumElements();
             Decl* cDecl4;
             for(int i=0; i<numMem; i++){
@@ -470,23 +479,44 @@ Type* FieldAccess::CheckResultType()
                 }
             } 
             if(!found){
+            	ClassDecl *cDec; 
+            	Slevel *check = scope;
+        		
+       	  		while(check != NULL){
+    	   			if(check->Parent->cDecl != NULL){
+    	     			cDec = check->Parent->cDecl;
+    	    			break;
+        			}
+        		check = check->Parent;
+          	   }
+        	
+   	    	    if(cDec != NULL){
+               	    Type *t= cDec->checkExtends(cDec->extends,field->name);
+               	    if(t != Type::errorType){
+               	    	type = t;
+               	    	ReportError::InaccessibleField(field, t);
+               	    	foundExt = true;
+               	    } 
+			    }
+             }
+             if(!found && !foundExt){
+            	cout<<"NOT GETTING HERE 2"<<endl;
                 ReportError::FieldNotFoundInBase(field, t);
                 type = Type::errorType;
                 return type;
             } 
-            VarDecl* vd = dynamic_cast<VarDecl*>(cDecl4);
-            if (vd)
-            {
-                ReportError::InaccessibleField(field, base->CheckResultType());
-                type = Type::errorType;
-                return type;
-            }     
-            else       
-            {
-                return type; 
-            }
-        }
+			if(found){
+           	 	VarDecl* vd = dynamic_cast<VarDecl*>(cDecl4);
+            	if (vd)
+           	    {
+               	  ReportError::InaccessibleField(field, base->CheckResultType());
+                  type = Type::errorType;
+                  return type;
+                }     
+          }
+      }
     }
+    
 }
  
 void FieldAccess::addLevel(Slevel *parent){

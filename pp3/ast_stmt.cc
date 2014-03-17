@@ -84,7 +84,7 @@ void StmtBlock::addLevel(Slevel *parent){
 	}
 }
 
-void StmtBlock::Check(){\
+void StmtBlock::Check(){
 	for(int i=0; i<decls->NumElements(); i++){
 		//decls->Nth(i)->Check(); 
 	} 

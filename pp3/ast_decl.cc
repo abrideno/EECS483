@@ -79,7 +79,7 @@ void ClassDecl::Check(){
 	for(int i=0; i<numElem; i++){
 		members->Nth(i)->Check(); 
 	}
-	
+	cout<<"AFTER"<<endl;
 	if(extends != NULL ){
 		Decl *temp = scope->Parent->stable->Lookup(extends->id->name);
 		ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
@@ -89,6 +89,7 @@ void ClassDecl::Check(){
 		}
 	}
 	
+	cout<<"printing "<<endl; 
 	if(implements->NumElements() != 0){
 		for(int i=0; i<implements->NumElements(); i++){
 			Decl *temp = scope->Parent->stable->Lookup(implements->Nth(i)->fetchKey());
@@ -100,6 +101,7 @@ void ClassDecl::Check(){
 		}
 	}
 	
+	cout<<"fuck"<<endl;
 	//TODO
 	// checkExtends(extends);
 	
@@ -116,7 +118,7 @@ Type* ClassDecl::checkExtends(NamedType *next, char *look){
 	while(!stopExt){//next!=NULL
 		Decl *temp = scope->Parent->stable->Lookup(next->id->name); 
 		ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
-	
+		cout<<"In Check Extends"<<endl;
 		if(cDec == NULL){
 			stopExt = true; 
 			Type *type = Type::errorType; 
@@ -149,10 +151,11 @@ Type* ClassDecl::checkExtendsDecs(Slevel *extendScope, char *look){
         }
       //Different function signature
       if(checkFn != NULL){
-//         if(!(checkFn->match(temp))){
+ 		return checkFn->CheckResultType();
+ 		
+ 		//         if(!(checkFn->match(temp))){
 //           ReportError::OverrideMismatch(checkDec);
 //   		}
- 		return checkFn->CheckResultType();
   	  }
     }
     checkDec = it.GetNextValue();
@@ -221,6 +224,7 @@ void FnDecl::addLevel(Slevel *parent){
 }
 
 void FnDecl::Check(){
+	cout<<"getting here in func"<<endl;
 	int numElem = formals->NumElements(); 
 	for(int i =0; i<numElem; i++){
 		formals->Nth(i)->Check(); 
