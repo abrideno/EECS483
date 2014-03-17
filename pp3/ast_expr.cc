@@ -383,26 +383,32 @@ Type* FieldAccess::CheckResultType()
             else
                 break;
         }
-        // ClassDecl *cDec; 
-//         Slevel *check = scope;
-//         
-//         while(check != NULL){
-//     	   if(check->Parent->cDecl != NULL){
-//     	     	cDec = check->Parent->cDecl;
-//     	    	break;
-//         	}
-//         	check = check->Parent;
-//         }
-//         
-//    	    if(cDec != NULL){
-//              cDec->checkExtends(cDec->extends,field->name); 
-//              
-//         }
+	    
         if (!temp)
         {
-            ReportError::IdentifierNotDeclared(field, LookingForVariable);
-            type = Type::errorType;
-            return type;
+        	ClassDecl *cDec; 
+            Slevel *check = scope;
+        
+       	  while(check != NULL){
+    	   	if(check->Parent->cDecl != NULL){
+    	     	cDec = check->Parent->cDecl;
+    	    	break;
+        	}
+        	check = check->Parent;
+           }
+        
+   	    	if(cDec != NULL){
+   	    	   cout<<"GETTING HERE"<<endl;
+               Type *t= cDec->checkExtends(cDec->extends,field->name); 
+			   if(t == Type::errorType){
+			      ReportError::IdentifierNotDeclared(field,LookingForVariable);
+			      type = Type::errorType; 
+			      return type;
+			    }
+			    else{
+			    	return t;
+			    } 
+             }
         }
         type = temp->CheckResultType();
         return type;
