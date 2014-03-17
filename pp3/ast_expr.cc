@@ -290,18 +290,18 @@ Type* This::CheckResultType()
 {
     if (type)
         return type;
-    ClassDecl *cDec; 
+    ClassDecl *cDecl = NULL; 
     Slevel *check = scope;
-    while(check != NULL){
-    	if(check->Parent->cDecl != NULL){
-    		cDec = check->Parent->cDecl;
+    while(check){
+    	if(check->cDecl){
+    		cDecl = check->cDecl;
     		break;
     	}
     	check = check->Parent;
     }
-    if (cDec)
+    if (cDecl)
     {
-        type = cDec->CheckResultType();
+        type = cDecl->CheckResultType();
         return type;
     }
     else
