@@ -61,7 +61,7 @@ class ArrayType : public Type
     Type* getArrayType(){return elemType;}
     const char* fetchKey(){return elemType->fetchKey();}
     void PrintToStream(std::ostream& out) { out << elemType << "[]"; }
-//  bool isBasicType(){return false;}
+    bool isBasicType(){return true;}
 
 };
 

@@ -91,7 +91,7 @@ class ReportError
   static void ArgMismatch(Expr *arg, int argIndex, Type *given, Type *expected); //XXX done
   static void PrintArgMismatch(Expr *arg, int argIndex, Type *given);
 
-
+ 
   // Errors used by semantic analyzer for field access
   static void FieldNotFoundInBase(Identifier *field, Type *base);
   static void InaccessibleField(Identifier *field, Type *base);
