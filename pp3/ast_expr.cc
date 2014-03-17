@@ -400,20 +400,12 @@ Type* FieldAccess::CheckResultType()
             }
         
    	    	if(cDec != NULL){
-<<<<<<< HEAD
-   	    	   cout<< " Getting here" <<endl; 
-=======
-   	    	   ////cout<<"GETTING HERE"<<endl;
->>>>>>> 8f4119e9a3aedbd4e569f6d002c6ba0f645be1cc
+
                Type *t= cDec->checkExtends(cDec->extends,field->name); 
                cout<<field->name<<endl;
 
 			   if(t == Type::errorType){
-<<<<<<< HEAD
-			      cout<<"ERRORTYPE"<<endl;
-=======
-			      //cout << "HI THERE" << endl;
->>>>>>> 8f4119e9a3aedbd4e569f6d002c6ba0f645be1cc
+
 			      ReportError::IdentifierNotDeclared(field,LookingForVariable);
 			      type = Type::errorType; 
 			      return type;
@@ -475,6 +467,7 @@ Type* FieldAccess::CheckResultType()
         }
         else
         {
+        	cout<<"SEG"<<endl;
             bool found = false; 
             bool foundExt = false; 
             int numMem = cDecl3->members->NumElements();
@@ -493,24 +486,31 @@ Type* FieldAccess::CheckResultType()
             if(!found){
             	ClassDecl *cDec; 
             	Slevel *check = scope;
-        		
+        		cout<<"SEGING HERE"<<endl;
        	  		while(check != NULL){
-    	   			if(check->Parent->cDecl != NULL){
-    	     			cDec = check->Parent->cDecl;
+    	   			if(check->cDecl != NULL){
+    	     			cDec = check->cDecl;
     	    			break;
         			}
         		check = check->Parent;
           	   }
-        	
+          	   cout<<"here"<<endl;
+    
    	    	    if(cDec != NULL){
-               	    Type *t= cDec->checkExtends(cDec->extends,field->name);
-               	    if(t != Type::errorType){
-               	    	type = t;
-               	    	ReportError::InaccessibleField(field, t);
-               	    	foundExt = true;
-               	    } 
+   	    	    	cout<<"I GET HERE"<<endl;
+   	    	    	if(cDec->extends!= NULL){
+   	    	    		cout<<"hi"<<endl;
+						 Type *t= cDec->checkExtends(cDec->extends,field->name);
+						 cout<<"not "<<endl;
+						if(t != Type::errorType){
+							type = t;
+							ReportError::InaccessibleField(field, t);
+							foundExt = true;
+						} 
+					}
 			    }
              }
+             cout<<"HERE TOO "<<endl;
              if(!found && !foundExt){
             	cout<<"NOT GETTING HERE 2"<<endl;
                 ReportError::FieldNotFoundInBase(field, t);

@@ -38,7 +38,6 @@ void VarDecl::Check(){
 			ClassDecl *tempC = dynamic_cast<ClassDecl*>(tempD); 
 			InterfaceDecl *tempI = dynamic_cast<InterfaceDecl*>(tempD); 
 			if(tempC == NULL && tempI == NULL){
-			    //cout << "ID NOT DECLARED" << endl;
 				ReportError::IdentifierNotDeclared(id, LookingForType); 
 				return; 
 			}
@@ -80,7 +79,6 @@ void ClassDecl::Check(){
 	for(int i=0; i<numElem; i++){
 		members->Nth(i)->Check(); 
 	}
-	cout<<"AFTER"<<endl;
 	if(extends != NULL ){
 		Decl *temp = scope->Parent->stable->Lookup(extends->id->name);
 		ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
@@ -91,7 +89,6 @@ void ClassDecl::Check(){
 		}
 	}
 	
-	cout<<"printing "<<endl; 
 	if(implements->NumElements() != 0){
 		for(int i=0; i<implements->NumElements(); i++){
 			Decl *temp = scope->Parent->stable->Lookup(implements->Nth(i)->fetchKey());
@@ -104,7 +101,6 @@ void ClassDecl::Check(){
 		}
 	}
 	
-	cout<<"fuck"<<endl;
 	//TODO
 	// checkExtends(extends);
 	
@@ -118,10 +114,9 @@ void ClassDecl::Check(){
 
 Type* ClassDecl::checkExtends(NamedType *next, char *look){
 	bool stopExt = false;
-	while(!stopExt){//next!=NULL
-		Decl *temp = scope->Parent->stable->Lookup(next->id->name); 
+	while(!stopExt){
+		Decl *temp = scope->stable->Lookup(look); 
 		ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
-		cout<<"In Check Extends"<<endl;
 		if(cDec == NULL){
 			stopExt = true; 
 			Type *type = Type::errorType; 
@@ -230,7 +225,6 @@ void FnDecl::addLevel(Slevel *parent){
 }
 
 void FnDecl::Check(){
-	cout<<"getting here in func"<<endl;
 	int numElem = formals->NumElements(); 
 	for(int i =0; i<numElem; i++){
 		formals->Nth(i)->Check(); 
@@ -258,7 +252,6 @@ bool FnDecl::match(Decl *compare){
 			return false; 
      	}
     }
-    
     return true; 
 }
 
