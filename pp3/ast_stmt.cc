@@ -50,14 +50,12 @@ void Program::Check() {
      addLevel(); 
      int numElems = decls->NumElements(); 
      
-     cout << "PROGRAM CHECK" << endl;
      for(int i= 0; i< numElems ; i++){
      	decls->Nth(i)->Check(); 
      }     
 }
 
 void Stmt::addLevel(Slevel *parent){
-    cout << "ADD LEVEL STMT" << endl;
     scope = new Slevel;
 	scope->Parent = parent;
 }
@@ -73,9 +71,7 @@ void StmtBlock::addLevel(Slevel *parent){
     scope = new Slevel;
 	scope->Parent = parent;	
 	int numElems = decls->NumElements(); 
-	cout << "STMT BLOCK: numElems=" << numElems << endl;
 	for(int i=0; i<numElems; i++){
-	    cout << decls->Nth(i) << endl;
 		scope->add(decls->Nth(i)); 
 	}
 	/*for(int i=0; i<numElems; i++){
@@ -83,11 +79,9 @@ void StmtBlock::addLevel(Slevel *parent){
 	} */
 	
 	numElems = stmts->NumElements(); 
-	cout << "STMT Block: numStmts=" << numElems << endl;
 	for(int i=0; i<numElems; i++){
 		stmts->Nth(i)->addLevel(scope); 
 	}
-    cout << "stmtblock add level finished" << endl;
 }
 
 void StmtBlock::Check(){\
@@ -95,7 +89,6 @@ void StmtBlock::Check(){\
 		//decls->Nth(i)->Check(); 
 	} 
 	int numElems = stmts->NumElements(); 
-	cout << "CHECK STMTS" << endl;
 	for(int i=0; i<numElems; i++){
 		stmts->Nth(i)->Check(); 
 	}

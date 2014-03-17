@@ -44,7 +44,6 @@ void VarDecl::Check(){
 		}	
 		tempS= tempS->Parent; 
 	}
-	//type->ReportNotDeclaredIdentifier(LookingForType); 
 }
 
 ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<Decl*> *m) : Decl(n) {
@@ -61,36 +60,28 @@ void ClassDecl::addLevel(Slevel *parent){
     scope = new Slevel;
 	scope->Parent = parent; 
 	scope->cDecl = this; 
-	cout << "ADD LEVEL" << endl;
 	int numElem = members->NumElements(); 
 	
 	for(int i = 0; i<numElem; i++){
 		scope->add(members->Nth(i)); 
 	}
-    cout << "what?" << endl;
-    cout << numElem << endl;
+    
 	for(int i = 0; i<numElem; i++){
 	    VarDecl* vd = dynamic_cast<VarDecl*>(members->Nth(i));
 	    if (!vd) 
 		    members->Nth(i)->addLevel(scope); 
-		FnDecl* fd = dynamic_cast<FnDecl*>(members->Nth(i));
-		if (fd)
-		    cout << fd << " FUS RO DAH" << endl;
 	}	
-	cout << "finished add level" << endl;
 }
 
 void ClassDecl::Check(){
-    cout << "fail?" << endl;
 	int numElem = members->NumElements(); 
-	cout << "CHECK" << endl;
+	
 	for(int i=0; i<numElem; i++){
 		members->Nth(i)->Check(); 
 	}
 	
-	
 	if(extends != NULL ){
-		Decl *temp = scope->Parent->stable->Lookup(extends->fetchKey());
+		Decl *temp = scope->Parent->stable->Lookup(extends->id->name);
 		ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
 		if(cDec == NULL){
 		    //extends
@@ -108,14 +99,66 @@ void ClassDecl::Check(){
 			}
 		}
 	}
+	
 	//TODO
-	//extended members
+	// checkExtends(extends);
+	
 	//implemented members 
 	// interface implementation 
 	
 	
 
 	return;
+}
+
+Type* ClassDecl::checkExtends(NamedType *next, char *look){
+	bool stopExt = false;
+	while(!stopExt){//next!=NULL
+		Decl *temp = scope->Parent->stable->Lookup(next->id->name); 
+		ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
+	
+		if(cDec == NULL){
+			stopExt = true; 
+			Type *type = Type::errorType; 
+			return type;
+		}
+		Type *result = checkExtendsDecs(cDec->scope, look); 
+		if(result != NULL){
+			return result;
+		}
+		next = cDec->extends; 
+		if(next == NULL)
+			return Type::errorType; 
+	}
+	
+	return Type::errorType;
+}
+
+Type* ClassDecl::checkExtendsDecs(Slevel *extendScope, char *look){
+  Iterator<Decl*> it= extendScope->stable->GetIterator();
+  Decl *checkDec = it.GetNextValue();
+  
+  while(checkDec != NULL) {
+    Decl *temp = extendScope->stable->Lookup(look);
+    VarDecl *checkVar = dynamic_cast<VarDecl*>(temp);
+    FnDecl *checkFn = dynamic_cast<FnDecl*>(temp); 
+    if(temp != NULL) {
+        if(checkVar != NULL){
+        	return checkVar->CheckResultType();  
+          // ReportError::DeclConflict(checkDec, temp);
+        }
+      //Different function signature
+      if(checkFn != NULL){
+//         if(!(checkFn->match(temp))){
+//           ReportError::OverrideMismatch(checkDec);
+//   		}
+ 		return checkFn->CheckResultType();
+  	  }
+    }
+    checkDec = it.GetNextValue();
+  }
+  
+  return NULL;
 }
 InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
     Assert(n != NULL && m != NULL);
@@ -161,7 +204,6 @@ void FnDecl::addLevel(Slevel *parent){
 	scope->fDecl = this; 
 	
 	int numElem = formals->NumElements(); 
-	cout << "FN DECL: elems=" << numElem << endl;
 	for(int i=0; i<numElem; i++){
 		scope->add(formals->Nth(i)); 
 	}
@@ -179,12 +221,10 @@ void FnDecl::addLevel(Slevel *parent){
 }
 
 void FnDecl::Check(){
-    cout << "FNDECL " << this << endl;
 	int numElem = formals->NumElements(); 
 	for(int i =0; i<numElem; i++){
 		formals->Nth(i)->Check(); 
 	}
-    cout << "CHECK BODY" << endl;
 	if(body!= NULL){
 		body->Check(); 
 	}

@@ -70,6 +70,8 @@ class ClassDecl : public Decl
               List<NamedType*> *implements, List<Decl*> *members);
     void addLevel(Slevel *parent); 
     void Check(); 
+    Type* checkExtends(NamedType *extend, char *look);
+    Type* checkExtendsDecs(Slevel *extendScope, char *look);
     
     //extends implements TODO 
 };

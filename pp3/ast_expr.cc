@@ -142,16 +142,11 @@ void AssignExpr::Check(){
 
 Type* AssignExpr::CheckResultType() //op == '='
 {
-    cout << "ASSIGN CHECK" << endl;
     Assert(left && right);
 	left->Check(); 
-	cout << "left done, checking right" << endl;
 	right->Check();
-	cout << "LEFT & RIGHT CHECKED" << endl;
     Type* R = right->CheckResultType();
     Type* L = left->CheckResultType();
-    cout << "blerg" << endl;
-    cout << L <<  ' ' << op  << endl;
     if (L == Type::errorType || R == Type::errorType)
     {
         type = Type::errorType;
@@ -293,20 +288,24 @@ void CompoundExpr::Check(){
 
 Type* This::CheckResultType()
 {
-    cout << "no sense made"<< endl;
     if (type)
         return type;
-    cout << "type checking this" << endl;
-    ClassDecl* cDecl = scope->Parent->cDecl;
-    if (cDecl)
+    ClassDecl *cDec; 
+    Slevel *check = scope;
+    while(check != NULL){
+    	if(check->Parent->cDecl != NULL){
+    		cDec = check->Parent->cDecl;
+    		break;
+    	}
+    	check = check->Parent;
+    }
+    if (cDec)
     {
-        type = cDecl->CheckResultType();
-        cout << type << " HELLO WORLD" << endl;
+        type = cDec->CheckResultType();
         return type;
     }
     else
     {
-        cout << "FUCK ME" << endl;
         ReportError::ThisOutsideClassScope(this);
         type = Type::errorType;
         return type;
@@ -320,7 +319,6 @@ void This::Check()
    
 void This::addLevel(Slevel* parent)
 {
-    cout << "added this level" << endl;
     scope = new Slevel;
     scope->Parent = parent;
 }
@@ -351,7 +349,7 @@ void ArrayAccess::Check(){
 	base->Check(); 
 	subscript->Check(); 
 
-    /*cout << "Array ACCESS" << endl;
+    /*
     Type *t = base->CheckResultType();
     ostringstream oss;
     oss << t;
@@ -372,10 +370,9 @@ Type* FieldAccess::CheckResultType()
      Slevel* tempScope;
      tempScope = scope;
      Decl* temp;
+     
      if (base == NULL)
      {
-        cout << "base == null" << endl;
-        cout << field->name << endl;
         int count = 0;
         while (tempScope != NULL)
         {
@@ -386,20 +383,28 @@ Type* FieldAccess::CheckResultType()
             else
                 break;
         }
-        if (temp == NULL)
-            cout << "DIDNT FIND IT, YOU HAVE NO IDEA WHAT YOURE DOING" << endl;
-        cout << count << endl;
-        cout << "confusion" << endl;
+        // ClassDecl *cDec; 
+//         Slevel *check = scope;
+//         
+//         while(check != NULL){
+//     	   if(check->Parent->cDecl != NULL){
+//     	     	cDec = check->Parent->cDecl;
+//     	    	break;
+//         	}
+//         	check = check->Parent;
+//         }
+//         
+//    	    if(cDec != NULL){
+//              cDec->checkExtends(cDec->extends,field->name); 
+//              
+//         }
         if (!temp)
         {
-            cout << "QWI)HUEOPQIWHROPHQWOPRHQWORIHQOWHROPIWHRPOQWIHROI" << endl;
             ReportError::IdentifierNotDeclared(field, LookingForVariable);
             type = Type::errorType;
             return type;
         }
-        cout << "found temp" << endl;
         type = temp->CheckResultType();
-        cout << "checked" << endl;
         return type;
         
      }
@@ -409,7 +414,6 @@ Type* FieldAccess::CheckResultType()
         ostringstream oss;
         
         FieldAccess* fAcc = dynamic_cast<FieldAccess*>(base);
-        cout << fAcc->field  << endl;
         Type *t = base->CheckResultType();
         int count = 0;
         while (tempScope != NULL)
@@ -421,20 +425,14 @@ Type* FieldAccess::CheckResultType()
             else
                 break;
         }
-        cout << count << endl;
-        cout << "----" << cDecl << endl;
-        cout << "seg" << endl;
+
         if (cDecl == NULL)
         {
             ReportError::IdentifierNotDeclared(fAcc->field, LookingForVariable);
             type = Type::errorType;
             return type;
         }
-        cout << "blarg" << endl;
-        cout << cDecl->CheckResultType() << endl;
-        cout << "FAAAAIL" << endl;
         Slevel *topScope = Program::parentScope; 
-        cout << "fault" << endl;
         Decl* cDecl2 = topScope->stable->Lookup(cDecl->CheckResultType()->fetchKey());
         if (!cDecl2)
         {
@@ -453,16 +451,12 @@ Type* FieldAccess::CheckResultType()
         {
             bool found = false; 
             int numMem = cDecl3->members->NumElements();
-            cout << numMem << endl;
             Decl* cDecl4;
             for(int i=0; i<numMem; i++){
-                cout << cDecl3->members->Nth(i)->CheckResultType() << " finding " << field->name << endl;
-                cout << cDecl3->members->Nth(i)->id->name << endl;
                 string s, s2;
                 s = cDecl3->members->Nth(i)->id->name;
                 s2 = field->name;
                 if(s == s2){
-                    cout << "found" << endl;
                     type = cDecl3->members->Nth(i)->CheckResultType(); 
                     cDecl4 = cDecl3->members->Nth(i);
                     found = true; 
@@ -474,7 +468,6 @@ Type* FieldAccess::CheckResultType()
                 type = Type::errorType;
                 return type;
             } 
-            cout << cDecl4 << " !!!!!!!!" << endl;
             VarDecl* vd = dynamic_cast<VarDecl*>(cDecl4);
             if (vd)
             {
@@ -533,8 +526,6 @@ void Call::Check()
 
 Type* Call::CheckResultType()
 {
-     cout << "CALL CHECK" << endl;
-     cout << field << endl;
      if (type)
         return type;
      Slevel* tempScope;
@@ -591,8 +582,6 @@ Type* Call::CheckResultType()
         
         FieldAccess* fAcc = dynamic_cast<FieldAccess*>(base);
         Type *t = base->CheckResultType();
-        cout << "Call base checked" << endl;
-        cout << fAcc << endl;
         while (tempScope != NULL)
         {
             cDecl = tempScope->stable->Lookup(fAcc->field->name);
@@ -610,7 +599,6 @@ Type* Call::CheckResultType()
         Slevel *topScope = Program::parentScope; 
         Decl* cDecl2 = topScope->stable->Lookup(cDecl->CheckResultType()->fetchKey());
         ClassDecl* cDecl3 = dynamic_cast<ClassDecl*>(cDecl2);
-        cout << cDecl3 << endl;
         if (!cDecl3)
         {
             ReportError::IdentifierNotDeclared(cDecl->id, LookingForType);
@@ -640,9 +628,7 @@ Type* Call::CheckResultType()
                 type = Type::errorType;
                 return type;
             } 
-            cout << cDecl4 << endl;
             FnDecl* fd = dynamic_cast<FnDecl*>(cDecl4);
-            cout << fd << "!!!!!!" << endl;
             if (fd)
             {
                 List<VarDecl*>* args = fd->formals;
@@ -760,7 +746,6 @@ void NewArrayExpr::addLevel(Slevel *parent){
 }
 
 void NewArrayExpr::Check(){
-    cout << "NEW ARRAY CHECK" << endl;
 	size->Check();  
 	
 	if(size->CheckResultType() != Type::intType){
