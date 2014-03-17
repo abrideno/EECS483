@@ -6,6 +6,7 @@
 #include "ast_type.h"
 #include "ast_decl.h"
 #include "ast_expr.h"
+#include <sstream>
 
 using namespace std;
 
@@ -32,11 +33,16 @@ void Program::addLevel() {
 	int numElems = decls->NumElements(); 
 	for(int i=0; i<numElems; i++){
 		parentScope->add(decls->Nth(i)); 
+	    ////cout << "global decls: " << decls->Nth(i) << endl;
 	}
-	
+	////cout << "program passed decls" << endl;
 	for(int i=0; i<numElems; i++){
-		decls->Nth(i)->addLevel(parentScope); 
+	    ////cout << "adding new level..." << decls->Nth(i) << endl;
+	    VarDecl* vd = dynamic_cast<VarDecl*>(decls->Nth(i));
+	    if (!vd)
+		    decls->Nth(i)->addLevel(parentScope); 
 	}
+	////cout << "program passed add level" << endl;
 }
 
 void Program::Check() {
@@ -47,9 +53,10 @@ void Program::Check() {
      *      checking itself, which makes for a great use of inheritance
      *      and polymorphism in the node classes.
      */
+     ////cout << "PROGRAM ADD LEVEL" << endl;
      addLevel(); 
      int numElems = decls->NumElements(); 
-     
+     ////cout << "PROGRAM CHECK" << endl;
      for(int i= 0; i< numElems ; i++){
      	decls->Nth(i)->Check(); 
      }     
@@ -77,14 +84,14 @@ void StmtBlock::addLevel(Slevel *parent){
 	/*for(int i=0; i<numElems; i++){
 		decls->Nth(i)->addLevel(scope); 
 	} */
-	
+	////cout << "stmtblock added decls, going to stmts" << endl;
 	numElems = stmts->NumElements(); 
 	for(int i=0; i<numElems; i++){
 		stmts->Nth(i)->addLevel(scope); 
 	}
 }
 
-void StmtBlock::Check(){\
+void StmtBlock::Check(){
 	for(int i=0; i<decls->NumElements(); i++){
 		//decls->Nth(i)->Check(); 
 	} 
@@ -102,6 +109,7 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
 }
 
 void ConditionalStmt::addLevel(Slevel *parent){
+    scope = new Slevel;
     scope->Parent = parent;	
     test->addLevel(scope); 
 	body->addLevel(scope); 
@@ -141,12 +149,14 @@ void IfStmt::addLevel(Slevel *parent){
     scope = new Slevel;
 	scope->Parent = parent; 
 	
+    ////cout << "if add level" << endl;
 	test->addLevel(scope); 
 	body->addLevel(scope); 
-	
+	////cout << "if add level complete" << endl;Type *Type::intArrType    = new Type("int[]");
 	if(elseBody != NULL){
 		elseBody->addLevel(scope); 
 	}
+	////cout << "else complete" << endl;
 }
 
 void IfStmt::Check(){
@@ -208,8 +218,11 @@ void ReturnStmt::Check() {
 	
 	Type *given = expr->CheckResultType(); 
 	Type *expected = tempF->CheckResultType();  // returned value for function 
+	ostringstream oss, oss2;
+	oss << given;
+	oss2 << expected;
 	
-	if(expected != given){
+	if(oss.str() != oss2.str()){
 		ReportError::ReturnMismatch(this,given,expected); 
 	}
 }
@@ -218,15 +231,16 @@ PrintStmt::PrintStmt(List<Expr*> *a) {
     (args=a)->SetParentAll(this);
 }
 
-void PrintStmt::addLevel(Slevel *parent){
-    scope = new Slevel; //XXX
-	scope->Parent = parent; 
-	
+void PrintStmt::Check()
+{
+    ////cout << "PrintStmt CHECK" << endl;
 	int numElem = args->NumElements(); 
 	for(int i=0; i<numElem; i++){
 		Type *given = args->Nth(i)->CheckResultType(); 
+		ostringstream oss;
+		oss << given;
 		
-		if((given == Type::boolType) || (given == Type::stringType) || (given != Type::intType)) {
+		if((oss.str() != "bool") && (oss.str() != "string") && (oss.str() != "int") && (oss.str() != "int[]") && (oss.str() != "string[]") && (oss.str() != "bool[]")) {
 		   ReportError::PrintArgMismatch(args->Nth(i), i+1, given); 
 		}
 	}
@@ -234,6 +248,17 @@ void PrintStmt::addLevel(Slevel *parent){
 	for(int i=0; i<numElem; i++){
 		args->Nth(i)->Check(); 
 	}
+}
+void PrintStmt::addLevel(Slevel *parent){
+    ////cout << "print stmt add level" << endl;
+    scope = new Slevel; //XXX
+	scope->Parent = parent; 
+	
+	for (int i = 0; i < args->NumElements(); i++)
+	{
+	    args->Nth(i)->addLevel(scope);
+    }
+    ////cout << "print stmt finished" << endl;
 }
 
 

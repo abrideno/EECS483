@@ -364,7 +364,9 @@ void ArrayAccess::Check(){
 }
 
 Type* FieldAccess::CheckResultType()
-{
+{  
+     ////cout << "Field Access: " << endl;
+     ////cout << field << endl;
      if (type)
         return type;
      Slevel* tempScope;
@@ -398,9 +400,10 @@ Type* FieldAccess::CheckResultType()
            }
         
    	    	if(cDec != NULL){
-   	    	   cout<<"GETTING HERE"<<endl;
+   	    	   ////cout<<"GETTING HERE"<<endl;
                Type *t= cDec->checkExtends(cDec->extends,field->name); 
 			   if(t == Type::errorType){
+			      //cout << "HI THERE" << endl;
 			      ReportError::IdentifierNotDeclared(field,LookingForVariable);
 			      type = Type::errorType; 
 			      return type;
@@ -434,6 +437,7 @@ Type* FieldAccess::CheckResultType()
 
         if (cDecl == NULL)
         {
+            //cout << "HI THERE" << endl;
             ReportError::IdentifierNotDeclared(fAcc->field, LookingForVariable);
             type = Type::errorType;
             return type;
@@ -449,6 +453,7 @@ Type* FieldAccess::CheckResultType()
         ClassDecl* cDecl3 = dynamic_cast<ClassDecl*>(cDecl2);
         if (!cDecl3)
         {
+            //cout << "HI THERE" << endl;
             ReportError::IdentifierNotDeclared(cDecl->id, LookingForType);
             type = Type::errorType;
             return type;
@@ -494,6 +499,7 @@ void FieldAccess::addLevel(Slevel *parent){
     scope->Parent = parent; 
     Slevel* tempScope = scope;
     Decl* temp;
+    ////cout << "field access add level: " << field << endl;
     if (base)
         base->addLevel(scope);
     
@@ -549,6 +555,7 @@ Type* Call::CheckResultType()
         }
         if (!temp)
         {
+            //cout << "HI THERE" << endl;
             ReportError::IdentifierNotDeclared(field, LookingForFunction);
             type = Type::errorType;
             return type;
@@ -598,15 +605,23 @@ Type* Call::CheckResultType()
         }
         if (cDecl == NULL)
         {
+            //cout << "HI THERE" << endl;
             ReportError::IdentifierNotDeclared(fAcc->field, LookingForVariable);
             type = Type::errorType;
             return type;
         }
         Slevel *topScope = Program::parentScope; 
+        //cout << cDecl << endl;
         Decl* cDecl2 = topScope->stable->Lookup(cDecl->CheckResultType()->fetchKey());
         ClassDecl* cDecl3 = dynamic_cast<ClassDecl*>(cDecl2);
         if (!cDecl3)
         {
+            if (cDecl->CheckResultType()->isBasicType())
+            {
+                type = cDecl->CheckResultType();
+                return type;
+            }
+            //cout << "HI THERE" << endl;
             ReportError::IdentifierNotDeclared(cDecl->id, LookingForType);
             type = Type::errorType;
             return type;

@@ -161,7 +161,7 @@ class PrintStmt : public Stmt
     PrintStmt(List<Expr*> *arguments);
     
     void addLevel(Slevel *parent); 
-    void Check(){}; 
+    void Check();
 };
 
 

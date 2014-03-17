@@ -38,6 +38,7 @@ void VarDecl::Check(){
 			ClassDecl *tempC = dynamic_cast<ClassDecl*>(tempD); 
 			InterfaceDecl *tempI = dynamic_cast<InterfaceDecl*>(tempD); 
 			if(tempC == NULL && tempI == NULL){
+			    //cout << "ID NOT DECLARED" << endl;
 				ReportError::IdentifierNotDeclared(id, LookingForType); 
 				return; 
 			}
@@ -85,6 +86,7 @@ void ClassDecl::Check(){
 		ClassDecl *cDec = dynamic_cast<ClassDecl*>(temp); 
 		if(cDec == NULL){
 		    //extends
+		    //cout << "HI THERE" << endl;
 			ReportError::IdentifierNotDeclared(id, LookingForClass); 
 		}
 	}
@@ -95,6 +97,7 @@ void ClassDecl::Check(){
 			InterfaceDecl *itemp = dynamic_cast<InterfaceDecl*>(temp); 
 			
 			if(itemp == NULL){
+			    //cout << "HI THERE" << endl;
 				ReportError::IdentifierNotDeclared(implements->Nth(i)->id, LookingForInterface);
 			}
 		}
@@ -199,12 +202,14 @@ void FnDecl::SetFunctionBody(Stmt *b) {
 }
 
 void FnDecl::addLevel(Slevel *parent){
+    ////cout << "FN DECL ADD LEVEL" << endl;
     scope = new Slevel;
 	scope->Parent=parent; 
 	scope->fDecl = this; 
 	
 	int numElem = formals->NumElements(); 
 	for(int i=0; i<numElem; i++){
+	    //cout << formals->Nth(i) << endl;
 		scope->add(formals->Nth(i)); 
 	}
 	
@@ -213,6 +218,7 @@ void FnDecl::addLevel(Slevel *parent){
 		formals->Nth(i)->addLevel(scope); 
 	}*/
 	
+	////cout << "FN about to add stmtblock" << endl;
     StmtBlock *block = dynamic_cast<StmtBlock*>(body); 
 	if(block != NULL){
         block->addLevel(scope);
