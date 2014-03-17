@@ -164,7 +164,7 @@ void IfStmt::Check(){
 	body->Check(); 
 	
 	if(!(test->CheckResultType() == Type::boolType)){
-		ReportError::TestNotBoolean(test); 
+		//ReportError::TestNotBoolean(test); 
 	}
 	
 	if(elseBody != NULL){
