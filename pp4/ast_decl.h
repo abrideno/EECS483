@@ -15,16 +15,21 @@
 #include "ast.h"
 #include "ast_type.h"
 #include "list.h"
+#include "tac.h"
 
 class Identifier;
 class Stmt;
+class Type;
+
+using namespace std;
 
 class Decl : public Node 
 {
-  protected:
+  public:
     Identifier *id;
   
   public:
+    virtual int Emit(Segment segment, int offset) { Assert(0); return 0;}
     Decl(Identifier *name);
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
 };
@@ -35,6 +40,7 @@ class VarDecl : public Decl
     Type *type;
     
   public:
+    int Emit(Segment segment, int offset);
     VarDecl(Identifier *name, Type *type);
 };
 
@@ -67,6 +73,7 @@ class FnDecl : public Decl
     Stmt *body;
     
   public:
+    int Emit(Segment segment, int offset);
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
 };

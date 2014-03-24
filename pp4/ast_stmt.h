@@ -15,6 +15,7 @@
 
 #include "list.h"
 #include "ast.h"
+#include "tac.h"
 
 class Decl;
 class VarDecl;
@@ -34,8 +35,10 @@ class Program : public Node
 class Stmt : public Node
 {
   public:
+     virtual int Emit(Segment seg, int offset) {Assert(0); return 0;}
      Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc) {}
+
 };
 
 class StmtBlock : public Stmt 
@@ -45,6 +48,7 @@ class StmtBlock : public Stmt
     List<Stmt*> *stmts;
     
   public:
+    int Emit(Segment seg, int offset);
     StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
 };
 
