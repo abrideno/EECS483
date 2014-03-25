@@ -6,8 +6,6 @@
 #include "ast_type.h"
 #include "ast_decl.h"
 #include "ast_expr.h"
-#include "tac.h"
-#include "codegen.h"
 
 using namespace std;
 
@@ -34,11 +32,24 @@ void Program::Check() {
  */
 void Program::Emit() 
 {
+    Mips* mips = new Mips;
+    vector<Decl*> listOfVars;
     int gpOffset = CodeGenerator::OffsetToFirstGlobal;
     for (int i = 0; i < decls->NumElements(); i++)
     {
-        decls->Nth(i)->Emit(gpRelative, gpOffset);
+        vector<Decl*> newListOfVars = decls->Nth(i)->Emit(gpRelative, gpOffset);
+        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
         gpOffset += CodeGenerator::VarSize;
+        if (newListOfVars.size() != 1)
+        {
+            BeginFunc* bf = new BeginFunc;
+            bf->SetFrameSize(newListOfVars.size()*4);
+            bf->EmitSpecific(mips);
+        }
+    }
+    for (int i = 0; i < listOfVars.size(); i++)
+    {
+        cout << listOfVars[i] << endl;
     }
 }
 
@@ -48,23 +59,22 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
     (stmts=s)->SetParentAll(this);
 }
 
-int StmtBlock::Emit(Segment seg, int offset)
+vector<Decl*> StmtBlock::Emit(Segment seg, int offset)
 {
-    int size = 0;
+    vector<Decl*> listOfVars;
     for (int i = 0; i < decls->NumElements(); i++)
     {
-        decls->Nth(i)->Emit(seg, offset);
+        vector<Decl*> newListOfVars = decls->Nth(i)->Emit(seg, offset);
+        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
         offset -= CodeGenerator::VarSize;
-        size += CodeGenerator::VarSize;
     }
     for (int i = 0; i < stmts->NumElements(); i++)
     {
-        int sizeOfStmt = 0;
-        sizeOfStmt = stmts->Nth(i)->Emit(seg, offset);
-        size += sizeOfStmt;
-        offset -= sizeOfStmt;
+        vector<Decl*> newListOfVars = stmts->Nth(i)->Emit(seg, offset);
+        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+        offset -= newListOfVars.size() * 4;
     }
-    return size;
+    return listOfVars;
 }
 
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) { 

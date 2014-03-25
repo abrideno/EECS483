@@ -21,11 +21,13 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     (type=t)->SetParent(this);
 }
 
-int VarDecl::Emit(Segment seg, int offset)
+vector<Decl*> VarDecl::Emit(Segment seg, int offset)
 {
+    vector<Decl*> listOfVars;
+    listOfVars.push_back(this);
     Location* loc = new Location(seg, offset, id->name);
     cout << loc->GetName() << ' ' << loc->GetOffset() << endl;
-    return CodeGenerator::VarSize;
+    return listOfVars;
 }
   
 
@@ -44,19 +46,23 @@ InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
     (members=m)->SetParentAll(this);
 }
 
-int FnDecl::Emit(Segment seg, int offset)
+vector<Decl*> FnDecl::Emit(Segment seg, int offset)
 {
+    vector<Decl*> listOfVars;
     Assert(seg == gpRelative);
     int localOffset = CodeGenerator::OffsetToFirstLocal;
     int paramOffset = CodeGenerator::OffsetToFirstParam;
     
     for (int i = 0; i < formals->NumElements(); i++)
     {
-        formals->Nth(i)->Emit(fpRelative, paramOffset);
+        vector<Decl*> newListOfVars = formals->Nth(i)->Emit(fpRelative, paramOffset);
+        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
         paramOffset += CodeGenerator::VarSize;
     }
-    localOffset -= body->Emit(fpRelative, localOffset);
-    return paramOffset - localOffset;
+    vector<Decl*> newListOfVars = body->Emit(fpRelative, localOffset);
+    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    localOffset -= newListOfVars.size() * 4;
+    return listOfVars;
 }
 	
 FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {

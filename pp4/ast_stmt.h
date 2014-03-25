@@ -16,6 +16,11 @@
 #include "list.h"
 #include "ast.h"
 #include "tac.h"
+#include "mips.h"
+#include "codegen.h"
+#include <vector>
+
+using namespace std;
 
 class Decl;
 class VarDecl;
@@ -35,7 +40,7 @@ class Program : public Node
 class Stmt : public Node
 {
   public:
-     virtual int Emit(Segment seg, int offset) {Assert(0); return 0;}
+     virtual vector<Decl*> Emit(Segment seg, int offset) {Assert(0); vector<Decl*> empty; return empty;}
      Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc) {}
 
@@ -48,7 +53,7 @@ class StmtBlock : public Stmt
     List<Stmt*> *stmts;
     
   public:
-    int Emit(Segment seg, int offset);
+    vector<Decl*> Emit(Segment seg, int offset);
     StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
 };
 
