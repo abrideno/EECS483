@@ -42,6 +42,7 @@ class IntConstant : public Expr
     int value;
   
   public:
+    vector<Location*> Emit(Segment seg, int offset);
     IntConstant(yyltype loc, int val);
 };
 

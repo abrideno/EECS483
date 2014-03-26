@@ -7,9 +7,20 @@
 #include "ast_decl.h"
 #include <string.h>
 
+extern CodeGenerator CG;
+
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
     value = val;
+}
+
+vector<Location*> IntConstant::Emit(Segment seg, int offset)
+{
+    vector<Location*> listOfVars;
+    Location* loc = CG.GenLoadConstant(value, offset);
+    listOfVars.push_back(loc);
+    cout << value << endl;
+    return listOfVars;
 }
 
 DoubleConstant::DoubleConstant(yyltype loc, double val) : Expr(loc) {
