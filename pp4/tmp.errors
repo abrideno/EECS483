@@ -1,4 +1,4 @@
 
-*** Failure: Assertion failed: ast_stmt.cc, line 12:
-    d != NULL
+*** Failure: Assertion failed: ast_stmt.h, line 43:
+    0
 

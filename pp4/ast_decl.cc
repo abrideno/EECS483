@@ -7,6 +7,7 @@
 #include "ast_stmt.h"
 #include "codegen.h"
         
+CodeGenerator CG;
          
 using namespace std;
          
@@ -21,11 +22,11 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     (type=t)->SetParent(this);
 }
 
-vector<Decl*> VarDecl::Emit(Segment seg, int offset)
+vector<Location*> VarDecl::Emit(Segment seg, int offset)
 {
-    vector<Decl*> listOfVars;
-    listOfVars.push_back(this);
+    vector<Location*> listOfVars;
     Location* loc = new Location(seg, offset, id->name);
+    listOfVars.push_back(loc);
     cout << loc->GetName() << ' ' << loc->GetOffset() << endl;
     return listOfVars;
 }
@@ -46,22 +47,26 @@ InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
     (members=m)->SetParentAll(this);
 }
 
-vector<Decl*> FnDecl::Emit(Segment seg, int offset)
+vector<Location*> FnDecl::Emit(Segment seg, int offset)
 {
-    vector<Decl*> listOfVars;
-    Assert(seg == gpRelative);
+    CG.GenLabel(id->name);
+    BeginFunc* BF = CG.GenBeginFunc();
+    vector<Location*> listOfVars;
+    Assert(seg == gpRelative); //wont be true for class functions
     int localOffset = CodeGenerator::OffsetToFirstLocal;
     int paramOffset = CodeGenerator::OffsetToFirstParam;
     
     for (int i = 0; i < formals->NumElements(); i++)
     {
-        vector<Decl*> newListOfVars = formals->Nth(i)->Emit(fpRelative, paramOffset);
+        vector<Location*> newListOfVars = formals->Nth(i)->Emit(fpRelative, paramOffset);
         listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
-        paramOffset += CodeGenerator::VarSize;
+        paramOffset += newListOfVars.size() * CodeGenerator::VarSize;
     }
-    vector<Decl*> newListOfVars = body->Emit(fpRelative, localOffset);
+    vector<Location*> newListOfVars = body->Emit(fpRelative, localOffset);
     listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
-    localOffset -= newListOfVars.size() * 4;
+    localOffset -= newListOfVars.size() * CodeGenerator::VarSize;
+    BF->SetFrameSize(listOfVars.size()); //SetFrameSize(int numBytesForAllLocalsAndTemps);
+    CG.GenEndFunc();
     return listOfVars;
 }
 	

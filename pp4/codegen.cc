@@ -29,7 +29,7 @@ Location *CodeGenerator::GenTempVar()
   static int nextTempNum;
   char temp[10];
   Location *result = NULL;
-  sprintf(temp, "_tmp%d", nextTempNum++);
+  sprintf(temp, "_tmp%d", nextTempNum);
   /* pp4: need to create variable in proper location
      in stack frame for use as temporary. Until you
      do that, the assert below will always fail to remind
@@ -38,7 +38,7 @@ Location *CodeGenerator::GenTempVar()
   return result;
 }
 
- 
+
 Location *CodeGenerator::GenLoadConstant(int value)
 {
   Location *result = GenTempVar();

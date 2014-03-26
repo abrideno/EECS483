@@ -33,23 +33,13 @@ void Program::Check() {
 void Program::Emit() 
 {
     Mips* mips = new Mips;
-    vector<Decl*> listOfVars;
+    vector<Location*> listOfVars;
     int gpOffset = CodeGenerator::OffsetToFirstGlobal;
     for (int i = 0; i < decls->NumElements(); i++)
     {
-        vector<Decl*> newListOfVars = decls->Nth(i)->Emit(gpRelative, gpOffset);
+        vector<Location*> newListOfVars = decls->Nth(i)->Emit(gpRelative, gpOffset);
         listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
-        gpOffset += CodeGenerator::VarSize;
-        if (newListOfVars.size() != 1)
-        {
-            BeginFunc* bf = new BeginFunc;
-            bf->SetFrameSize(newListOfVars.size()*4);
-            bf->EmitSpecific(mips);
-        }
-    }
-    for (int i = 0; i < listOfVars.size(); i++)
-    {
-        cout << listOfVars[i] << endl;
+        gpOffset += CodeGenerator::VarSize * newListOfVars.size();
     }
 }
 
@@ -59,20 +49,20 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
     (stmts=s)->SetParentAll(this);
 }
 
-vector<Decl*> StmtBlock::Emit(Segment seg, int offset)
+vector<Location*> StmtBlock::Emit(Segment seg, int offset)
 {
-    vector<Decl*> listOfVars;
+    vector<Location*> listOfVars;
     for (int i = 0; i < decls->NumElements(); i++)
     {
-        vector<Decl*> newListOfVars = decls->Nth(i)->Emit(seg, offset);
+        vector<Location*> newListOfVars = decls->Nth(i)->Emit(seg, offset);
         listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
-        offset -= CodeGenerator::VarSize;
+        offset -= newListOfVars.size() * CodeGenerator::VarSize;
     }
     for (int i = 0; i < stmts->NumElements(); i++)
     {
-        vector<Decl*> newListOfVars = stmts->Nth(i)->Emit(seg, offset);
+        vector<Location*> newListOfVars = stmts->Nth(i)->Emit(seg, offset);
         listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
-        offset -= newListOfVars.size() * 4;
+        offset -= newListOfVars.size() * CodeGenerator::VarSize;
     }
     return listOfVars;
 }
