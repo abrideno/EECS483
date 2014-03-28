@@ -53,8 +53,8 @@ vector<Location*> AssignExpr::Emit(Segment seg, int offset, vector<Location*> va
 {
     ////cout << "assignExpr::Emit" << endl;
     vector<Location*> listOfVars;
-    Location* locLeft = left->Emit(seg, offset, varsInScope).front();
-    Location* locRight = right->Emit(seg, offset, varsInScope).front();
+    Location* locLeft = left->Emit(seg, offset, varsInScope).back();
+    Location* locRight = right->Emit(seg, offset, varsInScope).back();
     ////cout << locLeft << " = " << locRight << endl;
     CG.GenAssign(locLeft, locRight);
     ////cout << "assignComplete" << endl;
@@ -69,6 +69,22 @@ CompoundExpr::CompoundExpr(Operator *o, Expr *r)
     (right=r)->SetParent(this);
 }
    
+vector<Location*> ArithmeticExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars, newListOfVars;
+    listOfVars = left->Emit(seg, offset, varsInScope);
+    offset -= listOfVars.size() * CodeGenerator::VarSize;
+    newListOfVars = right->Emit(seg, offset, varsInScope);
+    offset -= listOfVars.size() * CodeGenerator::VarSize;
+    
+
+    Location* loc = CG.GenBinaryOp("+", listOfVars.back(), newListOfVars.back(), offset);
+    newListOfVars.push_back(loc);
+    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    return listOfVars;
+    
+}
+
   
 ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
     (base=b)->SetParent(this); 

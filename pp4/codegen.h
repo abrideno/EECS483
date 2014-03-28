@@ -92,7 +92,7 @@ class CodeGenerator {
          // identified by string name, such as "+" or "==".  Returns a
          // Location object for the new temporary where the result
          // was stored.
-    Location *GenBinaryOp(const char *opName, Location *op1, Location *op2);
+    Location *GenBinaryOp(const char *opName, Location *op1, Location *op2, int offset);
 
     
          // Generates the Tac instruction for pushing a single

@@ -96,9 +96,9 @@ void CodeGenerator::GenStore(Location *dst,Location *src, int offset)
 
 
 Location *CodeGenerator::GenBinaryOp(const char *opName, Location *op1,
-						     Location *op2)
+						     Location *op2, int offset)
 {
-  Location *result = GenTempVar();
+  Location *result = GenTempVar(offset);
   code->Append(new BinaryOp(BinaryOp::OpCodeForName(opName), result, op1, op2));
   return result;
 }

@@ -29,8 +29,10 @@ int main(int argc, char *argv[])
     InitParser();
     yyparse();
     ReportError::PrintErrors();
-    //if (ReportError::NumErrors() == 0)
-	SysCallCodeGen(); //XXX commenting out reduces clutter, but ./run wont work
+    if (ReportError::NumErrors() == 0)
+    {
+	    SysCallCodeGen(); //XXX commenting out reduces clutter, but ./run wont work
+	}
     return (ReportError::NumErrors() == 0? 0 : -1);
 }
 

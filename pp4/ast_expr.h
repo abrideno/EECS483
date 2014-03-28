@@ -95,6 +95,7 @@ class CompoundExpr : public Expr
     Operator *op;
     Expr *left, *right; // left will be NULL if unary
     
+    
   public:
     
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
@@ -104,6 +105,7 @@ class CompoundExpr : public Expr
 class ArithmeticExpr : public CompoundExpr 
 {
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
 };
