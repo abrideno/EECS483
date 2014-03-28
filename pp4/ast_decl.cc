@@ -27,8 +27,8 @@ vector<Location*> VarDecl::Emit(Segment seg, int offset, vector<Location*> varsI
     vector<Location*> listOfVars;
     Location* loc = new Location(seg, offset, id->name);
     listOfVars.push_back(loc);
-    cout << loc->GetName() << ' ' << loc->GetOffset() << endl;
-    cout << loc << endl;
+    //cout << loc->GetName() << ' ' << loc->GetOffset() << endl;
+    //cout << loc << endl;
     return listOfVars;
 }
   

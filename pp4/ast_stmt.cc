@@ -63,7 +63,9 @@ vector<Location*> StmtBlock::Emit(Segment seg, int offset, vector<Location*> var
     }
     varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
     for (int i = 0; i < varsInScope.size(); i++)
-        cout << varsInScope[i]->GetName() << endl;
+    {
+        ////cout << varsInScope[i]->GetName() << endl;
+    }
     for (int i = 0; i < stmts->NumElements(); i++)
     {
         vector<Location*> newListOfVars = stmts->Nth(i)->Emit(seg, offset, varsInScope);
@@ -101,5 +103,28 @@ PrintStmt::PrintStmt(List<Expr*> *a) {
     Assert(a != NULL);
     (args=a)->SetParentAll(this);
 }
+
+vector<Location*> PrintStmt::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    //cout << "PrintStmt::Emit" << endl;
+    vector<Location*> listOfVars;
+    for (int i = 0; i < args->NumElements(); i++)
+    {
+        CG.GenBuiltInCall(PrintInt, args->Nth(i)->Emit(seg, offset, varsInScope).front());
+    }
+    //cout << "PrintStmt::Emit finished" << endl;
+    return listOfVars;
+    
+}
+
+
+
+
+
+
+
+
+
+
 
 

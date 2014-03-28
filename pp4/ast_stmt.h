@@ -120,6 +120,7 @@ class PrintStmt : public Stmt
     List<Expr*> *args;
     
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     PrintStmt(List<Expr*> *arguments);
 };
 

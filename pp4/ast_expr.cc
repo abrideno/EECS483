@@ -20,7 +20,7 @@ vector<Location*> IntConstant::Emit(Segment seg, int offset, vector<Location*> v
     vector<Location*> listOfVars;
     Location* loc = CG.GenLoadConstant(value, offset);
     listOfVars.push_back(loc);
-    cout << value << endl;
+    ////cout << value << endl;
     return listOfVars;
 }
 
@@ -51,13 +51,13 @@ CompoundExpr::CompoundExpr(Expr *l, Operator *o, Expr *r)
 
 vector<Location*> AssignExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
-    cout << "assignExpr::Emit" << endl;
+    ////cout << "assignExpr::Emit" << endl;
     vector<Location*> listOfVars;
     Location* locLeft = left->Emit(seg, offset, varsInScope).front();
     Location* locRight = right->Emit(seg, offset, varsInScope).front();
-    cout << locLeft << " = " << locRight << endl;
+    ////cout << locLeft << " = " << locRight << endl;
     CG.GenAssign(locLeft, locRight);
-    cout << "assignComplete" << endl;
+    ////cout << "assignComplete" << endl;
     return listOfVars;
 }
 
@@ -89,7 +89,8 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
 {
     vector<Location*> listOfVars;
     Location* loc;
-    cout << loc << endl;
+    //cout << loc << endl;
+    //cout << field << endl;
     for (auto it = varsInScope.rbegin(); it != varsInScope.rend(); it++)
     {
         if (!strcmp((*it)->GetName(),field->name))
@@ -98,7 +99,7 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
             break;
         }
     }
-    cout << loc << endl;
+    //cout << loc << endl;
     listOfVars.push_back(loc);
     return listOfVars;
 }
