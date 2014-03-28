@@ -110,7 +110,7 @@ vector<Location*> PrintStmt::Emit(Segment seg, int offset, vector<Location*> var
     vector<Location*> listOfVars;
     for (int i = 0; i < args->NumElements(); i++)
     {
-        CG.GenBuiltInCall(PrintInt, args->Nth(i)->Emit(seg, offset, varsInScope).front());
+        CG.GenBuiltInCall(PrintInt, args->Nth(i)->Emit(seg, offset, varsInScope).back());
     }
     //cout << "PrintStmt::Emit finished" << endl;
     return listOfVars;

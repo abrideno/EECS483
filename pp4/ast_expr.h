@@ -81,7 +81,7 @@ class NullConstant: public Expr
 
 class Operator : public Node 
 {
-  protected:
+  public:
     char tokenString[4];
     
   public:
@@ -113,6 +113,7 @@ class ArithmeticExpr : public CompoundExpr
 class RelationalExpr : public CompoundExpr 
 {
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
 };
 
