@@ -22,7 +22,7 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     (type=t)->SetParent(this);
 }
 
-vector<Location*> VarDecl::Emit(Segment seg, int offset)
+vector<Location*> VarDecl::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars;
     Location* loc = new Location(seg, offset, id->name);
@@ -47,7 +47,7 @@ InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
     (members=m)->SetParentAll(this);
 }
 
-vector<Location*> FnDecl::Emit(Segment seg, int offset)
+vector<Location*> FnDecl::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     CG.GenLabel(id->name);
     BeginFunc* BF = CG.GenBeginFunc();
@@ -58,11 +58,12 @@ vector<Location*> FnDecl::Emit(Segment seg, int offset)
     
     for (int i = 0; i < formals->NumElements(); i++)
     {
-        vector<Location*> newListOfVars = formals->Nth(i)->Emit(fpRelative, paramOffset);
+        vector<Location*> newListOfVars = formals->Nth(i)->Emit(fpRelative, paramOffset, varsInScope);
         listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
         paramOffset += newListOfVars.size() * CodeGenerator::VarSize;
     }
-    vector<Location*> newListOfVars = body->Emit(fpRelative, localOffset);
+    varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
+    vector<Location*> newListOfVars = body->Emit(fpRelative, localOffset, varsInScope);
     listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
     localOffset -= newListOfVars.size() * CodeGenerator::VarSize;
     BF->SetFrameSize(listOfVars.size()); //SetFrameSize(int numBytesForAllLocalsAndTemps);

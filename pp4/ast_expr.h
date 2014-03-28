@@ -42,7 +42,7 @@ class IntConstant : public Expr
     int value;
   
   public:
-    vector<Location*> Emit(Segment seg, int offset);
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     IntConstant(yyltype loc, int val);
 };
 
@@ -96,6 +96,7 @@ class CompoundExpr : public Expr
     Expr *left, *right; // left will be NULL if unary
     
   public:
+    
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
     CompoundExpr(Operator *op, Expr *rhs);             // for unary
 };
@@ -131,6 +132,7 @@ class LogicalExpr : public CompoundExpr
 class AssignExpr : public CompoundExpr 
 {
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "AssignExpr"; }
 };
@@ -168,6 +170,7 @@ class FieldAccess : public LValue
     Identifier *field;
     
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     FieldAccess(Expr *base, Identifier *field); //ok to pass NULL base
 };
 

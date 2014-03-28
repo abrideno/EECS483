@@ -9,12 +9,13 @@
 
 extern CodeGenerator CG;
 
+using namespace std;
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
     value = val;
 }
 
-vector<Location*> IntConstant::Emit(Segment seg, int offset)
+vector<Location*> IntConstant::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars;
     Location* loc = CG.GenLoadConstant(value, offset);
@@ -48,6 +49,17 @@ CompoundExpr::CompoundExpr(Expr *l, Operator *o, Expr *r)
     (right=r)->SetParent(this);
 }
 
+vector<Location*> AssignExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    cout << "assignExpr::Emit" << endl;
+    vector<Location*> listOfVars;
+    Location* locLeft = left->Emit(seg, offset, varsInScope).front();
+    Location* locRight = right->Emit(seg, offset, varsInScope).front();
+    CG.GenAssign(locLeft, locRight);
+    cout << "assignComplete" << endl;
+    return listOfVars;
+}
+
 CompoundExpr::CompoundExpr(Operator *o, Expr *r) 
   : Expr(Join(o->GetLocation(), r->GetLocation())) {
     Assert(o != NULL && r != NULL);
@@ -70,6 +82,20 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
     (field=f)->SetParent(this);
 }
 
+
+//TODO
+vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars;
+    Location* loc;
+    for (auto it = varsInScope.rbegin(); it != varsInScope.rend(); it++)
+    {
+        if ((*it)->GetName() == field->name)
+            loc = *it;
+    }
+    listOfVars.push_back(loc);
+    return listOfVars;
+}
 
 Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)  {
     Assert(f != NULL && a != NULL); // b can be be NULL (just means no explicit base)

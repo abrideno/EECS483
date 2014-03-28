@@ -40,7 +40,7 @@ class Program : public Node
 class Stmt : public Node
 {
   public:
-     virtual vector<Location*> Emit(Segment seg, int offset) {Assert(0); vector<Location*> empty; return empty;}
+     virtual vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope) {Assert(0); vector<Location*> empty; return empty;}
      Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc) {}
 
@@ -53,7 +53,7 @@ class StmtBlock : public Stmt
     List<Stmt*> *stmts;
     
   public:
-    vector<Location*> Emit(Segment seg, int offset);
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
 };
 

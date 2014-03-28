@@ -37,9 +37,9 @@ void Program::Emit()
     int gpOffset = CodeGenerator::OffsetToFirstGlobal;
     for (int i = 0; i < decls->NumElements(); i++)
     {
-        vector<Location*> newListOfVars = decls->Nth(i)->Emit(gpRelative, gpOffset);
-        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
-        gpOffset += CodeGenerator::VarSize * newListOfVars.size();
+        listOfVars.push_back(decls->Nth(i)->Emit(gpRelative, gpOffset, listOfVars).front());
+        //listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+        gpOffset += CodeGenerator::VarSize;
     }
 }
 
@@ -49,18 +49,21 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
     (stmts=s)->SetParentAll(this);
 }
 
-vector<Location*> StmtBlock::Emit(Segment seg, int offset)
+vector<Location*> StmtBlock::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars;
     for (int i = 0; i < decls->NumElements(); i++)
     {
-        vector<Location*> newListOfVars = decls->Nth(i)->Emit(seg, offset);
+        vector<Location*> newListOfVars = decls->Nth(i)->Emit(seg, offset, varsInScope);
         listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
         offset -= newListOfVars.size() * CodeGenerator::VarSize;
     }
+    varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
+    for (int i = 0; i < varsInScope.size(); i++)
+        cout << varsInScope[i]->GetName() << endl;
     for (int i = 0; i < stmts->NumElements(); i++)
     {
-        vector<Location*> newListOfVars = stmts->Nth(i)->Emit(seg, offset);
+        vector<Location*> newListOfVars = stmts->Nth(i)->Emit(seg, offset, varsInScope);
         listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
         offset -= newListOfVars.size() * CodeGenerator::VarSize;
     }
