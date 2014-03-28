@@ -44,7 +44,7 @@ Location *CodeGenerator::GenTempVar(int offset)
   static int nextTempNum;
   char temp[10];
   Location *result = NULL;
-  sprintf(temp, "_tmp%d", nextTempNum);
+  sprintf(temp, "_tmp%d", nextTempNum++);
   result = new Location(fpRelative, offset, temp);
   /* pp4: need to create variable in proper location
      in stack frame for use as temporary. Until you
