@@ -28,6 +28,7 @@ vector<Location*> VarDecl::Emit(Segment seg, int offset, vector<Location*> varsI
     Location* loc = new Location(seg, offset, id->name);
     listOfVars.push_back(loc);
     cout << loc->GetName() << ' ' << loc->GetOffset() << endl;
+    cout << loc << endl;
     return listOfVars;
 }
   
@@ -66,7 +67,7 @@ vector<Location*> FnDecl::Emit(Segment seg, int offset, vector<Location*> varsIn
     vector<Location*> newListOfVars = body->Emit(fpRelative, localOffset, varsInScope);
     listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
     localOffset -= newListOfVars.size() * CodeGenerator::VarSize;
-    BF->SetFrameSize(listOfVars.size()); //SetFrameSize(int numBytesForAllLocalsAndTemps);
+    BF->SetFrameSize(listOfVars.size() * CodeGenerator::VarSize); //SetFrameSize(int numBytesForAllLocalsAndTemps);
     CG.GenEndFunc();
     return listOfVars;
 }

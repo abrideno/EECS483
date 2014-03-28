@@ -9,6 +9,8 @@
 
 using namespace std;
 
+extern CodeGenerator CG;
+
 Program::Program(List<Decl*> *d) {
     Assert(d != NULL);
     (decls=d)->SetParentAll(this);
@@ -41,6 +43,7 @@ void Program::Emit()
         //listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
         gpOffset += CodeGenerator::VarSize;
     }
+    CG.DoFinalCodeGen();
 }
 
 StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {

@@ -55,6 +55,7 @@ vector<Location*> AssignExpr::Emit(Segment seg, int offset, vector<Location*> va
     vector<Location*> listOfVars;
     Location* locLeft = left->Emit(seg, offset, varsInScope).front();
     Location* locRight = right->Emit(seg, offset, varsInScope).front();
+    cout << locLeft << " = " << locRight << endl;
     CG.GenAssign(locLeft, locRight);
     cout << "assignComplete" << endl;
     return listOfVars;
@@ -83,16 +84,21 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
 }
 
 
-//TODO
+//TODO base
 vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars;
     Location* loc;
+    cout << loc << endl;
     for (auto it = varsInScope.rbegin(); it != varsInScope.rend(); it++)
     {
-        if ((*it)->GetName() == field->name)
+        if (!strcmp((*it)->GetName(),field->name))
+        {
             loc = *it;
+            break;
+        }
     }
+    cout << loc << endl;
     listOfVars.push_back(loc);
     return listOfVars;
 }
