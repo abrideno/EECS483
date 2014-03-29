@@ -61,9 +61,9 @@ Location *CodeGenerator::GenLoadConstant(int value, int offset)
   return result;
 }
 
-Location *CodeGenerator::GenLoadConstant(const char *s)
+Location *CodeGenerator::GenLoadConstant(const char *s, int offset)
 {
-  Location *result = GenTempVar();
+  Location *result = GenTempVar(offset);
   code->Append(new LoadStringConstant(result, s));
   return result;
 } 

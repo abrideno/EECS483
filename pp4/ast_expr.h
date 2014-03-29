@@ -61,6 +61,7 @@ class BoolConstant : public Expr
     bool value;
     
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     BoolConstant(yyltype loc, bool val);
 };
 
@@ -70,6 +71,7 @@ class StringConstant : public Expr
     char *value;
     
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     StringConstant(yyltype loc, const char *val);
 };
 
@@ -97,7 +99,7 @@ class CompoundExpr : public Expr
     
     
   public:
-    
+    virtual vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
     CompoundExpr(Operator *op, Expr *rhs);             // for unary
 };
@@ -105,7 +107,6 @@ class CompoundExpr : public Expr
 class ArithmeticExpr : public CompoundExpr 
 {
   public:
-    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
 };

@@ -64,7 +64,7 @@ class CodeGenerator {
          // Each of the methods returns a Location for the temp var
          // where the constant was loaded.
     Location *GenLoadConstant(int value, int offset);
-    Location *GenLoadConstant(const char *str);
+    Location *GenLoadConstant(const char *str, int offset);
     Location *GenLoadLabel(const char *label);
 
 
