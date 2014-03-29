@@ -52,6 +52,7 @@ class CodeGenerator {
          // Creates and returns a Location for a new uniquely named
          // temp variable. Does not generate any Tac instructions
     Location *GenTempVar();
+    Location *GenTempVar(int offset);
 
          // Generates Tac instructions to load a constant value. Creates
          // a new temp var to hold the result. The constant 
@@ -62,7 +63,7 @@ class CodeGenerator {
          // The LoadLabel method loads a label into a temporary.
          // Each of the methods returns a Location for the temp var
          // where the constant was loaded.
-    Location *GenLoadConstant(int value);
+    Location *GenLoadConstant(int value, int offset);
     Location *GenLoadConstant(const char *str);
     Location *GenLoadLabel(const char *label);
 
@@ -91,7 +92,7 @@ class CodeGenerator {
          // identified by string name, such as "+" or "==".  Returns a
          // Location object for the new temporary where the result
          // was stored.
-    Location *GenBinaryOp(const char *opName, Location *op1, Location *op2);
+    Location *GenBinaryOp(const char *opName, Location *op1, Location *op2, int offset);
 
     
          // Generates the Tac instruction for pushing a single

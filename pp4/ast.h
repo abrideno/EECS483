@@ -32,6 +32,7 @@
 #include <stdlib.h>   // for NULL
 #include "location.h"
 #include <iostream>
+
 class CodeGenerator;
 
 class Node 
@@ -52,7 +53,7 @@ class Node
 
 class Identifier : public Node 
 {
-  protected:
+  public:
     char *name;
     
   public:

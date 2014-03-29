@@ -42,6 +42,7 @@ class IntConstant : public Expr
     int value;
   
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     IntConstant(yyltype loc, int val);
 };
 
@@ -80,7 +81,7 @@ class NullConstant: public Expr
 
 class Operator : public Node 
 {
-  protected:
+  public:
     char tokenString[4];
     
   public:
@@ -94,7 +95,9 @@ class CompoundExpr : public Expr
     Operator *op;
     Expr *left, *right; // left will be NULL if unary
     
+    
   public:
+    
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
     CompoundExpr(Operator *op, Expr *rhs);             // for unary
 };
@@ -102,6 +105,7 @@ class CompoundExpr : public Expr
 class ArithmeticExpr : public CompoundExpr 
 {
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
 };
@@ -109,6 +113,7 @@ class ArithmeticExpr : public CompoundExpr
 class RelationalExpr : public CompoundExpr 
 {
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
 };
 
@@ -130,6 +135,7 @@ class LogicalExpr : public CompoundExpr
 class AssignExpr : public CompoundExpr 
 {
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "AssignExpr"; }
 };
@@ -167,6 +173,7 @@ class FieldAccess : public LValue
     Identifier *field;
     
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     FieldAccess(Expr *base, Identifier *field); //ok to pass NULL base
 };
 

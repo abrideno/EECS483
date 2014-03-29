@@ -7,9 +7,21 @@
 #include "ast_decl.h"
 #include <string.h>
 
+extern CodeGenerator CG;
+
+using namespace std;
 
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
     value = val;
+}
+
+vector<Location*> IntConstant::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars;
+    Location* loc = CG.GenLoadConstant(value, offset);
+    listOfVars.push_back(loc);
+    ////cout << value << endl;
+    return listOfVars;
 }
 
 DoubleConstant::DoubleConstant(yyltype loc, double val) : Expr(loc) {
@@ -37,6 +49,8 @@ CompoundExpr::CompoundExpr(Expr *l, Operator *o, Expr *r)
     (right=r)->SetParent(this);
 }
 
+
+
 CompoundExpr::CompoundExpr(Operator *o, Expr *r) 
   : Expr(Join(o->GetLocation(), r->GetLocation())) {
     Assert(o != NULL && r != NULL);
@@ -45,7 +59,51 @@ CompoundExpr::CompoundExpr(Operator *o, Expr *r)
     (right=r)->SetParent(this);
 }
    
-  
+vector<Location*> ArithmeticExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars, newListOfVars;
+    listOfVars = left->Emit(seg, offset, varsInScope);
+    offset -= listOfVars.size() * CodeGenerator::VarSize;
+    newListOfVars = right->Emit(seg, offset, varsInScope);
+    offset -= listOfVars.size() * CodeGenerator::VarSize;
+    
+
+    Location* loc = CG.GenBinaryOp(op->tokenString, listOfVars.back(), newListOfVars.back(), offset);
+    newListOfVars.push_back(loc);
+    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    return listOfVars;
+    
+}
+
+vector<Location*> RelationalExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars, newListOfVars;
+    listOfVars = left->Emit(seg, offset, varsInScope);
+    offset -= listOfVars.size() * CodeGenerator::VarSize;
+    newListOfVars = right->Emit(seg, offset, varsInScope);
+    offset -= listOfVars.size() * CodeGenerator::VarSize;
+    
+
+    Location* loc = CG.GenBinaryOp(op->tokenString, listOfVars.back(), newListOfVars.back(), offset);
+    newListOfVars.push_back(loc);
+    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    return listOfVars;
+}
+
+
+vector<Location*> AssignExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    ////cout << "assignExpr::Emit" << endl;
+    vector<Location*> listOfVars;
+    Location* locLeft = left->Emit(seg, offset, varsInScope).back();
+    Location* locRight = right->Emit(seg, offset, varsInScope).back();
+    ////cout << locLeft << " = " << locRight << endl;
+    CG.GenAssign(locLeft, locRight);
+    ////cout << "assignComplete" << endl;
+    return listOfVars;
+}
+
+
 ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
     (base=b)->SetParent(this); 
     (subscript=s)->SetParent(this);
@@ -59,6 +117,26 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
     (field=f)->SetParent(this);
 }
 
+
+//TODO base
+vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars;
+    Location* loc;
+    //cout << loc << endl;
+    //cout << field << endl;
+    for (auto it = varsInScope.rbegin(); it != varsInScope.rend(); it++)
+    {
+        if (!strcmp((*it)->GetName(),field->name))
+        {
+            loc = *it;
+            break;
+        }
+    }
+    //cout << loc << endl;
+    listOfVars.push_back(loc);
+    return listOfVars;
+}
 
 Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)  {
     Assert(f != NULL && a != NULL); // b can be be NULL (just means no explicit base)

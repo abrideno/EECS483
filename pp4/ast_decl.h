@@ -15,16 +15,23 @@
 #include "ast.h"
 #include "ast_type.h"
 #include "list.h"
+#include "tac.h"
+#include <vector>
+#include "codegen.h"
 
 class Identifier;
 class Stmt;
+class Type;
+
+using namespace std;
 
 class Decl : public Node 
 {
-  protected:
+  public:
     Identifier *id;
   
   public:
+    virtual vector<Location*> Emit(Segment segment, int offset, vector<Location*> varsInScope) { Assert(0); vector<Location*> empty; return empty;}
     Decl(Identifier *name);
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
 };
@@ -35,6 +42,7 @@ class VarDecl : public Decl
     Type *type;
     
   public:
+    vector<Location*> Emit(Segment segment, int offset, vector<Location*> varsInScope);
     VarDecl(Identifier *name, Type *type);
 };
 
@@ -67,6 +75,7 @@ class FnDecl : public Decl
     Stmt *body;
     
   public:
+    vector<Location*> Emit(Segment segment, int offset, vector<Location*> varsInScope);
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
 };

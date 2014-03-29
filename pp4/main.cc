@@ -30,7 +30,9 @@ int main(int argc, char *argv[])
     yyparse();
     ReportError::PrintErrors();
     if (ReportError::NumErrors() == 0)
-	SysCallCodeGen();
+    {
+	    SysCallCodeGen(); //XXX commenting out reduces clutter, but ./run wont work
+	}
     return (ReportError::NumErrors() == 0? 0 : -1);
 }
 
