@@ -100,6 +100,7 @@ vector<Location*> CompoundExpr::Emit(Segment seg, int offset, vector<Location*> 
     {
         if (!strcmp("-", op->tokenString))
         {
+            offset -= CodeGenerator::VarSize;
             Location* loc2 = CG.GenLoadConstant(-1, offset);
             offset -= CodeGenerator::VarSize;
             loc = CG.GenBinaryOp("*", newListOfVars.back(), loc2, offset);
@@ -108,9 +109,10 @@ vector<Location*> CompoundExpr::Emit(Segment seg, int offset, vector<Location*> 
         }
         else if (!strcmp("!", op->tokenString))
         {
+            offset -= CodeGenerator::VarSize;
             Location* loc2 = CG.GenLoadConstant(0, offset);
             offset -= CodeGenerator::VarSize;
-            loc = CG.GenBinaryOp("!=", newListOfVars.back(), loc2, offset);
+            loc = CG.GenBinaryOp("==", newListOfVars.back(), loc2, offset);
             newListOfVars.push_back(loc2);
             newListOfVars.push_back(loc);
         }
