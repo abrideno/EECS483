@@ -56,7 +56,6 @@ vector<Location*> FnDecl::Emit(Segment seg, int offset, vector<Location*> varsIn
     Assert(seg == gpRelative); //wont be true for class functions
     int localOffset = CodeGenerator::OffsetToFirstLocal;
     int paramOffset = CodeGenerator::OffsetToFirstParam;
-    
     for (int i = 0; i < formals->NumElements(); i++)
     {
         vector<Location*> newListOfVars = formals->Nth(i)->Emit(fpRelative, paramOffset, varsInScope);

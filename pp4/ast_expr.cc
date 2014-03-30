@@ -24,6 +24,26 @@ vector<Location*> IntConstant::Emit(Segment seg, int offset, vector<Location*> v
     return listOfVars;
 }
 
+vector<Location*> BoolConstant::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars;
+    Location* loc = CG.GenLoadConstant(value, offset);
+    listOfVars.push_back(loc);
+    return listOfVars;
+}
+
+
+//XXX
+vector<Location*> StringConstant::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars;
+    Location* loc = CG.GenLoadConstant(value, offset);
+    listOfVars.push_back(loc);
+    return listOfVars;
+    
+}
+
+
 DoubleConstant::DoubleConstant(yyltype loc, double val) : Expr(loc) {
     value = val;
 }
@@ -60,17 +80,53 @@ CompoundExpr::CompoundExpr(Operator *o, Expr *r)
     (right=r)->SetParent(this);
 }
 
-vector<Location*> ArithmeticExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
-{   
+
+vector<Location*> CompoundExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
     vector<Location*> listOfVars, newListOfVars;
-    listOfVars = left->Emit(seg, offset, varsInScope);
-    offset -= listOfVars.size() * CodeGenerator::VarSize;
+    if (left)
+    {
+        listOfVars = left->Emit(seg, offset, varsInScope);
+        offset -= listOfVars.size() * CodeGenerator::VarSize;
+    }
     newListOfVars = right->Emit(seg, offset, varsInScope);
     offset -= listOfVars.size() * CodeGenerator::VarSize;
     
-    Location* loc = CG.GenBinaryOp(op->tokenString, listOfVars.back(), newListOfVars.back(), offset);
-    loc->setType(left->getType());
-    newListOfVars.push_back(loc);
+    Location* loc;
+    if (left)
+    {
+        loc = CG.GenBinaryOp(op->tokenString, listOfVars.back(), newListOfVars.back(), offset);
+        loc->setType(listOfVars.back()->getType()); 
+        newListOfVars.push_back(loc);
+    }
+    else
+    {
+        if (!strcmp("-", op->tokenString))
+        {
+            offset -= CodeGenerator::VarSize;
+            Location* loc2 = CG.GenLoadConstant(-1, offset);
+            loc2->setType(Type::intType); 
+            offset -= CodeGenerator::VarSize;
+            loc = CG.GenBinaryOp("*", newListOfVars.back(), loc2, offset);
+            loc->setType(newListOfVars.back()->getType()); 
+            newListOfVars.push_back(loc2);
+            newListOfVars.push_back(loc);
+        }
+        else if (!strcmp("!", op->tokenString))
+        {
+            offset -= CodeGenerator::VarSize;
+            Location* loc2 = CG.GenLoadConstant(0, offset);
+            loc2->setType(Type::intType); 
+            offset -= CodeGenerator::VarSize;
+            loc = CG.GenBinaryOp("==", newListOfVars.back(), loc2, offset);
+            loc->setType(Type::boolType);
+            newListOfVars.push_back(loc2);
+            newListOfVars.push_back(loc);
+        }
+        else
+            Assert(NULL);
+    }
+    
     listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
     return listOfVars;
 }
@@ -103,25 +159,67 @@ vector<Location*> RelationalExpr::Emit(Segment seg, int offset, vector<Location*
     offset -= listOfVars.size() * CodeGenerator::VarSize;
     
 
-    Location* loc = CG.GenBinaryOp(op->tokenString, listOfVars.back(), newListOfVars.back(), offset);
-    loc->setType(Type::boolType); 
-    newListOfVars.push_back(loc);
+    Location* loc;
+    if (!strcmp("<=", op->tokenString))
+    {
+        Location* loc2 = CG.GenBinaryOp("<", listOfVars.back(), newListOfVars.back(), offset);
+        loc2->setType(Type::boolType); 
+        offset -= CodeGenerator::VarSize;
+        Location* loc3 = CG.GenBinaryOp("==", listOfVars.back(), newListOfVars.back(), offset);
+        loc3->setType(Type::boolType); 
+        offset -= CodeGenerator::VarSize;
+        loc = CG.GenBinaryOp("||", loc2, loc3, offset);
+        loc->setType(Type::boolType); 
+        newListOfVars.push_back(loc2);
+        newListOfVars.push_back(loc3);
+        newListOfVars.push_back(loc);
+    }
+    else if (!strcmp(">", op->tokenString))
+    {
+        Location* loc2 = CG.GenBinaryOp("<", listOfVars.back(), newListOfVars.back(), offset);
+        offset -= CodeGenerator::VarSize;
+        Location* loc3 = CG.GenBinaryOp("==", listOfVars.back(), newListOfVars.back(), offset);
+        offset -= CodeGenerator::VarSize;
+        Location* loc4 = CG.GenBinaryOp("||", loc2, loc3, offset);
+        offset -= CodeGenerator::VarSize;
+        Location* loc5 = CG.GenLoadConstant(0, offset);
+        offset -= CodeGenerator::VarSize;
+        loc = CG.GenBinaryOp("==", loc4, loc5, offset);
+        loc2->setType(Type::boolType); 
+        loc3->setType(Type::boolType); 
+        loc4->setType(Type::boolType); 
+        loc5->setType(Type::boolType); 
+        loc->setType(Type::boolType); 
+        newListOfVars.push_back(loc2);
+        newListOfVars.push_back(loc3);
+        newListOfVars.push_back(loc4);
+        newListOfVars.push_back(loc5);
+        newListOfVars.push_back(loc);
+    }
+    else if (!strcmp(">=", op->tokenString))
+    {
+        Location* loc2 = CG.GenBinaryOp("<", listOfVars.back(), newListOfVars.back(), offset);
+        loc2->setType(Type::boolType); 
+        offset -= CodeGenerator::VarSize;
+        Location* loc3 = CG.GenLoadConstant(0, offset);
+        loc3->setType(Type::boolType); 
+        offset -= CodeGenerator::VarSize;
+        loc = CG.GenBinaryOp("==", loc2, loc3, offset);
+        loc->setType(Type::boolType); 
+        newListOfVars.push_back(loc2);
+        newListOfVars.push_back(loc3);
+        newListOfVars.push_back(loc);
+    }
+    else
+    {
+        loc = CG.GenBinaryOp(op->tokenString, listOfVars.back(), newListOfVars.back(), offset);
+        loc->setType(Type::boolType); 
+        newListOfVars.push_back(loc);
+    }
     listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
     return listOfVars;
 }
 
-
-vector<Location*> AssignExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
-{
-    ////cout << "assignExpr::Emit" << endl;
-    vector<Location*> listOfVars;
-    Location* locLeft = left->Emit(seg, offset, varsInScope).back();
-    Location* locRight = right->Emit(seg, offset, varsInScope).back();
-    ////cout << locLeft << " = " << locRight << endl;
-    CG.GenAssign(locLeft, locRight);
-    ////cout << "assignComplete" << endl;
-    return listOfVars;
-}
 
 Type* AssignExpr::getType()
 {
