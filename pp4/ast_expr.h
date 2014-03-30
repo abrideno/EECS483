@@ -17,6 +17,7 @@
 #include "ast_stmt.h"
 #include "list.h"
 #include "ast_type.h"
+#include "tac.h"
 
 class NamedType; // for new
 class Type; // for NewArray

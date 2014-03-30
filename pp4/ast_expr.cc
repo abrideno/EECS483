@@ -96,7 +96,7 @@ vector<Location*> CompoundExpr::Emit(Segment seg, int offset, vector<Location*> 
     if (left)
     {
         loc = CG.GenBinaryOp(op->tokenString, listOfVars.back(), newListOfVars.back(), offset);
-        loc->setType(listOfVars.back()->getType()); 
+        loc->setType(listOfVars.back()->GetType()); 
         newListOfVars.push_back(loc);
     }
     else
@@ -108,7 +108,7 @@ vector<Location*> CompoundExpr::Emit(Segment seg, int offset, vector<Location*> 
             loc2->setType(Type::intType); 
             offset -= CodeGenerator::VarSize;
             loc = CG.GenBinaryOp("*", newListOfVars.back(), loc2, offset);
-            loc->setType(newListOfVars.back()->getType()); 
+            loc->setType(newListOfVars.back()->GetType()); 
             newListOfVars.push_back(loc2);
             newListOfVars.push_back(loc);
         }
@@ -220,6 +220,17 @@ vector<Location*> RelationalExpr::Emit(Segment seg, int offset, vector<Location*
     return listOfVars;
 }
 
+vector<Location*> AssignExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    ////cout << "assignExpr::Emit" << endl;
+    vector<Location*> listOfVars;
+    Location* locLeft = left->Emit(seg, offset, varsInScope).back();
+    Location* locRight = right->Emit(seg, offset, varsInScope).back();
+    ////cout << locLeft << " = " << locRight << endl;
+    CG.GenAssign(locLeft, locRight);
+    ////cout << "assignComplete" << endl;
+    return listOfVars;
+}
 
 Type* AssignExpr::getType()
 {

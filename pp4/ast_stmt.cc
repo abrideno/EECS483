@@ -111,7 +111,15 @@ vector<Location*> PrintStmt::Emit(Segment seg, int offset, vector<Location*> var
     for (int i = 0; i < args->NumElements(); i++)
     {
         vector<Location*> newListOfVars = args->Nth(i)->Emit(seg, offset, varsInScope);
-        CG.GenBuiltInCall(PrintInt, newListOfVars.back());
+        Type* t = newListOfVars.back()->GetType();
+        if (t == Type::intType)
+            CG.GenBuiltInCall(PrintInt, newListOfVars.back());
+        else if (t == Type::boolType)
+            CG.GenBuiltInCall(PrintBool, newListOfVars.back());
+        else if (t == Type::stringType)
+            CG.GenBuiltInCall(PrintString, newListOfVars.back());
+        else
+            Assert(NULL);
         listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
     }
     //cout << "PrintStmt::Emit finished" << endl;
