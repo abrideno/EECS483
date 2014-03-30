@@ -10,6 +10,10 @@
 
 Location::Location(Segment s, int o, const char *name) :
   variableName(strdup(name)), segment(s), offset(o){}
+  
+  
+Location::Location(Segment s, int o, const char *name, Type *t) :
+  variableName(strdup(name)), segment(s), offset(o), type(t){}
 
  
 void Instruction::Print() {

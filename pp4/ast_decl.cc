@@ -25,14 +25,14 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
 vector<Location*> VarDecl::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars;
-    Location* loc = new Location(seg, offset, id->name);
+    Location* loc = new Location(seg, offset, id->name,getType());
     listOfVars.push_back(loc);
     //cout << loc->GetName() << ' ' << loc->GetOffset() << endl;
     //cout << loc << endl;
     return listOfVars;
 }
   
-
+//TODO: Vtable so that we can get type from field access 
 ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<Decl*> *m) : Decl(n) {
     // extends can be NULL, impl & mem may be empty lists but cannot be NULL
     Assert(n != NULL && imp != NULL && m != NULL);     

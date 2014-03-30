@@ -16,6 +16,7 @@
 #include "ast.h"
 #include "ast_stmt.h"
 #include "list.h"
+#include "ast_type.h"
 
 class NamedType; // for new
 class Type; // for NewArray
@@ -23,9 +24,13 @@ class Type; // for NewArray
 
 class Expr : public Stmt 
 {
+  protected: 
+  Type *type; 
+  
   public:
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
+    virtual Type* getType() { return type; } 
 };
 
 /* This node type is used for those places where an expression is optional.
@@ -40,8 +45,10 @@ class IntConstant : public Expr
 {
   protected:
     int value;
-  
+    Type *type; 
+    
   public:
+    Type* getType() { return Type::intType; } 
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     IntConstant(yyltype loc, int val);
 };
@@ -50,33 +57,42 @@ class DoubleConstant : public Expr
 {
   protected:
     double value;
-    
+    Type *type; 
   public:
     DoubleConstant(yyltype loc, double val);
+    Type* getType() { return Type::doubleType; } 
 };
 
 class BoolConstant : public Expr 
 {
   protected:
     bool value;
+    Type *type; 
     
   public:
     BoolConstant(yyltype loc, bool val);
+    Type* getType() { return Type::boolType; } 
 };
 
 class StringConstant : public Expr 
 { 
   protected:
     char *value;
+    Type *type; 
     
   public:
     StringConstant(yyltype loc, const char *val);
+    Type* getType() { return Type::stringType; } 
 };
 
 class NullConstant: public Expr 
 {
+  protected: 
+     Type *type; 
+     
   public: 
     NullConstant(yyltype loc) : Expr(loc) {}
+    Type* getType() { return Type::nullType; } 
 };
 
 class Operator : public Node 
@@ -95,7 +111,6 @@ class CompoundExpr : public Expr
     Operator *op;
     Expr *left, *right; // left will be NULL if unary
     
-    
   public:
     
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
@@ -108,6 +123,7 @@ class ArithmeticExpr : public CompoundExpr
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
+    Type* getType(); 
 };
 
 class RelationalExpr : public CompoundExpr 
@@ -115,6 +131,7 @@ class RelationalExpr : public CompoundExpr
   public:
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
+    Type* getType() { return Type::boolType; }
 };
 
 class EqualityExpr : public CompoundExpr 
@@ -122,6 +139,7 @@ class EqualityExpr : public CompoundExpr
   public:
     EqualityExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "EqualityExpr"; }
+    Type* getType() { return Type::boolType; }
 };
 
 class LogicalExpr : public CompoundExpr 
@@ -130,6 +148,7 @@ class LogicalExpr : public CompoundExpr
     LogicalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     LogicalExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
     const char *GetPrintNameForNode() { return "LogicalExpr"; }
+    Type* getType() { return Type::boolType; }
 };
 
 class AssignExpr : public CompoundExpr 
@@ -138,6 +157,7 @@ class AssignExpr : public CompoundExpr
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "AssignExpr"; }
+    Type* getType();
 };
 
 class LValue : public Expr 
@@ -150,6 +170,7 @@ class This : public Expr
 {
   public:
     This(yyltype loc) : Expr(loc) {}
+//     Type* getType(){return;}
 };
 
 class ArrayAccess : public LValue 
@@ -159,6 +180,7 @@ class ArrayAccess : public LValue
     
   public:
     ArrayAccess(yyltype loc, Expr *base, Expr *subscript);
+    Type* getType() { return base->getType(); }
 };
 
 /* Note that field access is used both for qualified names
@@ -175,6 +197,7 @@ class FieldAccess : public LValue
   public:
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     FieldAccess(Expr *base, Identifier *field); //ok to pass NULL base
+//     Type* getType(){return;}
 };
 
 /* Like field access, call is used both for qualified base.field()
@@ -190,6 +213,7 @@ class Call : public Expr
     
   public:
     Call(yyltype loc, Expr *base, Identifier *field, List<Expr*> *args);
+//     Type* getType(){return;}
 };
 
 class NewExpr : public Expr
@@ -199,6 +223,7 @@ class NewExpr : public Expr
     
   public:
     NewExpr(yyltype loc, NamedType *clsType);
+//      Type* getType(){return;}
 };
 
 class NewArrayExpr : public Expr
@@ -209,18 +234,21 @@ class NewArrayExpr : public Expr
     
   public:
     NewArrayExpr(yyltype loc, Expr *sizeExpr, Type *elemType);
+//      Type* getType(){return;}
 };
 
 class ReadIntegerExpr : public Expr
 {
   public:
     ReadIntegerExpr(yyltype loc) : Expr(loc) {}
+     Type* getType() { return Type::intType; }
 };
 
 class ReadLineExpr : public Expr
 {
   public:
     ReadLineExpr(yyltype loc) : Expr (loc) {}
+     Type* getType() { return Type::stringType; }
 };
 
     

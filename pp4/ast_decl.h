@@ -44,6 +44,7 @@ class VarDecl : public Decl
   public:
     vector<Location*> Emit(Segment segment, int offset, vector<Location*> varsInScope);
     VarDecl(Identifier *name, Type *type);
+    Type* getType(){return type;}
 };
 
 class ClassDecl : public Decl 

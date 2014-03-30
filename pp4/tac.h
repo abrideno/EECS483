@@ -24,6 +24,7 @@
 #define _H_tac
 
 #include "list.h" // for VTable
+#include "ast_type.h" 
 class Mips;
 
 
@@ -43,13 +44,18 @@ class Location
     const char *variableName;
     Segment segment;
     int offset;
+    Type *type; 
 	  
   public:
-    Location(Segment seg, int offset, const char *name);
+  
+    Location(Segment seg, int offset, const char *name); 
+    Location(Segment seg, int offset, const char *name, Type *type);
 
     const char *GetName()           { return variableName; }
     Segment GetSegment()            { return segment; }
     int GetOffset()                 { return offset; }
+    Type *GetType()					{ return type; }
+    void setType(Type *set)         { type = set; } 
 };
  
 
