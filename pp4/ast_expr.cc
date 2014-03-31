@@ -341,7 +341,6 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
         }
     }
     //cout << loc << endl;
-    listOfVars.push_back(loc);
     for (int i = actuals->NumElements() - 1; i >= 0; i--)
     {
         newListOfVars = actuals->Nth(i)->Emit(seg, offset, varsInScope);
@@ -349,7 +348,10 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
         offset -= newListOfVars.size() * CodeGenerator::VarSize;
         CG.GenPushParam(newListOfVars.back());
     }
-    loc = CG.GenLCall(field->name, true, offset); //TODO add void funcs
+    if (loc->GetType() == Type::voidType)
+        loc = CG.GenLCall(field->name, false, offset);
+    else
+        loc = CG.GenLCall(field->name, true, offset);
     listOfVars.push_back(loc);
     CG.GenPopParams(actuals->NumElements() * CodeGenerator::VarSize);
     return listOfVars;

@@ -53,7 +53,7 @@ vector<Location*> FnDecl::Emit(Segment seg, int offset, vector<Location*> varsIn
     CG.GenLabel(id->name);
     BeginFunc* BF = CG.GenBeginFunc();
     vector<Location*> listOfVars;
-    Assert(seg == gpRelative); //wont be true for class functions
+    Assert(seg == gpRelative); //XXX wont be true for class functions
     int localOffset = CodeGenerator::OffsetToFirstLocal;
     int paramOffset = CodeGenerator::OffsetToFirstParam;
     for (int i = 0; i < formals->NumElements(); i++)
@@ -69,6 +69,7 @@ vector<Location*> FnDecl::Emit(Segment seg, int offset, vector<Location*> varsIn
     BF->SetFrameSize(listOfVars.size() * CodeGenerator::VarSize); //SetFrameSize(int numBytesForAllLocalsAndTemps);
     CG.GenReturn();
     CG.GenEndFunc();
+    listOfVars.push_back(new Location(seg, offset, id->name, returnType));
     return listOfVars;
 }
 	

@@ -39,7 +39,7 @@ void Program::Emit()
     int gpOffset = CodeGenerator::OffsetToFirstGlobal;
     for (int i = 0; i < decls->NumElements(); i++)
     {
-        listOfVars.push_back(decls->Nth(i)->Emit(gpRelative, gpOffset, listOfVars).front());
+        listOfVars.push_back(decls->Nth(i)->Emit(gpRelative, gpOffset, listOfVars).back());
         //listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
         gpOffset += CodeGenerator::VarSize;
     }
