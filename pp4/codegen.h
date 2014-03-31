@@ -130,7 +130,7 @@ class CodeGenerator {
          // for the new temp var holding the result.  For those
          // built-ins with no return value (Print/Halt), no temporary
          // is created and NULL is returned.
-    Location *GenBuiltInCall(BuiltIn b, Location *arg1 = NULL, Location *arg2 = NULL);
+    Location *GenBuiltInCall(BuiltIn b, Location *arg1 = NULL, Location *arg2 = NULL, int offset = 0);
 
     
          // These methods generate the Tac instructions for various

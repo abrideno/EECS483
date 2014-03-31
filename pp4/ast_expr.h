@@ -139,6 +139,7 @@ class RelationalExpr : public CompoundExpr
 class EqualityExpr : public CompoundExpr 
 {
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     EqualityExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "EqualityExpr"; }
     Type* getType() { return Type::boolType; }

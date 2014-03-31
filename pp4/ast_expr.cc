@@ -28,6 +28,7 @@ vector<Location*> BoolConstant::Emit(Segment seg, int offset, vector<Location*> 
 {
     vector<Location*> listOfVars;
     Location* loc = CG.GenLoadConstant(value, offset);
+    loc->setType(Type::boolType);
     listOfVars.push_back(loc);
     return listOfVars;
 }
@@ -38,6 +39,7 @@ vector<Location*> StringConstant::Emit(Segment seg, int offset, vector<Location*
 {
     vector<Location*> listOfVars;
     Location* loc = CG.GenLoadConstant(value, offset);
+    loc->setType(Type::stringType);
     listOfVars.push_back(loc);
     return listOfVars;
     
@@ -90,7 +92,7 @@ vector<Location*> CompoundExpr::Emit(Segment seg, int offset, vector<Location*> 
         offset -= listOfVars.size() * CodeGenerator::VarSize;
     }
     newListOfVars = right->Emit(seg, offset, varsInScope);
-    offset -= listOfVars.size() * CodeGenerator::VarSize;
+    offset -= newListOfVars.size() * CodeGenerator::VarSize;
     
     Location* loc;
     if (left)
@@ -103,7 +105,6 @@ vector<Location*> CompoundExpr::Emit(Segment seg, int offset, vector<Location*> 
     {
         if (!strcmp("-", op->tokenString))
         {
-            offset -= CodeGenerator::VarSize;
             Location* loc2 = CG.GenLoadConstant(-1, offset);
             loc2->setType(Type::intType); 
             offset -= CodeGenerator::VarSize;
@@ -114,7 +115,6 @@ vector<Location*> CompoundExpr::Emit(Segment seg, int offset, vector<Location*> 
         }
         else if (!strcmp("!", op->tokenString))
         {
-            offset -= CodeGenerator::VarSize;
             Location* loc2 = CG.GenLoadConstant(0, offset);
             loc2->setType(Type::intType); 
             offset -= CodeGenerator::VarSize;
@@ -156,7 +156,7 @@ vector<Location*> RelationalExpr::Emit(Segment seg, int offset, vector<Location*
     listOfVars = left->Emit(seg, offset, varsInScope);
     offset -= listOfVars.size() * CodeGenerator::VarSize;
     newListOfVars = right->Emit(seg, offset, varsInScope);
-    offset -= listOfVars.size() * CodeGenerator::VarSize;
+    offset -= newListOfVars.size() * CodeGenerator::VarSize;
     
 
     Location* loc;
@@ -214,6 +214,44 @@ vector<Location*> RelationalExpr::Emit(Segment seg, int offset, vector<Location*
     {
         loc = CG.GenBinaryOp(op->tokenString, listOfVars.back(), newListOfVars.back(), offset);
         loc->setType(Type::boolType); 
+        newListOfVars.push_back(loc);
+    }
+    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    return listOfVars;
+}
+
+vector<Location*> EqualityExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars, newListOfVars;
+    listOfVars = left->Emit(seg, offset, varsInScope);
+    offset -= listOfVars.size() * CodeGenerator::VarSize;
+    newListOfVars = right->Emit(seg, offset, varsInScope);
+    offset -= listOfVars.size() * CodeGenerator::VarSize;
+    
+    Location* loc;
+    if (!strcmp("==", op->tokenString))
+    {
+        if (listOfVars.back()->GetType() == Type::stringType)
+            loc = CG.GenBuiltInCall(StringEqual, listOfVars.back(), newListOfVars.back(), offset);
+        else
+            loc = CG.GenBinaryOp("==", listOfVars.back(), newListOfVars.back(), offset);
+        loc->setType(Type::boolType);
+        newListOfVars.push_back(loc);
+    }
+    else if (!strcmp("!=", op->tokenString))
+    {
+        Location* loc2;
+        if (listOfVars.back()->GetType() == Type::stringType)
+            loc2 = CG.GenBuiltInCall(StringEqual, listOfVars.back(), newListOfVars.back(), offset);
+        else
+            loc2 = CG.GenBinaryOp("==", listOfVars.back(), newListOfVars.back(), offset);
+        loc2->setType(Type::boolType);
+        newListOfVars.push_back(loc2);
+        offset -= CodeGenerator::VarSize;
+        Location* loc3 = CG.GenLoadConstant(0, offset);
+        offset -= CodeGenerator::VarSize;
+        loc = CG.GenBinaryOp("==", loc2, loc3, offset);
+        loc->setType(Type::boolType);
         newListOfVars.push_back(loc);
     }
     listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());

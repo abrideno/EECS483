@@ -17,7 +17,7 @@ echo ""
 echo "Running the following testbenches: $tests"
 echo "------------------------------------------------------------------------"
 for file in $tests; do
-  ./dcc < ${file%.decaf.*} > out 2>&1
+  ./run ${file%.decaf.*} > out 2>&1
   echo "====================================="
   echo $file
   echo""
