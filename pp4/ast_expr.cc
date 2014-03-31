@@ -369,4 +369,38 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     (elemType=et)->SetParent(this);
 }
 
+vector<Location*> NewArrayExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars, newListOfVars;
+    newListOfVars = size->Emit(seg, offset, varsInScope);
+    offset -= newListOfVars.size() * CodeGenerator::VarSize;
+    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    
+    Location* loc = CG.GenLoadConstant(1, offset);
+    offset -= CodeGenerator::VarSize;
+    
+    Location* testSize = CG.GenBinaryOp("<", newListOfVars.back(), loc, offset);
+    offset -= CodeGenerator::VarSize;
+    listOfVars.push_back(loc);
+    listOfVars.push_back(testSize);
+    
+    const char * label = CG.NewLabel();
+    CG.GenIfZ(testSize, label);
+    loc = CG.GenLoadConstant("Decaf runtime error: Array size is <= 0\\n", offset);
+    offset -= CodeGenerator::VarSize;
+    listOfVars.push_back(loc);
+    CG.GenBuiltInCall(PrintString, loc);
+    CG.GenBuiltInCall(Halt);
+    
+    CG.GenLabel(label);
+    
+    return listOfVars;
+    
+}
+
+
+
+
+
+
        

@@ -237,6 +237,7 @@ class NewArrayExpr : public Expr
     Type *elemType;
     
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     NewArrayExpr(yyltype loc, Expr *sizeExpr, Type *elemType);
 //      Type* getType(){return;}
 };
