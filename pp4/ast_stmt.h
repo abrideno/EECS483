@@ -87,6 +87,7 @@ class ForStmt : public LoopStmt
 class WhileStmt : public LoopStmt 
 {
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     WhileStmt(Expr *test, Stmt *body) : LoopStmt(test, body) {}
 };
 

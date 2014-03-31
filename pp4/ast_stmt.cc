@@ -87,6 +87,31 @@ ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) {
     (step=s)->SetParent(this);
 }
 
+vector<Location*> WhileStmt::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars, newListOfVars;
+    
+    const char* loopLabel = CG.NewLabel();
+    CG.GenLabel(loopLabel);
+    
+    newListOfVars = test->Emit(seg, offset, varsInScope);
+    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    offset -= newListOfVars.size() * CodeGenerator::VarSize;
+    
+    Location* testLoc = newListOfVars.back();
+    const char * endLabel = CG.NewLabel();
+    CG.GenIfZ(testLoc, endLabel);
+    
+    newListOfVars = body->Emit(seg, offset, varsInScope);
+    offset -= newListOfVars.size() * CodeGenerator::VarSize;
+    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    
+    CG.GenGoto(loopLabel);
+    CG.GenLabel(endLabel);
+    
+    return listOfVars;
+}
+
 IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) { 
     Assert(t != NULL && tb != NULL); // else can be NULL
     elseBody = eb;
