@@ -93,6 +93,37 @@ IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) {
     if (elseBody) elseBody->SetParent(this);
 }
 
+vector<Location*> IfStmt::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars, newListOfVars;
+    newListOfVars = test->Emit(seg, offset, varsInScope);
+    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    offset -= newListOfVars.size() * CodeGenerator::VarSize;
+    Location* testLoc = newListOfVars.back();
+    const char * label = CG.NewLabel();
+    const char * label2 = CG.NewLabel();
+    if (elseBody)
+        CG.GenIfZ(testLoc, label);
+    else
+        CG.GenIfZ(testLoc, label2);
+    newListOfVars = body->Emit(seg, offset, varsInScope);
+    offset -= newListOfVars.size() * CodeGenerator::VarSize;
+    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    CG.GenGoto(label2);
+    if (elseBody)
+    {
+        CG.GenLabel(label);
+        newListOfVars = elseBody->Emit(seg, offset, varsInScope);
+        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    }
+    CG.GenLabel(label2);
+    return listOfVars;
+    
+    
+    
+    
+}
+
 
 ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) { 
     Assert(e != NULL);

@@ -96,6 +96,7 @@ class IfStmt : public ConditionalStmt
     Stmt *elseBody;
   
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     IfStmt(Expr *test, Stmt *thenBody, Stmt *elseBody);
 };
 
