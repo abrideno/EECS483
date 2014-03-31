@@ -67,6 +67,7 @@ vector<Location*> FnDecl::Emit(Segment seg, int offset, vector<Location*> varsIn
     listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
     localOffset -= newListOfVars.size() * CodeGenerator::VarSize;
     BF->SetFrameSize(listOfVars.size() * CodeGenerator::VarSize); //SetFrameSize(int numBytesForAllLocalsAndTemps);
+    CG.GenReturn();
     CG.GenEndFunc();
     return listOfVars;
 }

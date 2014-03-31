@@ -187,6 +187,14 @@ ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) {
     Assert(e != NULL);
     (expr=e)->SetParent(this);
 }
+
+vector<Location*> ReturnStmt::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars;
+    listOfVars = expr->Emit(seg, offset, varsInScope);
+    CG.GenReturn(listOfVars.back());
+    return listOfVars;
+}
   
 PrintStmt::PrintStmt(List<Expr*> *a) {    
     Assert(a != NULL);

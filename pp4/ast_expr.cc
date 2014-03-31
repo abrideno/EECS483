@@ -287,6 +287,35 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)  {
     (actuals=a)->SetParentAll(this);
 }
  
+vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars, newListOfVars;
+    Location* loc;
+    //cout << loc << endl;
+    //cout << field << endl;
+    
+    for (auto it = varsInScope.rbegin(); it != varsInScope.rend(); it++)
+    {
+        if (!strcmp((*it)->GetName(),field->name))
+        {
+            loc = *it;
+            break;
+        }
+    }
+    //cout << loc << endl;
+    listOfVars.push_back(loc);
+    for (int i = actuals->NumElements() - 1; i >= 0; i--)
+    {
+        newListOfVars = actuals->Nth(i)->Emit(seg, offset, varsInScope);
+        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+        offset -= newListOfVars.size() * CodeGenerator::VarSize;
+        CG.GenPushParam(newListOfVars.back());
+    }
+    loc = CG.GenLCall(field->name, true, offset); //TODO add void funcs
+    listOfVars.push_back(loc);
+    CG.GenPopParams(actuals->NumElements() * CodeGenerator::VarSize);
+    return listOfVars;
+}
 
 NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) { 
   Assert(c != NULL);

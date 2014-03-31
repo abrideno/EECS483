@@ -114,6 +114,7 @@ class ReturnStmt : public Stmt
     Expr *expr;
   
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ReturnStmt(yyltype loc, Expr *expr);
 };
 

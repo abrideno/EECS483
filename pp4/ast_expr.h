@@ -214,6 +214,7 @@ class Call : public Expr
     List<Expr*> *actuals;
     
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     Call(yyltype loc, Expr *base, Identifier *field, List<Expr*> *args);
 //     Type* getType(){return;}
 };

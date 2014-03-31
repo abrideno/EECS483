@@ -149,9 +149,9 @@ void CodeGenerator::GenPopParams(int numBytesOfParams)
     code->Append(new PopParams(numBytesOfParams));
 }
 
-Location *CodeGenerator::GenLCall(const char *label, bool fnHasReturnValue)
+Location *CodeGenerator::GenLCall(const char *label, bool fnHasReturnValue, int offset)
 {
-  Location *result = fnHasReturnValue ? GenTempVar() : NULL;
+  Location *result = fnHasReturnValue ? GenTempVar(offset) : NULL;
   code->Append(new LCall(label, result));
   return result;
 }

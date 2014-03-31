@@ -112,7 +112,7 @@ class CodeGenerator {
          // true,  a new temp var is created, the fn result is stored 
          // there and that Location is returned. If false, no temp is
          // created and NULL is returned
-    Location *GenLCall(const char *label, bool fnHasReturnValue);
+    Location *GenLCall(const char *label, bool fnHasReturnValue, int offset = 0);
 
          // Generates the Tac instructions for ACall, a jump to an
          // address computed at runtime. Works similarly to LCall,
