@@ -81,6 +81,7 @@ class ForStmt : public LoopStmt
     Expr *init, *step;
   
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ForStmt(Expr *init, Expr *test, Expr *step, Stmt *body);
 };
 
