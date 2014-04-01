@@ -85,7 +85,7 @@ class CodeGenerator {
          // temporary variable where the result was stored. The optional
          // offset argument can be used to offset the addr by a positive or
          // negative number of bytes. If not given, 0 is assumed.
-    Location *GenLoad(Location *addr, int offset = 0);
+    Location *GenLoad(Location *addr, int offset, int stackOffset);
 
     
          // Generates Tac instructions to perform one of the binary ops

@@ -82,9 +82,9 @@ void CodeGenerator::GenAssign(Location *dst, Location *src)
 }
 
 
-Location *CodeGenerator::GenLoad(Location *ref, int offset)
+Location *CodeGenerator::GenLoad(Location *ref, int offset, int stackOffset)
 {
-  Location *result = GenTempVar();
+  Location *result = GenTempVar(stackOffset);
   code->Append(new Load(result, ref, offset));
   return result;
 }

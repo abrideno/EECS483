@@ -45,12 +45,15 @@ class Location
     Segment segment;
     int offset;
     Type *type; 
+    
 	  
   public:
   
     Location(Segment seg, int offset, const char *name); 
     Location(Segment seg, int offset, const char *name, Type *type);
-
+    
+    Location* next;
+    Location* size;
     const char *GetName()           { return variableName; }
     Segment GetSegment()            { return segment; }
     int GetOffset()                 { return offset; }

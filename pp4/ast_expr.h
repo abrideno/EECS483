@@ -18,6 +18,7 @@
 #include "list.h"
 #include "ast_type.h"
 #include "tac.h"
+#include <sstream>
 
 class NamedType; // for new
 class Type; // for NewArray
@@ -182,6 +183,7 @@ class ArrayAccess : public LValue
     Expr *base, *subscript;
     
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ArrayAccess(yyltype loc, Expr *base, Expr *subscript);
     Type* getType() { return base->getType(); }
 };
