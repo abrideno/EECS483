@@ -210,11 +210,14 @@ vector<Location*> PrintStmt::Emit(Segment seg, int offset, vector<Location*> var
         vector<Location*> newListOfVars = args->Nth(i)->Emit(seg, offset, varsInScope);
         listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
         Type* t = newListOfVars.back()->GetType();
-        if (t == Type::intType)
+        ostringstream oss;
+        oss << t;
+        string s = oss.str();
+        if (s == "int")
             CG.GenBuiltInCall(PrintInt, newListOfVars.back());
-        else if (t == Type::boolType)
+        else if (s == "bool")
             CG.GenBuiltInCall(PrintBool, newListOfVars.back());
-        else if (t == Type::stringType)
+        else if (s == "string")
             CG.GenBuiltInCall(PrintString, newListOfVars.back());
         else
             Assert(NULL);
