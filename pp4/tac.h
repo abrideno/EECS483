@@ -52,7 +52,6 @@ class Location
     Location(Segment seg, int offset, const char *name); 
     Location(Segment seg, int offset, const char *name, Type *type);
     
-    Location* next;
     Location* size;
     const char *GetName()           { return variableName; }
     Segment GetSegment()            { return segment; }

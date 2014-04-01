@@ -288,6 +288,7 @@ vector<Location*> AssignExpr::Emit(Segment seg, int offset, vector<Location*> va
     }
     
     CG.GenAssign(locLeft, locRight);
+    locLeft->size = locRight->size;
     return listOfVars;
 }
 
@@ -319,6 +320,35 @@ vector<Location*> ArrayAccess::Emit(Segment seg, int offset, vector<Location*> v
     Location* sub = newListOfVars.back();
     offset -= newListOfVars.size() * CodeGenerator::VarSize;
     listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());    
+    
+    Location* negOne = CG.GenLoadConstant(-1, offset);
+    listOfVars.push_back(negOne);
+    offset -= CodeGenerator::VarSize;
+    
+    const char* testLabel = CG.NewLabel();    
+    const char* errorLabel = CG.NewLabel();
+    CG.GenGoto(testLabel);
+    CG.GenLabel(errorLabel);
+    
+    Location* errorLoc = CG.GenLoadConstant("Decaf runtime error: Array subscript out of bounds\\n", offset);
+    offset -= CodeGenerator::VarSize;
+    listOfVars.push_back(errorLoc);
+    CG.GenBuiltInCall(PrintString, errorLoc);
+    CG.GenBuiltInCall(Halt);
+       
+    CG.GenLabel(testLabel);
+    
+    Location* negative = CG.GenBinaryOp("<", negOne, sub, offset); //if -1 < subscript
+    listOfVars.push_back(negative);
+    offset -= CodeGenerator::VarSize;
+    
+    CG.GenIfZ(negative, errorLabel);
+    
+    Location* outOfBounds = CG.GenBinaryOp("<", sub, start->size, offset); //if sub < size
+    listOfVars.push_back(outOfBounds);
+    offset -= CodeGenerator::VarSize;
+    
+    CG.GenIfZ(outOfBounds, errorLabel);
     
     Location* four = CG.GenLoadConstant(4, offset);
     listOfVars.push_back(four);
@@ -468,6 +498,7 @@ vector<Location*> NewArrayExpr::Emit(Segment seg, int offset, vector<Location*> 
     //oss << elemType;
     //oss << "[]";
     ptr->setType(new Type("Array"));
+    ptr->size = newListOfVars.back();
     listOfVars.push_back(ptr);
     
     return listOfVars;
