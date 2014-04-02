@@ -8,6 +8,7 @@
 #include "codegen.h"
         
 CodeGenerator CG;
+unordered_map<string, vector< pair<string, int> > > classVars;
          
 using namespace std;
          
@@ -46,29 +47,48 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
 {
 	int vTableOffset = 0;	
     vector<Location*> listOfVars;
-    List<const char*>* memberNames; 
+    List<const char*>* memberNames = new List<const char*>; 
+    vector< pair<string, int> > vars;
 
     vector<Location*> newListOfVars; 
+    int varOffset = CodeGenerator::VarSize;
     for(int i=0; i<members->NumElements(); i++){
     	FnDecl *fn = dynamic_cast<FnDecl*>(members->Nth(i)); 
     	VarDecl *vd = dynamic_cast<VarDecl*>(members->Nth(i));
     	
     	newListOfVars=members->Nth(i)->Emit(seg,offset,varsInScope);  
+	    offset -= newListOfVars.size() * CodeGenerator::VarSize;
         listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
-		
-    	if(fn){
+		if (vd)
+		{
+		    pair<string, int> var;
+		    string s = vd->id->name;
+		    var.first = s;
+		    var.second = varOffset;
+		    varOffset += CodeGenerator::VarSize;
+		    vars.push_back(var);
+		}
+    	else if(fn){
     		memberNames->Append(members->Nth(i)->id->name); 
     	}
+    	else
+    	    Assert(NULL);
     }
     
 	varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
-    localOffset -= newListOfVars.size() * CodeGenerator::VarSize;
+
     
     if(memberNames->NumElements()>0){
     	CG.GenVTable(id->name,memberNames); 
     }
+    string s = id->name;
+    classVars[s] = vars;
     
-    
+    cout << "Class: " << id->name << endl;
+    for (int i = 0; i < vars.size(); i++)
+    {
+        cout << vars[i].first << ' ' << vars[i].second << endl;
+    }
     return listOfVars;
 }
 

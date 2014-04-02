@@ -7,6 +7,7 @@
 #include <string.h>
 
 extern CodeGenerator CG;
+extern unordered_map<string, vector< pair<string, int> > > classVars;
 
 using namespace std;
 

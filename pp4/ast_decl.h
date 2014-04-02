@@ -19,6 +19,8 @@
 #include <vector>
 #include "codegen.h"
 #include <cstring>
+#include <unordered_map>
+#include <string>
 
 class Identifier;
 class Stmt;
