@@ -247,6 +247,7 @@ class NewArrayExpr : public Expr
 class ReadIntegerExpr : public Expr
 {
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ReadIntegerExpr(yyltype loc) : Expr(loc) {}
      Type* getType() { return Type::intType; }
 };
@@ -254,6 +255,7 @@ class ReadIntegerExpr : public Expr
 class ReadLineExpr : public Expr
 {
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ReadLineExpr(yyltype loc) : Expr (loc) {}
      Type* getType() { return Type::stringType; }
 };

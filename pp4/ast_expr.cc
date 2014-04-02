@@ -593,6 +593,30 @@ vector<Location*> NewArrayExpr::Emit(Segment seg, int offset, vector<Location*> 
 }
 
 
+vector<Location*> ReadIntegerExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars;
+    Location* loc = CG.GenBuiltInCall(ReadInteger);
+    loc->setType(Type::intType);
+    listOfVars.push_back(loc);
+    return listOfVars;
+}
+
+vector<Location*> ReadLineExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{   
+    vector<Location*> listOfVars;
+    Location* loc = CG.GenBuiltInCall(ReadLine);
+    loc->setType(Type::stringType);
+    listOfVars.push_back(loc);
+    return listOfVars;
+}
+
+
+
+
+
+
+
 
 
 

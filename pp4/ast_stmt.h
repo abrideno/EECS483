@@ -105,6 +105,7 @@ class IfStmt : public ConditionalStmt
 class BreakStmt : public Stmt 
 {
   public:
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     BreakStmt(yyltype loc) : Stmt(loc) {}
 };
 
