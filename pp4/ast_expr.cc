@@ -426,10 +426,37 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
 vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars;
+    vector<Location*> newListOfVars; 
     Location* loc = NULL;
+    bool found = false; 
     
-    //cout << "Field Access emit: " << loc << endl;
-    for (auto it = varsInScope.rbegin(); it != varsInScope.rend(); it++)
+    if(base){
+    	newListOfVars = base->Emit(seg,offset,varsInScope); 
+    	Location *obj = newListOfVars.back();
+    	Type *baseType= obj->GetType();
+
+  	    
+  	    ostringstream ost; 
+  	    ost<<bastType;
+  	    
+  	    int offFromClass; 
+  	    vector< pair<string,int> > varsInClass = classVars.find(ost.str());
+  	    
+  	    for(auto it = varsInClass.begin(); it != varsInClass.end(); it++){
+  	    	if((*it)->first == field->name){
+  	    		offFromClass = (*it)->second;
+  	    	}
+  	    }
+  	    
+  	    loc = CG.Genload(obj,4,offFromClass);
+  	    loc->SetType(
+  	    newListOfVars.push_back(loc); 
+  	    listOfVars->append(newListOfVars); 
+  
+  }
+  else
+  {
+  	for (auto it = varsInScope.rbegin(); it != varsInScope.rend(); it++)
     {
         if (!strcmp((*it)->GetName(),field->name))
         {
@@ -441,7 +468,8 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
     Assert(loc);
     
     listOfVars.push_back(loc);
-    return listOfVars;
+  }
+return listOfVars;
 }
 
 
