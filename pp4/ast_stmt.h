@@ -19,6 +19,7 @@
 #include "mips.h"
 #include "codegen.h"
 #include <vector>
+#include <stack>
 
 using namespace std;
 
