@@ -228,7 +228,7 @@ class NewExpr : public Expr
     NamedType *cType;
     
   public:
-    vector<Location*> NewArrayExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope);
+    vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     NewExpr(yyltype loc, NamedType *clsType);
 //      Type* getType(){return;}
 };

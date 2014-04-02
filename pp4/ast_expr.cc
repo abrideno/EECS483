@@ -7,7 +7,7 @@
 #include <string.h>
 
 extern CodeGenerator CG;
-extern unordered_map<string, vector< pair<string, int> > > classVars;
+extern unordered_map<string, vector<classVarMember> > classVars;
 
 using namespace std;
 
@@ -545,7 +545,7 @@ vector<Location*> NewExpr::Emit(Segment seg, int offset, vector<Location*> varsI
     oss << cType;
     string s = oss.str();
     
-    vector< pair<string, int> > vars = classVars[s];
+    vector<classVarMember> vars = classVars[s];
     int sizeOfClass = vars.size() * CodeGenerator::VarSize + CodeGenerator::VarSize;
     
     Location* sizeLoc = CG.GenLoadConstant(sizeOfClass, offset);
@@ -554,6 +554,7 @@ vector<Location*> NewExpr::Emit(Segment seg, int offset, vector<Location*> varsI
     
     Location* ptr = CG.GenBuiltInCall(Alloc, sizeLoc, NULL, offset);
     offset -= CodeGenerator::VarSize;
+    ptr->setType(cType);
     listOfVars.push_back(ptr);
     
     return listOfVars;
