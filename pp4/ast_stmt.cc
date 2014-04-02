@@ -37,12 +37,26 @@ void Program::Emit()
     Mips* mips = new Mips;
     vector<Location*> listOfVars;
     int gpOffset = CodeGenerator::OffsetToFirstGlobal;
+    int mainNumber;
     for (int i = 0; i < decls->NumElements(); i++)
     {
         listOfVars.push_back(decls->Nth(i)->Emit(gpRelative, gpOffset, listOfVars).back());
         //listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
         gpOffset += CodeGenerator::VarSize;
     }
+    for (int i = 0; i < decls->NumElements(); i++)
+    {
+        ostringstream oss;
+        oss << decls->Nth(i);
+        string s = oss.str();
+        if (s == "main")
+        {
+            mainNumber = i;
+            continue;
+        }
+        decls->Nth(i)->Emit(fpRelative, gpOffset, listOfVars);
+    }
+    decls->Nth(mainNumber)->Emit(fpRelative, gpOffset, listOfVars);
     CG.DoFinalCodeGen();
 }
 
@@ -64,7 +78,7 @@ vector<Location*> StmtBlock::Emit(Segment seg, int offset, vector<Location*> var
     varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
     for (int i = 0; i < varsInScope.size(); i++)
     {
-        ////cout << varsInScope[i]->GetName() << endl;
+        //////cout << varsInScope[i]->GetName() << endl;
     }
     for (int i = 0; i < stmts->NumElements(); i++)
     {
@@ -191,7 +205,10 @@ ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) {
 vector<Location*> ReturnStmt::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars;
+    //cout << "RETURN EMIT" << endl;
     listOfVars = expr->Emit(seg, offset, varsInScope);
+    //cout << "RETURNED EMIT: " << listOfVars.back()->GetType() << endl;
+    //cout << "RETURNED EMIT: SiZE? " << listOfVars.back()->GetSize() << endl;
     CG.GenReturn(listOfVars.back());
     return listOfVars;
 }
@@ -203,7 +220,7 @@ PrintStmt::PrintStmt(List<Expr*> *a) {
 
 vector<Location*> PrintStmt::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
-    //cout << "PrintStmt::Emit" << endl;
+    ////cout << "PrintStmt::Emit" << endl;
     vector<Location*> listOfVars;
     for (int i = 0; i < args->NumElements(); i++)
     {
@@ -219,10 +236,12 @@ vector<Location*> PrintStmt::Emit(Segment seg, int offset, vector<Location*> var
             CG.GenBuiltInCall(PrintBool, newListOfVars.back());
         else if (s == "string")
             CG.GenBuiltInCall(PrintString, newListOfVars.back());
+        else if (s == "Array")
+            Assert(NULL && "Array");
         else
             Assert(NULL);
     }
-    //cout << "PrintStmt::Emit finished" << endl;
+    ////cout << "PrintStmt::Emit finished" << endl;
     return listOfVars;
     
 }

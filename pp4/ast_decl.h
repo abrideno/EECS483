@@ -18,6 +18,7 @@
 #include "tac.h"
 #include <vector>
 #include "codegen.h"
+#include <cstring>
 
 class Identifier;
 class Stmt;
