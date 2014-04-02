@@ -21,7 +21,6 @@ vector<Location*> IntConstant::Emit(Segment seg, int offset, vector<Location*> v
     Location* loc = CG.GenLoadConstant(value, offset);
     loc->setType(Type::intType); 
     listOfVars.push_back(loc);
-    //////////cout << value << endl;
     return listOfVars;
 }
 
@@ -536,6 +535,28 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
 NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) { 
   Assert(c != NULL);
   (cType=c)->SetParent(this);
+}
+
+vector<Location*> NewExpr::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars, newListOfVars;
+    
+    ostringstream oss;
+    oss << cType;
+    string s = oss.str();
+    
+    vector< pair<string, int> > vars = classVars[s];
+    int sizeOfClass = vars.size() * CodeGenerator::VarSize + CodeGenerator::VarSize;
+    
+    Location* sizeLoc = CG.GenLoadConstant(sizeOfClass, offset);
+    offset -= CodeGenerator::VarSize;
+    listOfVars.push_back(sizeLoc);
+    
+    Location* ptr = CG.GenBuiltInCall(Alloc, sizeLoc, NULL, offset);
+    offset -= CodeGenerator::VarSize;
+    listOfVars.push_back(ptr);
+    
+    return listOfVars;
 }
 
 
