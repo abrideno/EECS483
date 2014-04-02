@@ -76,10 +76,6 @@ vector<Location*> StmtBlock::Emit(Segment seg, int offset, vector<Location*> var
         offset -= newListOfVars.size() * CodeGenerator::VarSize;
     }
     varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
-    for (int i = 0; i < varsInScope.size(); i++)
-    {
-        //////cout << varsInScope[i]->GetName() << endl;
-    }
     for (int i = 0; i < stmts->NumElements(); i++)
     {
         vector<Location*> newListOfVars = stmts->Nth(i)->Emit(seg, offset, varsInScope);
@@ -220,10 +216,7 @@ ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) {
 vector<Location*> ReturnStmt::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars;
-    //cout << "RETURN EMIT" << endl;
     listOfVars = expr->Emit(seg, offset, varsInScope);
-    //cout << "RETURNED EMIT: " << listOfVars.back()->GetType() << endl;
-    //cout << "RETURNED EMIT: SiZE? " << listOfVars.back()->GetSize() << endl;
     CG.GenReturn(listOfVars.back());
     return listOfVars;
 }
@@ -235,7 +228,6 @@ PrintStmt::PrintStmt(List<Expr*> *a) {
 
 vector<Location*> PrintStmt::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
-    ////cout << "PrintStmt::Emit" << endl;
     vector<Location*> listOfVars;
     for (int i = 0; i < args->NumElements(); i++)
     {
@@ -256,7 +248,6 @@ vector<Location*> PrintStmt::Emit(Segment seg, int offset, vector<Location*> var
         else
             Assert(NULL);
     }
-    ////cout << "PrintStmt::Emit finished" << endl;
     return listOfVars;
     
 }

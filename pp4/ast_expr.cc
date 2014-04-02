@@ -231,7 +231,10 @@ vector<Location*> EqualityExpr::Emit(Segment seg, int offset, vector<Location*> 
     Location* loc;
     if (!strcmp("==", op->tokenString))
     {
-        if (listOfVars.back()->GetType() == Type::stringType)
+        ostringstream oss;
+        oss << listOfVars.back()->GetType();
+        string s = oss.str();
+        if (s == "string")
             loc = CG.GenBuiltInCall(StringEqual, listOfVars.back(), newListOfVars.back(), offset);
         else
             loc = CG.GenBinaryOp("==", listOfVars.back(), newListOfVars.back(), offset);
@@ -241,7 +244,10 @@ vector<Location*> EqualityExpr::Emit(Segment seg, int offset, vector<Location*> 
     else if (!strcmp("!=", op->tokenString))
     {
         Location* loc2;
-        if (listOfVars.back()->GetType() == Type::stringType)
+        ostringstream oss;
+        oss << listOfVars.back()->GetType();
+        string s = oss.str();
+        if (s == "string")
             loc2 = CG.GenBuiltInCall(StringEqual, listOfVars.back(), newListOfVars.back(), offset);
         else
             loc2 = CG.GenBinaryOp("==", listOfVars.back(), newListOfVars.back(), offset);
