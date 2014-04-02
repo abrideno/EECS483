@@ -42,6 +42,7 @@ class Stmt : public Node
 {
   public:
      virtual vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope) {Assert(0); vector<Location*> empty; return empty;}
+     virtual vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope) {Assert(0); vector<Location*> empty; return empty;}
      Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc) {}
 

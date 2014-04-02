@@ -55,9 +55,8 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
     for(int i=0; i<members->NumElements(); i++){
     	FnDecl *fn = dynamic_cast<FnDecl*>(members->Nth(i)); 
     	VarDecl *vd = dynamic_cast<VarDecl*>(members->Nth(i));
-    	
-	    
-        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+
+
 		if (vd)
 		{
 		    newListOfVars = members->Nth(i)->Emit(fpRelative, offset, varsInScope);
@@ -82,7 +81,6 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
     	    Assert(NULL);
     }
     
-	varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
 
     
     if(memberNames->NumElements()>0){
@@ -98,6 +96,38 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
     }
     return listOfVars;
 }
+
+vector<Location*> FnDecl::EmitMore(Segment seg, int offset, vector<Location*> varsInScope)
+{
+    vector<Location*> listOfVars;
+    if (seg == gpRelative) //XXX wont be true for class functions
+    {
+        Location* loc = new Location(seg, offset, id->name, returnType);
+        listOfVars.push_back(loc);
+        //cout << loc->GetType() << endl;
+        return listOfVars;
+    }
+    //cout << id->name << "!!!!!" << endl;
+    BeginFunc* BF = CG.GenBeginFunc();
+    int localOffset = CodeGenerator::OffsetToFirstLocal;
+    int paramOffset = CodeGenerator::OffsetToFirstParam;
+    for (int i = 0; i < formals->NumElements(); i++)
+    {
+        vector<Location*> newListOfVars = formals->Nth(i)->Emit(fpRelative, paramOffset, varsInScope);
+        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+        paramOffset += newListOfVars.size() * CodeGenerator::VarSize;
+    }
+    varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
+    vector<Location*> newListOfVars = body->Emit(fpRelative, localOffset, varsInScope);
+    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    localOffset -= newListOfVars.size() * CodeGenerator::VarSize;
+    BF->SetFrameSize(listOfVars.size() * CodeGenerator::VarSize); //SetFrameSize(int numBytesForAllLocalsAndTemps);
+    if (returnType == Type::voidType)
+        CG.GenReturn();
+    CG.GenEndFunc();
+    return listOfVars;
+}
+
 
 InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
     Assert(n != NULL && m != NULL);

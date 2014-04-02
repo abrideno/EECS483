@@ -90,6 +90,7 @@ class FnDecl : public Decl
   public:
     vector<Location*> EmitMore(Segment segment, int offset, vector<Location*> varsInScope);
     vector<Location*> Emit(Segment segment, int offset, vector<Location*> varsInScope);
+    vector<Location*> EmitMore(Segment segment, int offset, vector<Location*> varsInScope);
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
 };
