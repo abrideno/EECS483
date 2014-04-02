@@ -42,6 +42,35 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
     (members=m)->SetParentAll(this);
 }
 
+vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> varsInScope)
+{
+	int vTableOffset = 0;	
+    vector<Location*> listOfVars;
+    List<const char*>* memberNames; 
+
+    vector<Location*> newListOfVars; 
+    for(int i=0; i<members->NumElements(); i++){
+    	FnDecl *fn = dynamic_cast<FnDecl*>(members->Nth(i)); 
+    	VarDecl *vd = dynamic_cast<VarDecl*>(members->Nth(i));
+    	
+    	newListOfVars=members->Nth(i)->Emit(seg,offset,varsInScope);  
+        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+		
+    	if(fn){
+    		memberNames->Append(members->Nth(i)->id->name); 
+    	}
+    }
+    
+	varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
+    localOffset -= newListOfVars.size() * CodeGenerator::VarSize;
+    
+    if(memberNames->NumElements()>0){
+    	CG.GenVTable(id->name,memberNames); 
+    }
+    
+    
+    return listOfVars;
+}
 
 InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
     Assert(n != NULL && m != NULL);

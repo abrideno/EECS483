@@ -192,9 +192,6 @@ vector<Location*> IfStmt::Emit(Segment seg, int offset, vector<Location*> varsIn
     CG.GenLabel(label2);
     return listOfVars;
     
-    
-    
-    
 }
 
 vector<Location*> BreakStmt::Emit(Segment seg, int offset, vector<Location*> varsInScope)
@@ -205,8 +202,6 @@ vector<Location*> BreakStmt::Emit(Segment seg, int offset, vector<Location*> var
     
     return listOfVars;
 }
-
-
 
 ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) { 
     Assert(e != NULL);

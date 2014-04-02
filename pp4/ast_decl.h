@@ -56,6 +56,7 @@ class ClassDecl : public Decl
     List<NamedType*> *implements;
 
   public:
+    vector<Location*> Emit(Segment segment, int offset, vector<Location*> varsInScope);
     ClassDecl(Identifier *name, NamedType *extends, 
               List<NamedType*> *implements, List<Decl*> *members);
 };
