@@ -98,12 +98,15 @@ ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) {
 }
 
 
-string lastEndLabel;
+stack<string> endLabels;
 
 vector<Location*> ForStmt::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars, newListOfVars;
     
+    const char * endLabel = CG.NewLabel();
+    endLabels.push(endLabel);
+
     listOfVars = init->Emit(seg, offset, varsInScope);
     offset -= listOfVars.size() * CodeGenerator::VarSize;
     varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
@@ -116,8 +119,7 @@ vector<Location*> ForStmt::Emit(Segment seg, int offset, vector<Location*> varsI
     offset -= newListOfVars.size() * CodeGenerator::VarSize;
     
     Location* testLoc = newListOfVars.back();
-    const char * endLabel = CG.NewLabel();
-    lastEndLabel = endLabel;
+
     CG.GenIfZ(testLoc, endLabel);
     
     newListOfVars = body->Emit(seg, offset, varsInScope);
@@ -131,12 +133,16 @@ vector<Location*> ForStmt::Emit(Segment seg, int offset, vector<Location*> varsI
     CG.GenGoto(loopLabel);
     CG.GenLabel(endLabel);
     
+    endLabels.pop();
     return listOfVars;
 }
 
 vector<Location*> WhileStmt::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars, newListOfVars;
+    
+    const char * endLabel = CG.NewLabel();
+    endLabels.push(endLabel);
     
     const char* loopLabel = CG.NewLabel();
     CG.GenLabel(loopLabel);
@@ -146,8 +152,6 @@ vector<Location*> WhileStmt::Emit(Segment seg, int offset, vector<Location*> var
     offset -= newListOfVars.size() * CodeGenerator::VarSize;
     
     Location* testLoc = newListOfVars.back();
-    const char * endLabel = CG.NewLabel();
-    lastEndLabel = endLabel;
     CG.GenIfZ(testLoc, endLabel);
     
     newListOfVars = body->Emit(seg, offset, varsInScope);
@@ -157,6 +161,7 @@ vector<Location*> WhileStmt::Emit(Segment seg, int offset, vector<Location*> var
     CG.GenGoto(loopLabel);
     CG.GenLabel(endLabel);
     
+    endLabels.pop();
     return listOfVars;
 }
 
@@ -201,7 +206,7 @@ vector<Location*> BreakStmt::Emit(Segment seg, int offset, vector<Location*> var
 {
     vector<Location*> listOfVars;
     
-    CG.GenGoto(lastEndLabel.c_str());
+    CG.GenGoto(endLabels.top().c_str());
     
     return listOfVars;
 }
