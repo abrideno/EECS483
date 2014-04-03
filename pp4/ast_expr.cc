@@ -12,6 +12,7 @@ extern unordered_map<string, int> classSize;
 extern unordered_map<string, vector<classVarMember> > classMethods;
 extern bool inClass;
 extern Type* curClass;
+extern Location* curThis;
 
 using namespace std;
 
@@ -309,7 +310,7 @@ vector<Location*> AssignExpr::EmitMore(Segment seg, int offset, vector<Location*
         inClass = false;
         newListOfVars = left->Emit(seg, offset, varsInScope);
         inClass = true;
-        ////////cout << newListOfVars.back()->GetName() << endl;
+        //////////cout << newListOfVars.back()->GetName() << endl;
     }
     else
         Assert(NULL);
@@ -327,25 +328,25 @@ vector<Location*> AssignExpr::EmitMore(Segment seg, int offset, vector<Location*
     
     ostringstream oss3;
     oss3 << t;
-    //////////cout << t << endl;
+    ////////////cout << t << endl;
     string s = oss3.str();
     string sLeft = locLeft->GetName();
     string sRight = locRight->GetName();
     
     vector<classVarMember> vars = classVars[s];
-    //////////cout << classVars["Cow"].size() <<" cunt"<< endl;
-    //////////cout << "SIZES" << endl;
+    ////////////cout << classVars["Cow"].size() <<" cunt"<< endl;
+    ////////////cout << "SIZES" << endl;
     for (auto it = classVars.begin(); it != classVars.end(); ++it)
     {
-        //////////cout << it->second.size() << endl;
+        ////////////cout << it->second.size() << endl;
     }
-    //////////cout << "END SIZES" << endl;
+    ////////////cout << "END SIZES" << endl;
     classVarMember var;
-    //////////cout << ":OWQJE:OQEW:OQWE:OHWQE" << endl;
-    //////////cout << sLeft << endl;
+    ////////////cout << ":OWQJE:OQEW:OQWE:OHWQE" << endl;
+    ////////////cout << sLeft << endl;
     for (int i = 0; i < vars.size(); i++)
     {
-        //////////cout << "FOR LOO{P" << endl;
+        ////////////cout << "FOR LOO{P" << endl;
         if (vars[i].first == sLeft)
         {
             foundLeft = true;
@@ -355,7 +356,7 @@ vector<Location*> AssignExpr::EmitMore(Segment seg, int offset, vector<Location*
     }
     if (foundLeft)
     {   
-        //////////cout << "FOUND LEFT" << endl;
+        ////////////cout << "FOUND LEFT" << endl;
         Location* thisLoc;
         for (int i = 0; i < varsInScope.size(); i++)
         {
@@ -408,13 +409,13 @@ ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
 vector<Location*> ArrayAccess::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars, newListOfVars;
-    ////////////cout << "arrayaccess base emit" << endl;
+    //////////////cout << "arrayaccess base emit" << endl;
     listOfVars = base->Emit(seg, offset, varsInScope);
-    ////////////cout << "returned from base" << endl;
+    //////////////cout << "returned from base" << endl;
     Location* start;
-    ////////////cout << listOfVars.back() << endl;
+    //////////////cout << listOfVars.back() << endl;
     start = listOfVars.back();
-    ////////////cout << start << endl;
+    //////////////cout << start << endl;
     offset -= listOfVars.size() * CodeGenerator::VarSize;
     
     newListOfVars = subscript->Emit(seg, offset, varsInScope);
@@ -470,7 +471,7 @@ vector<Location*> ArrayAccess::Emit(Segment seg, int offset, vector<Location*> v
     
     Location* addr = CG.GenBinaryOp("+", start, totalOffset, offset);
     addr->setType(start->GetType());
-    //////////////cout << addr->GetType() << '.' << endl;
+    ////////////////cout << addr->GetType() << '.' << endl;
     listOfVars.push_back(addr);
     offset -= CodeGenerator::VarSize;
     
@@ -482,7 +483,7 @@ vector<Location*> ArrayAccess::Emit(Segment seg, int offset, vector<Location*> v
     string s = oss.str();
     s.resize(s.size()-2);
     loc->setType(new Type(s.c_str()));
-    //////////////cout << loc->GetType() << endl;
+    ////////////////cout << loc->GetType() << endl;
     return listOfVars;
     
 }
@@ -505,34 +506,34 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
     classVarMember var;
     if (inClass)
     {
-        ////cout << "IN CLASS" << endl;
-        ////cout << "VARS In SCOPE: FIELDACCESS" << endl;
+        //////cout << "IN CLASS" << endl;
+        //////cout << "VARS In SCOPE: FIELDACCESS" << endl;
         for (int i = 0; i < varsInScope.size(); i++)
         {
-            ////cout << varsInScope[i]->GetName() << endl;
+            //////cout << varsInScope[i]->GetName() << endl;
         }
-        ////cout << "VARSINSCOPE end" << endl;
+        //////cout << "VARSINSCOPE end" << endl;
         ostringstream oss;
         oss << curClass;
         string s = oss.str();
         
         vector<classVarMember> vars = classVars[s];
         
-        ////cout << "CLASS VARS" << endl;
-        ////cout << "field name: " << field->name << endl;
+        //////cout << "CLASS VARS" << endl;
+        //////cout << "field name: " << field->name << endl;
         for (int i = 0; i < vars.size(); i++)
         {
-            ////cout << vars[i].first << endl;
+            //////cout << vars[i].first << endl;
             if (!strcmp(vars[i].first.c_str(), field->name))
             {
-                //////////cout<<"Looking at "<<vars[i].first<<" in "<<s<<endl;
+                ////////////cout<<"Looking at "<<vars[i].first<<" in "<<s<<endl;
                 var = vars[i];
                 found = true;
-                ////cout << "FOUND" << endl;
+                //////cout << "FOUND" << endl;
                 break;
             }
         }
-        ////cout << "CLASS VARS END" << endl;
+        //////cout << "CLASS VARS END" << endl;
     }
     if (found)
     {  
@@ -543,12 +544,12 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
             if (!strcmp(varsInScope[i]->GetName(),"this"))
             {
                 thisLoc = varsInScope[i];
-              //  ////////cout<<"GETTING IN HERE"<<endl;
+              //  //////////cout<<"GETTING IN HERE"<<endl;
                 break;
             }
         }
-        ////cout << thisLoc << endl;
-        ////////cout << thisLoc << endl;
+        //////cout << thisLoc << endl;
+        //////////cout << thisLoc << endl;
         // Problem here 
         /*Location* addrOffset = CG.GenLoadConstant(var.second, offset);
         offset -= 4;
@@ -558,7 +559,7 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
         listOfVars.push_back(addr);*/
         //addr->setType(new Type("this"));
         loc = CG.GenLoad(thisLoc, var.second, offset);
-        //////////cout<<" var second "<< var.second<<endl;
+        ////////////cout<<" var second "<< var.second<<endl;
         Assert(thisLoc);
         offset -= 4;
         loc->setType(var.third);
@@ -575,7 +576,7 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
             break;
         }
     }
-    ////////////cout << "finished emit: " << loc << endl;
+    //////////////cout << "finished emit: " << loc << endl;
     if(!loc)
     {
         loc = new Location(fpRelative, offset, field->name);
@@ -600,9 +601,74 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
     vector<Location*> listOfVars, newListOfVars;
     Location* loc = NULL;
     
+    if (inClass)
+    {
+        ////cout << "IN CLASS" << endl;
+        bool found;
+        ostringstream oss;
+        oss << curClass;
+        string s = oss.str();
+        vector<classVarMember> methodsInClass = classMethods[s];
+        classVarMember method;
+        ////cout << curClass << endl;
+        for (int i = 0; i < methodsInClass.size(); i++)
+        {
+            ////cout << methodsInClass[i].first << endl; 
+            if (!strcmp(field->name, methodsInClass[i].first.c_str()))
+            {
+                ////cout << "FOUND" << endl;
+                method = methodsInClass[i];
+                found = true;
+                break;
+            }
+        }
+        if (found)
+        {
+            Location* thisLoc = curThis;
+            
+            Location* vTable = CG.GenLoad(curThis, 0, offset);
+            offset -= 4;
+            listOfVars.push_back(vTable);
+            
+            int methodOffset = method.second;
+            
+            Location* funcAddr = CG.GenLoad(vTable, methodOffset, offset);
+            offset -= CodeGenerator::VarSize;
+            listOfVars.push_back(funcAddr);
+            
+            
+            for (int i = actuals->NumElements() - 1; i >= 0; i--)
+            {
+                newListOfVars = actuals->Nth(i)->Emit(seg, offset, varsInScope);
+                listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+                offset -= newListOfVars.size() * CodeGenerator::VarSize;
+                CG.GenPushParam(newListOfVars.back());
+            }
+            listOfVars.push_back(thisLoc);
+            CG.GenPushParam(thisLoc);
+            
+            
+            ostringstream oss2;
+            oss2 << method.third;
+            string s3 = oss2.str();
+            Location* aCallAddr;
+            if (s3 == "void")
+                CG.GenACall(funcAddr, false, offset);
+            else
+            {
+                aCallAddr = CG.GenACall(funcAddr, true, offset);
+                aCallAddr->setType(method.third);
+                listOfVars.push_back(aCallAddr);
+            }
+            
+            
+            CG.GenPopParams(actuals->NumElements() * CodeGenerator::VarSize + 4);
+         
+      	    return listOfVars;
+        }
+    }
     if (!strcmp(field->name, "length"))
     {
-        ////////////cout << "LENGTH CALL" << endl;
         if (base)
         {
             listOfVars = base->Emit(seg, offset, varsInScope);
@@ -615,13 +681,8 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
             if (s[s.length() - 1] == ']')
             {
                 loc = CG.GenLoad(listOfVars.back(), 0, offset);
-                ////////////cout << "LENGTH TYPE" << endl;
                 Type* t = Type::intType;
-                ////////////cout << t << endl;
-                ////////////cout << loc << endl;
                 loc->setType(t);
-                ////////////cout << "type set" << endl;
-                ////////////cout << loc->GetType() << endl;
                 listOfVars.push_back(loc);
                 
                 return listOfVars;
@@ -634,12 +695,10 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
     
     if(base)
     {
-        ////////cout << "VARS In SCOPE: FNCALL" << endl;
         for (int i = 0; i < varsInScope.size(); i++)
         {
-            ////////cout << varsInScope[i]->GetName() << endl;
+            //////////cout << varsInScope[i]->GetName() << endl;
         }
-        ////////cout << "VARSINSCOPE end" << endl;
         ostringstream oss;
         newListOfVars = base->Emit(seg, offset, varsInScope);
         offset -= newListOfVars.size() * CodeGenerator::VarSize;
@@ -667,7 +726,7 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
         }
         
         int methodOffset = method.second;
-        //////////cout<<"THis is method offset "<<methodOffset<<endl;
+        //cout<<"THis is method offset "<<methodOffset<<endl;
         Location* funcAddr = CG.GenLoad(vTable, methodOffset, offset);
         offset -= CodeGenerator::VarSize;
         listOfVars.push_back(funcAddr);
@@ -683,7 +742,7 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
         Assert(ptr);
         CG.GenPushParam(ptr);
         
-        //////cout << ptr << endl;
+        ////////cout << ptr << endl;
         
         ostringstream oss2;
         oss2 << method.third;
@@ -710,7 +769,7 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
             
         for (int i = 0; i < varsInScope.size(); i++)
         {
-            ////////////cout << varsInScope[i]->GetName() << endl;
+            //////////////cout << varsInScope[i]->GetName() << endl;
         }
         for (auto it = varsInScope.rbegin(); it != varsInScope.rend(); it++)
         {
@@ -790,7 +849,7 @@ vector<Location*> NewArrayExpr::Emit(Segment seg, int offset, vector<Location*> 
     offset -= newListOfVars.size() * CodeGenerator::VarSize;
     listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
     Location* arraySize = newListOfVars.back();
-    ////////////cout << newListOfVars.back()->GetType() << endl;
+    //////////////cout << newListOfVars.back()->GetType() << endl;
     //arraySize->setType(Type::intType);
     
     Location* one = CG.GenLoadConstant(1, offset);
@@ -829,8 +888,8 @@ vector<Location*> NewArrayExpr::Emit(Segment seg, int offset, vector<Location*> 
     //oss << elemType;
     //oss << "[]";
     ptr->setType(new Type("Array"));
-    ////////////cout << ptr->GetSize() << ' ';
-    ////////////cout << ptr << ' ' << ptr->GetSize() << endl;
+    //////////////cout << ptr->GetSize() << ' ';
+    //////////////cout << ptr << ' ' << ptr->GetSize() << endl;
     listOfVars.push_back(ptr);
     
     return listOfVars;

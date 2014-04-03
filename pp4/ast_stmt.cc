@@ -34,14 +34,33 @@ void Program::Check() {
  */
 void Program::Emit() 
 {
+    queue<int> waitingDecls;
     Mips* mips = new Mips;
-    vector<Location*> listOfVars;
+    vector<Location*> listOfVars, newListOfVars;
     int gpOffset = CodeGenerator::OffsetToFirstGlobal;
     int mainNumber;
     for (int i = 0; i < decls->NumElements(); i++)
     {
-        listOfVars.push_back(decls->Nth(i)->Emit(gpRelative, gpOffset, listOfVars).back());
-        //listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+        newListOfVars = decls->Nth(i)->Emit(gpRelative, gpOffset, listOfVars);
+        if (newListOfVars.empty())
+        {
+            waitingDecls.push(i);
+            continue;
+        }
+        listOfVars.push_back(newListOfVars.back());
+        gpOffset += CodeGenerator::VarSize;
+    }
+    while (!waitingDecls.empty())
+    {
+        int i = waitingDecls.front();
+        newListOfVars = decls->Nth(i)->Emit(gpRelative, gpOffset, listOfVars);
+        waitingDecls.pop();
+        if (newListOfVars.empty())
+        {
+            waitingDecls.push(i);
+            continue;
+        }
+        listOfVars.push_back(newListOfVars.back());
         gpOffset += CodeGenerator::VarSize;
     }
     for (int i = 0; i < decls->NumElements(); i++)

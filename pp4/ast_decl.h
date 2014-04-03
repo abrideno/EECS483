@@ -21,6 +21,7 @@
 #include <cstring>
 #include <unordered_map>
 #include <string>
+#include <sstream>
 
 class Identifier;
 class Stmt;
@@ -33,6 +34,7 @@ struct classVarMember
     string first;
     int second;
     Type* third;
+    Location* fourth;
 };
 
 class Decl : public Node 
@@ -66,6 +68,7 @@ class ClassDecl : public Decl
     List<NamedType*> *implements;
 
   public:
+    vector<string> names;
     vector<Location*> Emit(Segment segment, int offset, vector<Location*> varsInScope);
     ClassDecl(Identifier *name, NamedType *extends, 
               List<NamedType*> *implements, List<Decl*> *members);
