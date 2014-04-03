@@ -3,7 +3,8 @@ void main()
 {
    Cow betsy;
   betsy = New(Cow);
-  betsy.Init(100, 122);
+
+  betsy.Init(102, 122);
   Print(1,"\n");
   betsy.Moo();
 }
@@ -14,9 +15,11 @@ class Cow {
 
   void Init(int w, int h)
   {
+    Print(w, "BLAAAAHHH\n");
     weight = w;
     height = h;
-    Print(w, "\n");
+    Print(w, "=", weight, "\n");
+    Print(h, "=", height, "\n");
   }
 
   void Moo() {

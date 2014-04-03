@@ -33,8 +33,8 @@ vector<Location*> VarDecl::Emit(Segment seg, int offset, vector<Location*> varsI
     vector<Location*> listOfVars;
     Location* loc = new Location(seg, offset, id->name,getType());
     listOfVars.push_back(loc);
-    //////cout << loc->GetName() << ' ' << loc->GetOffset() << endl;
-    //////cout << loc << endl;
+    ////////cout << loc->GetName() << ' ' << loc->GetOffset() << endl;
+    ////////cout << loc << endl;
     return listOfVars;
 }
   
@@ -50,17 +50,23 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
 
 vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
-    inClass = true;
-    curClass = new Type(id->name);
+
     vector<Location*> listOfVars;
     if (seg == fpRelative)
         return listOfVars;
+    //cout << "CLASS DECL: BEGIN" << endl;
+    inClass = true;
+    curClass = new Type(id->name);
 	int vTableOffset = 0;	
     List<const char*>* memberNames = new List<const char*>; 
     vector<classVarMember> vars;
     vector<classVarMember> methods;
     names.clear();
-
+    
+    //Location* locThis = new Location(seg, offset, "this");
+    //varsInScope.push_back(locThis);
+    //offset -= CodeGenerator::VarSize;
+    
     vector<Location*> newListOfVars; 
     int varOffset = CodeGenerator::VarSize;
     for(int i=0; i<members->NumElements(); i++){
@@ -112,7 +118,7 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
     
     for (int i = 0; i < names.size(); i++)
     {
-        ////cout << names[i] << endl;
+        //////cout << names[i] << endl;
 	    memberNames->Append(names[i].c_str()); 
 	}
     if(memberNames->NumElements()>0){
@@ -120,24 +126,25 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
     }
     string s = id->name;
     classVars[s] = vars;
-    //cout << "MY VARS" << endl;
+    ////cout << "MY VARS" << endl;
     for (int i = 0; i < vars.size(); i++)
     {   
-        //cout << vars[i].first << endl;
+        ////cout << vars[i].first << endl;
     }
-    //cout << "END OF MY VARS" << endl;
-    //cout << s << "CLASS DECL" << endl;
+    ////cout << "END OF MY VARS" << endl;
+    ////cout << s << "CLASS DECL" << endl;
     classMethods[s] = methods;
-    //cout << classVars["Cow"].size() << endl;
-    ////cout << "Class: " << id->name << endl;
+    ////cout << classVars["Cow"].size() << endl;
+    //////cout << "Class: " << id->name << endl;
     for (int i = 0; i < vars.size(); i++)
     {
-        ////cout << vars[i].first << ' ' << vars[i].second << endl;
+        //////cout << vars[i].first << ' ' << vars[i].second << endl;
     }
     classSize[s] = varOffset - 4;
     Location* loc = new Location(seg, offset, id->name);
     listOfVars.push_back(loc);
     inClass = false;
+    //cout << "CLASS DECL: END" << endl;
     return listOfVars;
 }
 
@@ -154,14 +161,15 @@ vector<Location*> FnDecl::EmitMore(Segment seg, int offset, vector<Location*> va
     {
         Location* loc = new Location(seg, offset, id->name, returnType);
         listOfVars.push_back(loc);
-        ////cout << loc->GetType() << endl;
+        //////cout << loc->GetType() << endl;
         return listOfVars;
     }
-    ////cout << id->name << "!!!!!" << endl;
+    //////cout << id->name << "!!!!!" << endl;
     BeginFunc* BF = CG.GenBeginFunc();
     int localOffset = CodeGenerator::OffsetToFirstLocal;
     int paramOffset = CodeGenerator::OffsetToFirstParam;
-    Location* locThis = new Location(seg, offset, "this", t);
+
+    Location* locThis = new Location(seg, paramOffset, "this");
     paramOffset += CodeGenerator::VarSize;
     listOfVars.push_back(locThis);
     for (int i = 0; i < formals->NumElements(); i++)
@@ -187,14 +195,15 @@ vector<Location*> FnDecl::Emit(Segment seg, int offset, vector<Location*> varsIn
     {
         Location* loc = new Location(seg, offset, id->name, returnType);
         listOfVars.push_back(loc);
-        ////cout << loc->GetType() << endl;
+        //////cout << loc->GetType() << endl;
         return listOfVars;
     }
-    ////cout << id->name << "!!!!!" << endl;
+    //////cout << id->name << "!!!!!" << endl;
     CG.GenLabel(id->name);
     BeginFunc* BF = CG.GenBeginFunc();
     int localOffset = CodeGenerator::OffsetToFirstLocal;
     int paramOffset = CodeGenerator::OffsetToFirstParam;
+    paramOffset = 4;
     for (int i = 0; i < formals->NumElements(); i++)
     {
         vector<Location*> newListOfVars = formals->Nth(i)->Emit(fpRelative, paramOffset, varsInScope);
