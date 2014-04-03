@@ -6,6 +6,7 @@
 #include "ast_type.h"
 #include "ast_decl.h"
 #include "ast_expr.h"
+#include "errors.h"
 
 using namespace std;
 
@@ -39,6 +40,7 @@ void Program::Emit()
     vector<Location*> listOfVars, newListOfVars;
     int gpOffset = CodeGenerator::OffsetToFirstGlobal;
     int mainNumber;
+    bool mainFound = false; 
     for (int i = 0; i < decls->NumElements(); i++)
     {
         newListOfVars = decls->Nth(i)->Emit(gpRelative, gpOffset, listOfVars);
@@ -71,9 +73,14 @@ void Program::Emit()
         if (s == "main")
         {
             mainNumber = i;
+            mainFound = true; 
             continue;
         }
         decls->Nth(i)->Emit(fpRelative, gpOffset, listOfVars);
+    }
+    if(!mainFound){
+    	ReportError::NoMainFound();
+    	exit(1);
     }
     decls->Nth(mainNumber)->Emit(fpRelative, gpOffset, listOfVars);
     CG.DoFinalCodeGen();
