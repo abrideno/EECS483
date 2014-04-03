@@ -68,9 +68,9 @@ Location *CodeGenerator::GenLoadConstant(const char *s, int offset)
   return result;
 } 
 
-Location *CodeGenerator::GenLoadLabel(const char *label)
+Location *CodeGenerator::GenLoadLabel(const char *label, int offset)
 {
-  Location *result = GenTempVar();
+  Location *result = GenTempVar(offset);
   code->Append(new LoadLabel(result, label));
   return result;
 } 
@@ -156,9 +156,9 @@ Location *CodeGenerator::GenLCall(const char *label, bool fnHasReturnValue, int 
   return result;
 }
 
-Location *CodeGenerator::GenACall(Location *fnAddr, bool fnHasReturnValue)
+Location *CodeGenerator::GenACall(Location *fnAddr, bool fnHasReturnValue, int offset)
 {
-  Location *result = fnHasReturnValue ? GenTempVar() : NULL;
+  Location *result = fnHasReturnValue ? GenTempVar(offset) : NULL;
   code->Append(new ACall(fnAddr, result));
   return result;
 }

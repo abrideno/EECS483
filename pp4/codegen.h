@@ -65,7 +65,7 @@ class CodeGenerator {
          // where the constant was loaded.
     Location *GenLoadConstant(int value, int offset);
     Location *GenLoadConstant(const char *str, int offset);
-    Location *GenLoadLabel(const char *label);
+    Location *GenLoadLabel(const char *label, int offset);
 
 
          // Generates Tac instructions to copy value from one location to another
@@ -119,7 +119,7 @@ class CodeGenerator {
          // described above, in terms of return type.
          // The fnAddr Location is expected to hold the address of
          // the code to jump to (typically it was read from the vtable)
-    Location *GenACall(Location *fnAddr, bool fnHasReturnValue);
+    Location *GenACall(Location *fnAddr, bool fnHasReturnValue, int offset);
 
          // Generates the Tac instructions to call one of
          // the built-in functions (Read, Print, Alloc, etc.) Although

@@ -9,6 +9,8 @@
         
 CodeGenerator CG;
 unordered_map<string, vector<classVarMember> > classVars;
+unordered_map<string, vector<classVarMember> > classMethods;
+unordered_map<string, int> classSize;
 vector<string> names;
          
 using namespace std;
@@ -49,9 +51,10 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
     vector<Location*> listOfVars;
     if (seg == fpRelative)
         return listOfVars;
-	int vTableOffset = 0;	
+	int vTableOffset = 4;	
     List<const char*>* memberNames = new List<const char*>; 
     vector<classVarMember> vars;
+    vector<classVarMember> methods;
     names.clear();
 
     vector<Location*> newListOfVars; 
@@ -66,6 +69,7 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
 		    newListOfVars = members->Nth(i)->Emit(fpRelative, offset, varsInScope);
 		    varsInScope.push_back(newListOfVars.back());
 		    offset -= newListOfVars.size() * CodeGenerator::VarSize;
+		    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
 		    
 		    classVarMember var;
 		    string s = vd->id->name;
@@ -87,6 +91,15 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
     	    newListOfVars = members->Nth(i)->EmitMore(fpRelative, offset, varsInScope);
     	    varsInScope.push_back(newListOfVars.back());
     	    offset -= newListOfVars.size() * CodeGenerator::VarSize;
+    	    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+    	    
+    	    classVarMember method;
+    	    string s = fn->id->name;
+    	    method.first = s;
+    	    method.second = vTableOffset;
+    	    vTableOffset += CodeGenerator::VarSize;
+    	    method.third = fn->returnType;
+    	    methods.push_back(method);
     	}
     	else
     	    Assert(NULL);
@@ -94,7 +107,7 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
     
     for (int i = 0; i < names.size(); i++)
     {
-        cout << names[i] << endl;
+        //cout << names[i] << endl;
 	    memberNames->Append(names[i].c_str()); 
 	}
     if(memberNames->NumElements()>0){
@@ -102,12 +115,14 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
     }
     string s = id->name;
     classVars[s] = vars;
+    classMethods[s] = methods;
     
     //cout << "Class: " << id->name << endl;
     for (int i = 0; i < vars.size(); i++)
     {
         //cout << vars[i].first << ' ' << vars[i].second << endl;
     }
+    classSize[s] = listOfVars.size() * CodeGenerator::VarSize;
     Location* loc = new Location(seg, offset, id->name);
     listOfVars.push_back(loc);
     return listOfVars;

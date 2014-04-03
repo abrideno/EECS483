@@ -8,6 +8,8 @@
 
 extern CodeGenerator CG;
 extern unordered_map<string, vector<classVarMember> > classVars;
+extern unordered_map<string, int> classSize;
+extern unordered_map<string, vector<classVarMember> > classMethods;
 
 using namespace std;
 
@@ -494,26 +496,79 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
     
     if(base)
     {
-        vector<Location*> varsForClass;
+        /*vector<Location*> varsForClass;
         for (int i = 0; i < varsInScope.size(); i++)
             if (varsInScope[i]->GetSegment() == gpRelative)
-                varsForClass.push_back(varsInScope[i]);
+                varsForClass.push_back(varsInScope[i]);*/
+                
+         /*  Location *vtable = cg->GenLoad(b);
+        int methodOffset = GetDecl()->GetVTblOffset();
+        Location *faddr = cg->GenLoad(vtable, methodOffset);
+        return cg->GenACall(faddr, GetDecl()->HasReturnVal());*/
         
         ostringstream oss;
         newListOfVars = base->Emit(seg, offset, varsInScope);
         offset -= newListOfVars.size() * CodeGenerator::VarSize;
         listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
         
-        Location* addr = newListOfVars.back();
-        Type* baseType = addr->GetType();
+        Location* ptr = newListOfVars.back();
+        Type* baseType = ptr->GetType();
         oss << baseType;
         string s = oss.str();
         
-        vector<classVarMember> varsInClass = classVars[s];
-        classVarMember var;
+        Location* vTable = CG.GenLoad(ptr, 0, offset);
+        offset -= CodeGenerator::VarSize;
+        listOfVars.push_back(vTable);
         
-        Location* classLocal;
-        for (int i = 0; i < varsInClass.size(); i++)
+        vector<classVarMember> methodsInClass = classMethods[s];
+        classVarMember method;
+        string s2 = field->name;
+        for (int i = 0; i < methodsInClass.size(); i++)
+        {
+            if (methodsInClass[i].first == s2)
+            {
+                method = methodsInClass[i];
+                break;
+            }
+        }
+        
+        int methodOffset = method.second;
+        
+        Location* funcAddr = CG.GenLoad(vTable, methodOffset, offset);
+        offset -= CodeGenerator::VarSize;
+        listOfVars.push_back(funcAddr);
+        
+        
+        for (int i = actuals->NumElements() - 1; i >= 0; i--)
+        {
+            newListOfVars = actuals->Nth(i)->Emit(seg, offset, varsInScope);
+            listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+            offset -= newListOfVars.size() * CodeGenerator::VarSize;
+            CG.GenPushParam(newListOfVars.back());
+        }
+        CG.GenPushParam(ptr);
+        
+        
+        ostringstream oss2;
+        oss2 << method.third;
+        string s3 = oss2.str();
+        Location* aCallAddr;
+        if (s3 == "void")
+            CG.GenACall(funcAddr, false, offset);
+        else
+        {
+            aCallAddr = CG.GenACall(funcAddr, true, offset);
+            aCallAddr->setType(method.third);
+            listOfVars.push_back(aCallAddr);
+        }
+        
+        
+        CG.GenPopParams(actuals->NumElements() * CodeGenerator::VarSize + 4);
+        //vector<classVarMember> varsInClass = classVars[s];
+        //classVarMember var;
+        
+        //Location* classLocal;
+        /*for (int i = 0; i < varsInClass.size(); i++)
         {
             var = varsInClass[i];
             classLocal = CG.GenLoad(addr, var.second, offset);
@@ -522,7 +577,7 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
             classLocal->setName(var.first.c_str());
             listOfVars.push_back(classLocal);
             varsForClass.push_back(classLocal);
-        }
+        }*/
         
         
         
@@ -614,17 +669,25 @@ vector<Location*> NewExpr::Emit(Segment seg, int offset, vector<Location*> varsI
     oss << cType;
     string s = oss.str();
     
-    vector<classVarMember> vars = classVars[s];
-    int sizeOfClass = vars.size() * CodeGenerator::VarSize + CodeGenerator::VarSize;
+    int sizeOfClass = classSize[s];
     
-    Location* sizeLoc = CG.GenLoadConstant(sizeOfClass, offset);
+    Location* sizeLoc = CG.GenLoadConstant(sizeOfClass + 4, offset);
     offset -= CodeGenerator::VarSize;
     listOfVars.push_back(sizeLoc);
     
     Location* ptr = CG.GenBuiltInCall(Alloc, sizeLoc, NULL, offset);
     offset -= CodeGenerator::VarSize;
     ptr->setType(cType);
+    
+    Location* vTable = CG.GenLoadLabel(s.c_str(), offset);
+    offset -= CodeGenerator::VarSize;
+    listOfVars.push_back(vTable);
+    
+    
+    CG.GenStore(ptr, vTable);
     listOfVars.push_back(ptr);
+    
+
     
     return listOfVars;
 }
