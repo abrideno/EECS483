@@ -42,7 +42,7 @@ class Decl : public Node
   
   public:
     virtual vector<Location*> Emit(Segment segment, int offset, vector<Location*> varsInScope) { Assert(0); vector<Location*> empty; return empty;}
-    virtual vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope) {Assert(0); vector<Location*> empty; return empty;}
+    virtual vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {Assert(0); vector<Location*> empty; return empty;}
     Decl(Identifier *name);
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
 };
@@ -88,7 +88,7 @@ class FnDecl : public Decl
     Stmt *body;
     
   public:
-    vector<Location*> EmitMore(Segment segment, int offset, vector<Location*> varsInScope);
+    vector<Location*> EmitMore(Segment segment, int offset, vector<Location*> varsInScope, Type* t);
     vector<Location*> Emit(Segment segment, int offset, vector<Location*> varsInScope);
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);

@@ -51,6 +51,7 @@ class IntConstant : public Expr
     
   public:
     Type* getType() { return Type::intType; } 
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     IntConstant(yyltype loc, int val);
 };
@@ -72,6 +73,7 @@ class BoolConstant : public Expr
     Type *type; 
     
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     BoolConstant(yyltype loc, bool val);
     Type* getType() { return Type::boolType; } 
@@ -84,6 +86,7 @@ class StringConstant : public Expr
     Type *type; 
     
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     StringConstant(yyltype loc, const char *val);
     Type* getType() { return Type::stringType; } 
@@ -116,6 +119,7 @@ class CompoundExpr : public Expr
     Expr *left, *right; // left will be NULL if unary
     
   public:
+    virtual vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     virtual vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
     CompoundExpr(Operator *op, Expr *rhs);             // for unary
@@ -132,6 +136,7 @@ class ArithmeticExpr : public CompoundExpr
 class RelationalExpr : public CompoundExpr 
 {
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     Type* getType() { return Type::boolType; }
@@ -140,6 +145,7 @@ class RelationalExpr : public CompoundExpr
 class EqualityExpr : public CompoundExpr 
 {
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     EqualityExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "EqualityExpr"; }
@@ -158,6 +164,7 @@ class LogicalExpr : public CompoundExpr
 class AssignExpr : public CompoundExpr 
 {
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t);
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
     const char *GetPrintNameForNode() { return "AssignExpr"; }
@@ -183,6 +190,7 @@ class ArrayAccess : public LValue
     Expr *base, *subscript;
     
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ArrayAccess(yyltype loc, Expr *base, Expr *subscript);
     Type* getType() { return base->getType(); }
@@ -200,6 +208,7 @@ class FieldAccess : public LValue
     Identifier *field;
     
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t){return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     FieldAccess(Expr *base, Identifier *field); //ok to pass NULL base
 //     Type* getType(){return;}
@@ -217,6 +226,7 @@ class Call : public Expr
     List<Expr*> *actuals;
     
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     Call(yyltype loc, Expr *base, Identifier *field, List<Expr*> *args);
 //     Type* getType(){return;}
@@ -228,6 +238,7 @@ class NewExpr : public Expr
     NamedType *cType;
     
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     NewExpr(yyltype loc, NamedType *clsType);
 //      Type* getType(){return;}
@@ -240,6 +251,7 @@ class NewArrayExpr : public Expr
     Type *elemType;
     
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     NewArrayExpr(yyltype loc, Expr *sizeExpr, Type *elemType);
 //      Type* getType(){return;}
@@ -248,6 +260,7 @@ class NewArrayExpr : public Expr
 class ReadIntegerExpr : public Expr
 {
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ReadIntegerExpr(yyltype loc) : Expr(loc) {}
      Type* getType() { return Type::intType; }
@@ -256,6 +269,7 @@ class ReadIntegerExpr : public Expr
 class ReadLineExpr : public Expr
 {
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ReadLineExpr(yyltype loc) : Expr (loc) {}
      Type* getType() { return Type::stringType; }

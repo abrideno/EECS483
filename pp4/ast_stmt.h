@@ -42,7 +42,7 @@ class Stmt : public Node
 {
   public:
      virtual vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope) {Assert(0); vector<Location*> empty; return empty;}
-     virtual vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope) {Assert(0); vector<Location*> empty; return empty;}
+     virtual vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {Assert(0); vector<Location*> empty; return empty;}
      Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc) {}
 
@@ -55,6 +55,7 @@ class StmtBlock : public Stmt
     List<Stmt*> *stmts;
     
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t);
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
 };
@@ -83,6 +84,7 @@ class ForStmt : public LoopStmt
     Expr *init, *step;
   
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ForStmt(Expr *init, Expr *test, Expr *step, Stmt *body);
 };
@@ -90,6 +92,7 @@ class ForStmt : public LoopStmt
 class WhileStmt : public LoopStmt 
 {
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     WhileStmt(Expr *test, Stmt *body) : LoopStmt(test, body) {}
 };
@@ -100,6 +103,7 @@ class IfStmt : public ConditionalStmt
     Stmt *elseBody;
   
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     IfStmt(Expr *test, Stmt *thenBody, Stmt *elseBody);
 };
@@ -107,6 +111,7 @@ class IfStmt : public ConditionalStmt
 class BreakStmt : public Stmt 
 {
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     BreakStmt(yyltype loc) : Stmt(loc) {}
 };
@@ -117,6 +122,7 @@ class ReturnStmt : public Stmt
     Expr *expr;
   
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     ReturnStmt(yyltype loc, Expr *expr);
 };
@@ -127,6 +133,7 @@ class PrintStmt : public Stmt
     List<Expr*> *args;
     
   public:
+    vector<Location*> EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t) {return Emit(seg, offset, varsInScope);}
     vector<Location*> Emit(Segment seg, int offset, vector<Location*> varsInScope);
     PrintStmt(List<Expr*> *arguments);
 };

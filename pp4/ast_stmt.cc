@@ -66,6 +66,25 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
     (stmts=s)->SetParentAll(this);
 }
 
+vector<Location*> StmtBlock::EmitMore(Segment seg, int offset, vector<Location*> varsInScope, Type* t)
+{
+    vector<Location*> listOfVars;
+    for (int i = 0; i < decls->NumElements(); i++)
+    {
+        vector<Location*> newListOfVars = decls->Nth(i)->Emit(seg, offset, varsInScope);
+        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+        offset -= newListOfVars.size() * CodeGenerator::VarSize;
+    }
+    varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
+    for (int i = 0; i < stmts->NumElements(); i++)
+    {
+        vector<Location*> newListOfVars = stmts->Nth(i)->EmitMore(seg, offset, varsInScope, t);
+        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+        offset -= newListOfVars.size() * CodeGenerator::VarSize;
+    }
+    return listOfVars;
+}
+
 vector<Location*> StmtBlock::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
     vector<Location*> listOfVars;
