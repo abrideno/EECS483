@@ -376,17 +376,7 @@ vector<Location*> AssignExpr::EmitMore(Segment seg, int offset, vector<Location*
         return listOfVars;
     }
     
-    if (locAddrLeft && locAddrLeft->GetType())
-    {
-        oss << locAddrLeft->GetType();
-        string s = oss.str();
-        if ((s[s.length() - 1] == ']'))
-        {
-            CG.GenStore(locAddrLeft, locRight);
-            return listOfVars;
-        }
-    }
-    CG.GenAssign(locLeft, locRight);
+   
     return listOfVars;
 }
 
