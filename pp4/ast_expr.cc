@@ -428,34 +428,9 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
     vector<Location*> listOfVars;
     vector<Location*> newListOfVars; 
     Location* loc = NULL;
-    bool found = false; 
     
-    if(base){
-    	newListOfVars = base->Emit(seg,offset,varsInScope); 
-    	Location *obj = newListOfVars.back();
-    	Type *baseType= obj->GetType();
 
-  	    
-  	    ostringstream ost; 
-  	    ost<<bastType;
-  	    
-  	    int offFromClass; 
-  	    vector< pair<string,int> > varsInClass = classVars.find(ost.str());
-  	    
-  	    for(auto it = varsInClass.begin(); it != varsInClass.end(); it++){
-  	    	if((*it)->first == field->name){
-  	    		offFromClass = (*it)->second;
-  	    	}
-  	    }
-  	    
-  	    loc = CG.Genload(obj,4,offFromClass);
-  	    loc->SetType(
-  	    newListOfVars.push_back(loc); 
-  	    listOfVars->append(newListOfVars); 
-  
-  }
-  else
-  {
+
   	for (auto it = varsInScope.rbegin(); it != varsInScope.rend(); it++)
     {
         if (!strcmp((*it)->GetName(),field->name))
@@ -468,8 +443,7 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
     Assert(loc);
     
     listOfVars.push_back(loc);
-  }
-return listOfVars;
+    return listOfVars;
 }
 
 
@@ -486,7 +460,6 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
     vector<Location*> listOfVars, newListOfVars;
     Location* loc = NULL;
     
-
     if (!strcmp(field->name, "length"))
     {
         //cout << "LENGTH CALL" << endl;
@@ -518,46 +491,114 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
         
         Assert(NULL);
     }
+    
+    if(base)
+    {
+        vector<Location*> varsForClass;
+        for (int i = 0; i < varsInScope.size(); i++)
+            if (varsInScope[i]->GetSegment() == gpRelative)
+                varsForClass.push_back(varsInScope[i]);
+        
+        ostringstream oss;
+        newListOfVars = base->Emit(seg, offset, varsInScope);
+        offset -= newListOfVars.size() * CodeGenerator::VarSize;
+        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+        
+        Location* addr = newListOfVars.back();
+        Type* baseType = addr->GetType();
+        oss << baseType;
+        string s = oss.str();
+        
+        vector<classVarMember> varsInClass = classVars[s];
+        classVarMember var;
+        
+        Location* classLocal;
+        for (int i = 0; i < varsInClass.size(); i++)
+        {
+            var = varsInClass[i];
+            classLocal = CG.GenLoad(addr, var.second, offset);
+            offset -= CodeGenerator::VarSize;
+            classLocal->setType(var.third);
+            classLocal->setName(var.first.c_str());
+            listOfVars.push_back(classLocal);
+            varsForClass.push_back(classLocal);
+        }
+        
+        
+        
+    	/*newListOfVars = base->Emit(seg,offset,varsInScope); 
+    	offset -= newListOfVars.size() * CodeGenerator::VarSize;
+    	Location *obj = newListOfVars.back();
+    	Type *baseType= obj->GetType();
+
+  	    
+  	    ostringstream ost; 
+  	    ost<<baseType;
+  	    string s = ost.str();
+  	    
+  	    vector<classVarMember> varsInClass = classVars[s];  	    
+  	    classVarMember var;
+  	    for(auto it = varsInClass.begin(); it != varsInClass.end(); it++)
+  	    {
+  	    	if(it->first == field->name)
+  	    	{
+  	    		var = *it;
+  	    		break;
+  	    	}
+  	    }
+  	    
+  	    loc = CG.GenLoad(obj,var.second,offset);
+  	    offset -= CodeGenerator::VarSize;
+  	    loc->setType(var.third);
+  	    newListOfVars.push_back(loc); 
+  	    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end()); */\
+  	    return listOfVars;
+  
+    }
+    else
+    {
+
             
     //cout << field->name << endl;
     //cout << "CALLED" << endl;
-    for (int i = 0; i < varsInScope.size(); i++)
-    {
-        //cout << varsInScope[i]->GetName() << endl;
-    }
-    for (auto it = varsInScope.rbegin(); it != varsInScope.rend(); it++)
-    {
-        if (!strcmp((*it)->GetName(),field->name))
+        for (int i = 0; i < varsInScope.size(); i++)
         {
-            loc = *it;
-            //cout << "FOUND: " << (*it)->GetName() << endl;
-            //cout << (*it)->GetType() << endl;
-            //cout << loc->GetType() << endl;
-            break;
+            //cout << varsInScope[i]->GetName() << endl;
         }
+        for (auto it = varsInScope.rbegin(); it != varsInScope.rend(); it++)
+        {
+            if (!strcmp((*it)->GetName(),field->name))
+            {
+                loc = *it;
+                //cout << "FOUND: " << (*it)->GetName() << endl;
+                //cout << (*it)->GetType() << endl;
+                //cout << loc->GetType() << endl;
+                break;
+            }
+        }
+        Assert(loc);
+        //cout << loc->GetType() << endl;
+        for (int i = actuals->NumElements() - 1; i >= 0; i--)
+        {
+            newListOfVars = actuals->Nth(i)->Emit(seg, offset, varsInScope);
+            listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+            offset -= newListOfVars.size() * CodeGenerator::VarSize;
+            CG.GenPushParam(newListOfVars.back());
+        }
+        //cout << loc->GetType() << endl;
+        //cout << "LCALL TYPE" << endl;
+        Location* loc2;
+        if (loc->GetType() == Type::voidType)
+            loc2 = CG.GenLCall(field->name, false, offset);
+        else
+            loc2 = CG.GenLCall(field->name, true, offset);
+        loc2->setType(loc->GetType());
+        //cout << loc2->GetSize() << endl;
+        //cout << loc2->GetSize() << endl;
+        listOfVars.push_back(loc2);
+        CG.GenPopParams(actuals->NumElements() * CodeGenerator::VarSize);
+        return listOfVars;
     }
-    Assert(loc);
-    //cout << loc->GetType() << endl;
-    for (int i = actuals->NumElements() - 1; i >= 0; i--)
-    {
-        newListOfVars = actuals->Nth(i)->Emit(seg, offset, varsInScope);
-        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
-        offset -= newListOfVars.size() * CodeGenerator::VarSize;
-        CG.GenPushParam(newListOfVars.back());
-    }
-    //cout << loc->GetType() << endl;
-    //cout << "LCALL TYPE" << endl;
-    Location* loc2;
-    if (loc->GetType() == Type::voidType)
-        loc2 = CG.GenLCall(field->name, false, offset);
-    else
-        loc2 = CG.GenLCall(field->name, true, offset);
-    loc2->setType(loc->GetType());
-    //cout << loc2->GetSize() << endl;
-    //cout << loc2->GetSize() << endl;
-    listOfVars.push_back(loc2);
-    CG.GenPopParams(actuals->NumElements() * CodeGenerator::VarSize);
-    return listOfVars;
 }
 
 NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) { 

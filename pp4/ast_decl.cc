@@ -9,6 +9,7 @@
         
 CodeGenerator CG;
 unordered_map<string, vector<classVarMember> > classVars;
+vector<string> names;
          
 using namespace std;
          
@@ -45,10 +46,13 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
 
 vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> varsInScope)
 {
-	int vTableOffset = 0;	
     vector<Location*> listOfVars;
+    if (seg == fpRelative)
+        return listOfVars;
+	int vTableOffset = 0;	
     List<const char*>* memberNames = new List<const char*>; 
     vector<classVarMember> vars;
+    names.clear();
 
     vector<Location*> newListOfVars; 
     int varOffset = CodeGenerator::VarSize;
@@ -58,7 +62,7 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
 
 
 		if (vd)
-		{
+	    {
 		    newListOfVars = members->Nth(i)->Emit(fpRelative, offset, varsInScope);
 		    varsInScope.push_back(newListOfVars.back());
 		    offset -= newListOfVars.size() * CodeGenerator::VarSize;
@@ -72,59 +76,40 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
 		    vars.push_back(var);
 		}
     	else if(fn){
+    	    string temp = id->name;
+    	    string temp2 = members->Nth(i)->id->name; 
+    	    string final; 
+    	    final.append(temp);
+    	    final.push_back('.');
+    	    final.append(temp2);
+       		names.push_back(final);
+       		CG.GenLabel(names.back().c_str());
     	    newListOfVars = members->Nth(i)->EmitMore(fpRelative, offset, varsInScope);
     	    varsInScope.push_back(newListOfVars.back());
     	    offset -= newListOfVars.size() * CodeGenerator::VarSize;
-    		memberNames->Append(members->Nth(i)->id->name); 
     	}
     	else
     	    Assert(NULL);
     }
     
-
-    
+    for (int i = 0; i < names.size(); i++)
+    {
+        cout << names[i] << endl;
+	    memberNames->Append(names[i].c_str()); 
+	}
     if(memberNames->NumElements()>0){
     	CG.GenVTable(id->name,memberNames); 
     }
     string s = id->name;
     classVars[s] = vars;
     
-    cout << "Class: " << id->name << endl;
+    //cout << "Class: " << id->name << endl;
     for (int i = 0; i < vars.size(); i++)
     {
-        cout << vars[i].first << ' ' << vars[i].second << endl;
+        //cout << vars[i].first << ' ' << vars[i].second << endl;
     }
-    return listOfVars;
-}
-
-vector<Location*> FnDecl::EmitMore(Segment seg, int offset, vector<Location*> varsInScope)
-{
-    vector<Location*> listOfVars;
-    if (seg == gpRelative) //XXX wont be true for class functions
-    {
-        Location* loc = new Location(seg, offset, id->name, returnType);
-        listOfVars.push_back(loc);
-        //cout << loc->GetType() << endl;
-        return listOfVars;
-    }
-    //cout << id->name << "!!!!!" << endl;
-    BeginFunc* BF = CG.GenBeginFunc();
-    int localOffset = CodeGenerator::OffsetToFirstLocal;
-    int paramOffset = CodeGenerator::OffsetToFirstParam;
-    for (int i = 0; i < formals->NumElements(); i++)
-    {
-        vector<Location*> newListOfVars = formals->Nth(i)->Emit(fpRelative, paramOffset, varsInScope);
-        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
-        paramOffset += newListOfVars.size() * CodeGenerator::VarSize;
-    }
-    varsInScope.insert(varsInScope.end(), listOfVars.begin(), listOfVars.end());
-    vector<Location*> newListOfVars = body->Emit(fpRelative, localOffset, varsInScope);
-    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
-    localOffset -= newListOfVars.size() * CodeGenerator::VarSize;
-    BF->SetFrameSize(listOfVars.size() * CodeGenerator::VarSize); //SetFrameSize(int numBytesForAllLocalsAndTemps);
-    if (returnType == Type::voidType)
-        CG.GenReturn();
-    CG.GenEndFunc();
+    Location* loc = new Location(seg, offset, id->name);
+    listOfVars.push_back(loc);
     return listOfVars;
 }
 

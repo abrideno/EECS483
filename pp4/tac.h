@@ -53,6 +53,7 @@ class Location
     
 
     const char *GetName()           { return variableName; }
+    void setName(const char * name) { variableName = name; }
     Segment GetSegment()            { return segment; }
     int GetOffset()                 { return offset; }
     Type *GetType()					{ return type; }
