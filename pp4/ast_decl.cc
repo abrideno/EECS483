@@ -65,6 +65,7 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
     int vTableOffset = 0;	
     offset = 0;
     int varOffset = CodeGenerator::VarSize;
+    int n = 0;
     if (extends)
     {
         bool found = false;
@@ -98,6 +99,7 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
             methods.push_back(methodsInParent[i]);
             vTableOffset += 4;
         }
+        n = methodsInParent.size();
         
         
     }
@@ -132,45 +134,58 @@ vector<Location*> ClassDecl::Emit(Segment seg, int offset, vector<Location*> var
 		    classVars[id->name] = vars;
 		}
     	else if(fn){
-    	    string temp = id->name;
-    	    string temp2 = members->Nth(i)->id->name; 
-    	    string final; 
-    	    final.append(temp);
-    	    final.push_back('.');
-    	    final.append(temp2);
+            string temp = id->name;
+	        string temp2 = members->Nth(i)->id->name; 
+	        string final; 
+	        final.append(temp);
+	        final.push_back('.');
+	        final.append(temp2);
        		names.push_back(final);
-       		CG.GenLabel(names.back().c_str());
-    	    newListOfVars = members->Nth(i)->EmitMore(fpRelative, offset, varsInScope, curClass);
+    	    newListOfVars = members->Nth(i)->EmitMore(gpRelative, offset, varsInScope, curClass);
     	    varsInScope.push_back(newListOfVars.back());
-    	    offset -= newListOfVars.size() * CodeGenerator::VarSize;
-    	    listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
-    	    
-    	    classVarMember method;
-    	    string s = fn->id->name;
-    	    method.first = s;
-    	    method.second = vTableOffset;
-    	    vTableOffset += CodeGenerator::VarSize;
-    	    method.third = fn->returnType;
-    	    methods.push_back(method);
-    	    classMethods[id->name] = methods;
+            
+	        classVarMember method;
+	        string s = fn->id->name;
+	        method.first = s;
+	        method.second = vTableOffset;
+	        vTableOffset += CodeGenerator::VarSize;
+	        method.third = fn->returnType;
+	        methods.push_back(method);
+	        classMethods[id->name] = methods;
     	}
     	else
     	    Assert(NULL);
     }
     
+
+
+    //cout << id->name << endl;
+    for (int i = 0; i < members->NumElements(); i++)
+    {
+        FnDecl *fn = dynamic_cast<FnDecl*>(members->Nth(i)); 
+        if (fn)
+        {
+            //cout << names[n].c_str() << endl;
+       		CG.GenLabel(names[n++].c_str());
+	        newListOfVars = members->Nth(i)->EmitMore(fpRelative, offset, varsInScope, curClass);
+	        offset -= newListOfVars.size() * CodeGenerator::VarSize;
+	        listOfVars.insert(listOfVars.end(), newListOfVars.begin(), newListOfVars.end());
+	        
+
+        }
+    }
+    
+    //cout << "qwlekqwe" << endl;
     for (int i = 0; i < names.size(); i++)
     {
-        ////////cout << names[i] << endl;
-        //cout << names[i] << ' ' << id->name << endl;
+        //cout << names[i].c_str() << endl;
 	    memberNames->Append(names[i].c_str()); 
 	}
-	for (int i = 0; i < memberNames->NumElements(); i++)
-    {
-        //cout << memberNames->Nth(i) << endl;
-    }
+
     if(memberNames->NumElements()>0){
     	CG.GenVTable(id->name,memberNames); 
     }
+
     string s = id->name;
     classVars[s] = vars;
     //////cout << "MY VARS" << endl;
@@ -232,7 +247,6 @@ vector<Location*> FnDecl::EmitMore(Segment seg, int offset, vector<Location*> va
     localOffset -= newListOfVars.size() * CodeGenerator::VarSize;
     BF->SetFrameSize(listOfVars.size() * CodeGenerator::VarSize); //SetFrameSize(int numBytesForAllLocalsAndTemps);
     CG.GenEndFunc();
-    listOfVars.push_back(new Location(seg, offset, id->name, returnType));
     
     return listOfVars;
 }
