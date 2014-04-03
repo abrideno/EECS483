@@ -38,6 +38,10 @@ void Program::Emit()
     vector<Location*> listOfVars;
     int gpOffset = CodeGenerator::OffsetToFirstGlobal;
     int mainNumber;
+    listOfVars.push_back(new Location(gpRelative, gpOffset, "VICTIMQWOsadIWOUEWKJE"));
+    gpOffset += CodeGenerator::VarSize;
+    listOfVars.push_back(new Location(gpRelative, gpOffset, "VICTIMeqewIEIWOUEWKJE")); //sweet spot. DOnt try this at home 
+    gpOffset += CodeGenerator::VarSize;
     for (int i = 0; i < decls->NumElements(); i++)
     {
         listOfVars.push_back(decls->Nth(i)->Emit(gpRelative, gpOffset, listOfVars).back());

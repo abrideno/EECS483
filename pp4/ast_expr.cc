@@ -304,7 +304,9 @@ vector<Location*> AssignExpr::EmitMore(Segment seg, int offset, vector<Location*
 {
     vector<Location*> listOfVars, newListOfVars;
     ostringstream oss, oss2;
+    inClass = false;
     newListOfVars = left->Emit(seg, offset, varsInScope);
+    inClass = true;
     Location* locLeft = newListOfVars.back();
     Location* locAddrLeft = NULL;
     Location* locAddrRight = NULL;
@@ -357,13 +359,13 @@ vector<Location*> AssignExpr::EmitMore(Segment seg, int offset, vector<Location*
                 break;
             }
         }
-        Location* addrOffset = CG.GenLoadConstant(var.second, offset);
+        /*Location* addrOffset = CG.GenLoadConstant(var.second, offset);
         offset -= 4;
         listOfVars.push_back(addrOffset);
-        Location* addr = CG.GenBinaryOp("+", thisLoc, addrOffset, offset);
+        Location* addr = CG.GenBinaryOp("+", thisLoc, var.second, offset);
         offset -= 4;
-        listOfVars.push_back(addr);
-        CG.GenStore(addr, locRight);
+        listOfVars.push_back(addr);*/
+        CG.GenStore(thisLoc, locRight, var.second);
         return listOfVars;
     }
     
@@ -507,6 +509,7 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
         {
             if (!strcmp(vars[i].first.c_str(), field->name))
             {
+                //cout<<"Looking at "<<vars[i].first<<" in "<<s<<endl;
                 var = vars[i];
                 found = true;
                 break;
@@ -516,23 +519,27 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
     if (found)
     {  
     
-        Location* thisLoc;
+        Location* thisLoc = NULL;
         for (int i = 0; i < varsInScope.size(); i++)
         {
             if (!strcmp(varsInScope[i]->GetName(),"this"))
             {
                 thisLoc = varsInScope[i];
+              //  cout<<"GETTING IN HERE"<<endl;
                 break;
             }
         }
-        Location* addrOffset = CG.GenLoadConstant(var.second, offset);
+        // Problem here 
+        /*Location* addrOffset = CG.GenLoadConstant(var.second, offset);
         offset -= 4;
         listOfVars.push_back(addrOffset);
         Location* addr = CG.GenBinaryOp("+", thisLoc, addrOffset, offset);
         offset -= 4;
-        listOfVars.push_back(addr);
-        addr->setType(new Type("this"));
-        loc = CG.GenLoad(addr, 0, offset);
+        listOfVars.push_back(addr);*/
+        //addr->setType(new Type("this"));
+        loc = CG.GenLoad(thisLoc, var.second, offset);
+        //cout<<" var second "<< var.second<<endl;
+        Assert(thisLoc);
         offset -= 4;
         loc->setType(var.third);
         listOfVars.push_back(loc);
@@ -549,7 +556,10 @@ vector<Location*> FieldAccess::Emit(Segment seg, int offset, vector<Location*> v
         }
     }
     ////cout << "finished emit: " << loc << endl;
-    Assert(loc);
+    if(!loc)
+    {
+        loc = new Location(fpRelative, offset, field->name);
+    }
     
     listOfVars.push_back(loc);
     return listOfVars;
@@ -618,7 +628,7 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
         Location* vTable = CG.GenLoad(ptr, 0, offset);
         offset -= CodeGenerator::VarSize;
         listOfVars.push_back(vTable);
-        
+         
         vector<classVarMember> methodsInClass = classMethods[s];
         classVarMember method;
         string s2 = field->name;
@@ -645,6 +655,7 @@ vector<Location*> Call::Emit(Segment seg, int offset, vector<Location*> varsInSc
             offset -= newListOfVars.size() * CodeGenerator::VarSize;
             CG.GenPushParam(newListOfVars.back());
         }
+        Assert(ptr);
         CG.GenPushParam(ptr);
         
         
@@ -717,7 +728,7 @@ vector<Location*> NewExpr::Emit(Segment seg, int offset, vector<Location*> varsI
     string s = oss.str();
     
     int sizeOfClass = classSize[s];
-    
+
     Location* sizeLoc = CG.GenLoadConstant(sizeOfClass + 4, offset);
     offset -= CodeGenerator::VarSize;
     listOfVars.push_back(sizeLoc);

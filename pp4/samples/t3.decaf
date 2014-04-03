@@ -4,6 +4,7 @@ void main()
    Cow betsy;
   betsy = New(Cow);
   betsy.Init(100, 122);
+  Print(1,"\n");
   betsy.Moo();
 }
 
@@ -15,10 +16,13 @@ class Cow {
   {
     weight = w;
     height = h;
+    Print(w, "\n");
   }
 
   void Moo() {
+    Print("Is This Working","\n");
     Print ( this.height, " ", this.weight, "\n" );
   }
 }
+
 
