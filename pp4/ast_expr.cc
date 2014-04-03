@@ -11,6 +11,7 @@ extern unordered_map<string, vector<classVarMember> > classVars;
 extern unordered_map<string, int> classSize;
 extern unordered_map<string, vector<classVarMember> > classMethods;
 extern bool inClass;
+extern bool inClass2;
 extern Type* curClass;
 extern Location* curThis;
 
@@ -410,6 +411,8 @@ vector<Location*> ArrayAccess::Emit(Segment seg, int offset, vector<Location*> v
 {
     vector<Location*> listOfVars, newListOfVars;
     //////////////cout << "arrayaccess base emit" << endl;
+    if (inClass != inClass2)
+        inClass = true;
     listOfVars = base->Emit(seg, offset, varsInScope);
     //////////////cout << "returned from base" << endl;
     Location* start;
