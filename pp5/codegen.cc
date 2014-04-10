@@ -123,8 +123,38 @@ void CodeGenerator::livenessAnalysis(int begin)
                 }
             }
 
-            List<string> inPrimeSet = outSet;
-            //TODO: Create all polymorphic GenSet and KillSet (for instruction)
+            //In'[TAC] = Out[TAC] - Kill[TAC] + Gen[TAC]
+            List<string> inPrimeSet = outSet; //= Out[TAC]
+            List<string> killSet = instruction->KillSet();
+            List<string> genSet = instruction->GenSet();
+
+            for (int j = 0; j < inPrimeSet.NumElements(); j++) //- Kill[TAC]
+            {
+                for (int k = 0; k < killSet.NumElements(); k++)
+                {
+                    if (inPrimeSet.Nth(j) == killSet.Nth(k))
+                    {
+                        inPrimeSet.RemoveAt(j);
+                        j--; //so elements dont get skipped
+                        break;
+                    }
+                }
+            }
+            for (int j = 0; j < genSet.NumElements(); j++) //+ Gen[TAC]
+            {
+                bool found = false;
+                for (int k = 0; k < inPrimeSet.NumElements(); k++)
+                {
+                    if (inPrimeSet.Nth(k) == genSet.Nth(j))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                    inPrimeSet.Append(genSet.Nth(j));
+            }
+            //TODO rest of algorithm
         }
     }
 }
