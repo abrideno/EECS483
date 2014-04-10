@@ -8,9 +8,16 @@
 #include <string.h>
 #include <deque>
 
+using namespace std;
+
 Location::Location(Segment s, int o, const char *name) :
   variableName(strdup(name)), segment(s), offset(o), reference(NULL), reg(Mips::zero) {}
 
+string Instruction::TACString()
+{
+    string s = printed;
+    return s;
+}
  
 void Instruction::Print() {
   printf("\t%s ;", printed);
@@ -138,6 +145,11 @@ Goto::Goto(const char *l) : label(strdup(l)) {
 void Goto::EmitSpecific(Mips *mips) {	  
   mips->EmitGoto(label);
 }
+string Goto::getLabel()
+{
+    string s = label;
+    return s;
+}
 
 
 IfZ::IfZ(Location *te, const char *l)
@@ -148,7 +160,11 @@ IfZ::IfZ(Location *te, const char *l)
 void IfZ::EmitSpecific(Mips *mips) {	  
   mips->EmitIfZ(test, label);
 }
-
+string IfZ::getLabel()
+{
+    string s = label;
+    return s;
+}
 
 
 BeginFunc::BeginFunc() {

@@ -34,6 +34,8 @@
     // variable in a function would be assigned a Location object
     // with name "num", segment fpRelative, and offset -8. 
  
+using namespace std;
+ 
 typedef enum {fpRelative, gpRelative} Segment;
 
 class Location
@@ -74,11 +76,17 @@ class Location
 class Instruction {
     protected:
         char printed[128];
-	  
+        List<Instruction*> directedEdges;
+	    //TODO: maybe add a live set for each instruction?
     public:
-	virtual void Print();
-	virtual void EmitSpecific(Mips *mips) = 0;
-	virtual void Emit(Mips *mips);
+        void addEdge(Instruction* instruction) { directedEdges.Append(instruction); }
+        int getSize() { return directedEdges.NumElements(); }
+        Instruction* getEdge(int n) { return directedEdges.Nth(n); }
+        string TACString();
+        
+	    virtual void Print();
+	    virtual void EmitSpecific(Mips *mips) = 0;
+	    virtual void Emit(Mips *mips);
 };
 
   
@@ -182,6 +190,7 @@ class Goto: public Instruction {
   public:
     Goto(const char *label);
     void EmitSpecific(Mips *mips);
+    string getLabel();
 };
 
 class IfZ: public Instruction {
@@ -190,6 +199,7 @@ class IfZ: public Instruction {
   public:
     IfZ(Location *test, const char *label);
     void EmitSpecific(Mips *mips);
+    string getLabel();
 };
 
 class BeginFunc: public Instruction {

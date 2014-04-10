@@ -22,20 +22,75 @@ CodeGenerator::CodeGenerator()
   curGlobalOffset = 0;
 }
 
-//TODO
-string CodeGenerator::instructToString(Instruction* instruction)
+//TODO check over CFG, I have the feeling I'm missing something
+void CodeGenerator::createCFG(int begin)
 {
-    string s;
-    return s;
+    BeginFunc* bf = dynamic_cast<BeginFunc*>(code->Nth(begin));
+    Assert(bf); //always start at BeginFunc
+    Goto* gt;
+    IfZ* iz;
+    EndFunc* ef;
+    /*
+    dynamic casts to paste in as needed
+    LoadConstant* lc = dynamic_cast<LoadConstant*>(code->Nth(//XXX));
+    LoadStringConstant* lcs = dynamic_cast<LoadStringConstant*>(code->Nth(//XXX));
+    LoadLabel* ll = dynamic_cast<LoadLabel*>(code->Nth(//XXX));
+    Assign* assign = dynamic_cast<Assign*>(code->Nth(//XXX));
+    Load* load = dynamic_cast<Load*>(code->Nth(//XXX));
+    Store* store = dynamic_cast<Store*>(code->Nth(//XXX));
+    BinaryOp* bo = dynamic_cast<BinaryOp*>(code->Nth(//XXX));
+    Label* label = dynamic_cast<Label*>(code->Nth(//XXX));
+    Goto* gt = dynamic_cast<Goto*>(code->Nth(//XXX));
+    IfZ* iz = dynamic_cast<IfZ*>(code->Nth(//XXX));
+    EndFunc* ef = dynamic_cast<EndFunc*>(code->Nth(//XXX));
+    Return* ret = dynamic_cast<Return*>(code->Nth(//XXX));
+    PushParam* pp = dynamic_cast<PushParam*>(code->Nth(//XXX));
+    RemoveParams* rp = dynamic_cast<RemoveParams*>(code->Nth(//XXX));
+    LCall* lCall = dynamic_cast<LCall*>(code->Nth(//XXX));
+    ACall* aCall = dynamic_cast<ACall*>(code->Nth(//XXX));
+    VTable* vt = dynamic_cast<VTable*>(code->Nth(//XXX));
+    */
+    for (int i = begin; i < code->NumElements(); i++)
+    {
+        //If EndFunc, finished
+        ef = dynamic_cast<EndFunc*>(code->Nth(i));
+        if (ef)
+            break;
+            
+        //If Goto, find label, add to edges
+        gt = dynamic_cast<Goto*>(code->Nth(i));
+        if (gt)
+        {
+            string s = gt->getLabel();
+            gt->addEdge(labels[s]);
+            continue;
+        }
+        
+        //If IfZ, find label, add next instruction and label to edges
+        iz = dynamic_cast<IfZ*>(code->Nth(i));
+        {
+            string s = iz->getLabel();
+            iz->addEdge(labels[s]);
+            
+            iz->addEdge(code->Nth(i+1));
+            continue;
+        }
+        
+        code->Nth(i)->addEdge(code->Nth(i+1)); //if instruction doesnt fit any above, add next instruction
+        
+        
+    }
+    livenessAnalysis(begin);
 }
 
 
-//TODO
-void CodeGenerator::livenessAnalysis()
+
+//TODO confused by algorithm, talk to Chun
+void CodeGenerator::livenessAnalysis(int begin)
 {
-    vector <std::string> liveSet;
+    vector<string> liveSet;
     Instruction* instruction;
-    for (int i = code->NumElements() - 1; i >= 0; i--)
+    for (int i = begin; i < code->NumElements(); i++)
     {
         instruction = code->Nth(i);
         
@@ -126,7 +181,10 @@ Location *CodeGenerator::GenBinaryOp(const char *opName, Location *op1,
 
 void CodeGenerator::GenLabel(const char *label)
 {
-  code->Append(new Label(label));
+  Instruction* instruction = new Label(label);
+  code->Append(instruction);
+  string s = label;
+  labels[s] = instruction;
 }
 
 void CodeGenerator::GenIfZ(Location *test, const char *label)

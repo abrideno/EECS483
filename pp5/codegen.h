@@ -13,6 +13,7 @@
 #include "list.h"
 #include "tac.h"
 #include <string.h>
+#include <unordered_map>
 class FnDecl;
  
 
@@ -26,7 +27,9 @@ class CodeGenerator {
     List<Instruction*> *code;
     int curStackOffset, curGlobalOffset;
     BeginFunc *insideFn;
-    string instructToString(Instruction* instruction);
+    unordered_map<string, Instruction*> labels;
+    
+    void livenessAnalysis(int begin);
 
   public:
            // Here are some class constants to remind you of the offsets
@@ -46,8 +49,10 @@ class CodeGenerator {
 
     CodeGenerator();
     
-    //Liveness Analysis
-    void livenessAnalysis();
+    //Create CFG for use in liveness analysis
+    void createCFG(int begin);
+    
+
     
          // Assigns a new unique label name and returns it. Does not
          // generate any Tac instructions (see GenLabel below if needed)
