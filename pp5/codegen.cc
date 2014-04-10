@@ -22,7 +22,6 @@ CodeGenerator::CodeGenerator()
   curGlobalOffset = 0;
 }
 
-//TODO check over CFG, I have the feeling I'm missing something
 void CodeGenerator::createCFG(int begin)
 {
     BeginFunc* bf = dynamic_cast<BeginFunc*>(code->Nth(begin));
@@ -30,6 +29,7 @@ void CodeGenerator::createCFG(int begin)
     Goto* gt;
     IfZ* iz;
     EndFunc* ef;
+    Return* ret;
     /*
     dynamic casts to paste in as needed
     LoadConstant* lc = dynamic_cast<LoadConstant*>(code->Nth(//XXX));
@@ -68,6 +68,7 @@ void CodeGenerator::createCFG(int begin)
         
         //If IfZ, find label, add next instruction and label to edges
         iz = dynamic_cast<IfZ*>(code->Nth(i));
+        if (iz)
         {
             string s = iz->getLabel();
             iz->addEdge(labels[s]);
@@ -75,7 +76,11 @@ void CodeGenerator::createCFG(int begin)
             iz->addEdge(code->Nth(i+1));
             continue;
         }
-        
+        Return* ret = dynamic_cast<Return*>(code->Nth(i));
+        if (ret)
+        {
+            continue;
+        }
         code->Nth(i)->addEdge(code->Nth(i+1)); //if instruction doesnt fit any above, add next instruction
         
         
@@ -88,12 +93,39 @@ void CodeGenerator::createCFG(int begin)
 //TODO confused by algorithm, talk to Chun
 void CodeGenerator::livenessAnalysis(int begin)
 {
-    vector<string> liveSet;
     Instruction* instruction;
-    for (int i = begin; i < code->NumElements(); i++)
+    Instruction* edge;
+
+    BeginFunc* bf = dynamic_cast<BeginFunc*>(code->Nth(begin));
+    Assert(bf);
+
+    bool changed = true;
+    while (changed)
     {
-        instruction = code->Nth(i);
-        
+        changed = false;
+
+        for (int i = begin; i < code->NumElements(); i++) //for each TAC in CFG:
+        {
+            List<string> outSet;
+            instruction = code->Nth(i);
+            for (int j = 0; j < instruction->getNumEdges(); j++) //Out[TAC] = Union(In[Succ(TAC)])
+            {
+                edge = instruction->getEdge(j);
+                for (int k = 0; k < edge->inSet.NumElements(); k++) //Union every elem into outSet
+                {
+                    string elem = edge->inSet.Nth(k);
+                    for (int l = 0; l < outSet.NumElements(); l++)  //check to see if elem is already in outSet
+                    {
+                        if (outSet.Nth(l) == elem)
+                            break;
+                        outSet.Append(elem); //if elem isn't already in outSet, add it
+                    }
+                }
+            }
+
+            List<string> inPrimeSet = outSet;
+            //TODO: Create all polymorphic GenSet and KillSet (for instruction)
+        }
     }
 }
 

@@ -73,7 +73,22 @@ Assign::Assign(Location *d, Location *s)
 void Assign::EmitSpecific(Mips *mips) {
   mips->EmitCopy(dst, src);
 }
-
+List<string> Assign::KillSet()
+{
+    List<string> set;
+    string destination;
+    destination = dst->GetName();
+    set.Append(destination);
+    return set;
+}
+List<string> Assign::GenSet()
+{
+    List<string> set;
+    string source;
+    source = src->GetName();
+    set.Append(source);
+    return set;
+}
 
 
 Load::Load(Location *d, Location *s, int off)
@@ -122,7 +137,24 @@ BinaryOp::BinaryOp(Mips::OpCode c, Location *d, Location *o1, Location *o2)
 void BinaryOp::EmitSpecific(Mips *mips) {	  
   mips->EmitBinaryOp(code, dst, op1, op2);
 }
-
+List<string> BinaryOp::KillSet()
+{
+    List<string> set;
+    string destination;
+    destination = dst->GetName();
+    set.Append(destination);
+    return set;
+}
+List<string> BinaryOp::GenSet()
+{
+    List<string> set;
+    string left, right;
+    left = op1->GetName();
+    right = op2->GetName();
+    set.Append(left);
+    set.Append(right);
+    return set;
+}
 
 
 Label::Label(const char *l) : label(strdup(l)) {
@@ -197,7 +229,14 @@ Return::Return(Location *v) : val(v) {
 void Return::EmitSpecific(Mips *mips) {	  
   mips->EmitReturn(val);
 }
-
+List<string> Return::GenSet()
+{
+    List<string> set;
+    string value;
+    value = val->GetName();
+    set.Append(value);
+    return set;
+}
 
 
 PushParam::PushParam(Location *p)

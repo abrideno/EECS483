@@ -54,7 +54,7 @@ class Location
   public:
     Location(Segment seg, int offset, const char *name);
     Location(Location *base, int refOff) :
-	variableName(base->variableName), segment(base->segment),
+    variableName(base->variableName), segment(base->segment),
 	offset(base->offset), reference(base), refOffset(refOff) {}
  
     const char *GetName()           { return variableName; }
@@ -77,16 +77,22 @@ class Instruction {
     protected:
         char printed[128];
         List<Instruction*> directedEdges;
-	    //TODO: maybe add a live set for each instruction?
+
     public:
+        List<string> inSet;
+
         void addEdge(Instruction* instruction) { directedEdges.Append(instruction); }
-        int getSize() { return directedEdges.NumElements(); }
+        int getNumEdges() { return directedEdges.NumElements(); }
         Instruction* getEdge(int n) { return directedEdges.Nth(n); }
         string TACString();
+
+
         
-	    virtual void Print();
-	    virtual void EmitSpecific(Mips *mips) = 0;
-	    virtual void Emit(Mips *mips);
+  	    virtual void Print();
+  	    virtual void EmitSpecific(Mips *mips) = 0;
+  	    virtual void Emit(Mips *mips);
+        virtual List<string> KillSet() { List<string> empty; return empty; }
+        virtual List<string> GenSet() { List<string> empty; return empty; }
 };
 
   
@@ -97,19 +103,19 @@ class Instruction {
   class LoadConstant;
   class LoadStringConstant;
   class LoadLabel;
-  class Assign;
+  class Assign; //Has Gen and Kill
   class Load;
   class Store;
-  class BinaryOp;
+  class BinaryOp; //Has Gen and Kill
   class Label;
   class Goto;
   class IfZ;
   class BeginFunc;
   class EndFunc;
-  class Return;
-  class PushParam;
+  class Return; //Has Gen
+  class PushParam; //consider comment below
   class RemoveParams;
-  class LCall;
+  class LCall; //Should LCall and ACall have kill? gen? maybe... gen==params, maybe push param has gen?
   class ACall;
   class VTable;
 
@@ -145,6 +151,8 @@ class Assign: public Instruction {
   public:
     Assign(Location *dst, Location *src);
     void EmitSpecific(Mips *mips);
+    List<string> KillSet();
+    List<string> GenSet();
 };
 
 class Load: public Instruction {
@@ -175,6 +183,8 @@ class BinaryOp: public Instruction {
   public:
     BinaryOp(Mips::OpCode c, Location *dst, Location *op1, Location *op2);
     void EmitSpecific(Mips *mips);
+    List<string> KillSet();
+    List<string> GenSet();
 };
 
 class Label: public Instruction {
@@ -222,6 +232,7 @@ class Return: public Instruction {
   public:
     Return(Location *val);
     void EmitSpecific(Mips *mips);
+    List<string> GenSet();
 };   
 
 class PushParam: public Instruction {
