@@ -9,8 +9,7 @@
 #include <deque>
 
 Location::Location(Segment s, int o, const char *name) :
-  variableName(strdup(name)), segment(s), offset(o), reg(Mips::zero)
-  reference(NULL) {}
+  variableName(strdup(name)), segment(s), offset(o), reference(NULL), reg(Mips::zero) {}
 
  
 void Instruction::Print() {

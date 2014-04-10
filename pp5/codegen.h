@@ -12,9 +12,11 @@
 #include <stdlib.h>
 #include "list.h"
 #include "tac.h"
+#include <string.h>
 class FnDecl;
  
 
+using namespace std;
               // These codes are used to identify the built-in functions
 typedef enum { Alloc, ReadLine, ReadInteger, StringEqual,
                PrintInt, PrintString, PrintBool, Halt, NumBuiltIns } BuiltIn;
@@ -24,6 +26,7 @@ class CodeGenerator {
     List<Instruction*> *code;
     int curStackOffset, curGlobalOffset;
     BeginFunc *insideFn;
+    string instructToString(Instruction* instruction);
 
   public:
            // Here are some class constants to remind you of the offsets
@@ -42,6 +45,9 @@ class CodeGenerator {
     static const int VarSize = 4;
 
     CodeGenerator();
+    
+    //Liveness Analysis
+    void livenessAnalysis();
     
          // Assigns a new unique label name and returns it. Does not
          // generate any Tac instructions (see GenLabel below if needed)

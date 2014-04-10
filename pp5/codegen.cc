@@ -11,11 +11,35 @@
 #include "mips.h"
 #include "ast_decl.h"
 #include "errors.h"
+#include <vector>
+#include <string>
+  
+using namespace std;
   
 CodeGenerator::CodeGenerator()
 {
   code = new List<Instruction*>();
   curGlobalOffset = 0;
+}
+
+//TODO
+string CodeGenerator::instructToString(Instruction* instruction)
+{
+    string s;
+    return s;
+}
+
+
+//TODO
+void CodeGenerator::livenessAnalysis()
+{
+    vector <std::string> liveSet;
+    Instruction* instruction;
+    for (int i = code->NumElements() - 1; i >= 0; i--)
+    {
+        instruction = code->Nth(i);
+        
+    }
 }
 
 char *CodeGenerator::NewLabel()
