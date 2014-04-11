@@ -82,13 +82,9 @@ void CodeGenerator::createCFG(int begin)
             continue;
         }
         code->Nth(i)->addEdge(code->Nth(i+1)); //if instruction doesnt fit any above, add next instruction
-        
-        
     }
     livenessAnalysis(begin);
 }
-
-
 
 //TODO confused by algorithm, talk to Chun
 void CodeGenerator::livenessAnalysis(int begin)
@@ -151,10 +147,47 @@ void CodeGenerator::livenessAnalysis(int begin)
                         break;
                     }
                 }
+                
                 if (!found)
                     inPrimeSet.Append(genSet.Nth(j));
             }
             //TODO rest of algorithm
+            
+            List<string> tempInPrimeSet = inPrimeSet; 
+            
+            bool foundInOutSet = false;
+            bool setsAreDifferent = false;
+             
+            for(int i=0; i< outSet.NumElements(); i++)
+            {
+            	for(int j=0; j<tempInPrimeSet.NumElements(); j++)
+            	{
+            		if(outSet.Nth(i) == tempInPrimeSet.Nth(j))
+            		{
+            			tempInPrimeSet.RemoveAt(j); 
+            			foundInOutSet = true; 
+            			break;
+            		}
+            	}
+            	
+            	if(foundInOutSet)
+            	{
+            		foundInOutSet = false; 
+            		continue; 
+            	}
+            	else
+            	{
+            		setsAreDifferent = true;
+            		break;
+            	}
+            }            
+            
+            if(setsAreDifferent || tempInPrimeSet.NumElements() != 0)
+            {
+            	outSet = inPrimeSet; 
+            	changed = true; 
+            }
+            
         }
     }
 }
