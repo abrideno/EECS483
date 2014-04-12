@@ -83,10 +83,20 @@ void CodeGenerator::createCFG(int begin)
         }
         code->Nth(i)->addEdge(code->Nth(i+1)); //if instruction doesnt fit any above, add next instruction
     }
-    livenessAnalysis(begin);
+    do //when dead code is removed, livenessAnalysis must restart
+    {
+        livenessAnalysis(begin);
+        for (int i = begin; i < code->NumElements(); i++)
+        {
+            cout << code->Nth(i)->TACString() << endl;
+            for (int j = 0; j < code->Nth(i)->outSet.NumElements(); j++)
+                cout << code->Nth(i)->outSet.Nth(j) << ' ';
+            cout << endl;
+        }
+    }
+    while (deadCodeAnalysis(begin));
 }
 
-//TODO confused by algorithm, talk to Chun
 void CodeGenerator::livenessAnalysis(int begin)
 {
     Instruction* instruction;
@@ -94,8 +104,11 @@ void CodeGenerator::livenessAnalysis(int begin)
 
     BeginFunc* bf = dynamic_cast<BeginFunc*>(code->Nth(begin));
     Assert(bf);
-
     bool changed = true;
+    List<string> emptyList;
+    for (int i = begin; i < code->NumElements(); i++)
+        code->Nth(i)->inSet = emptyList; //inSets must be recomputed every time liveness is called
+        
     while (changed)
     {
         changed = false;
@@ -107,18 +120,35 @@ void CodeGenerator::livenessAnalysis(int begin)
             for (int j = 0; j < instruction->getNumEdges(); j++) //Out[TAC] = Union(In[Succ(TAC)])
             {
                 edge = instruction->getEdge(j);
+                bool deleted = false;
+                for (int k = 0; k < deletedCode.size(); k++)
+                {
+                    if (edge == deletedCode[k])
+                    {
+                        deleted = true;
+                        break;
+                    }
+                }
+                if (deleted)
+                    continue;
+                    
                 for (int k = 0; k < edge->inSet.NumElements(); k++) //Union every elem into outSet
                 {
                     string elem = edge->inSet.Nth(k);
+                    bool found = false;
                     for (int l = 0; l < outSet.NumElements(); l++)  //check to see if elem is already in outSet
                     {
                         if (outSet.Nth(l) == elem)
+                        {
+                            found = true;
                             break;
-                        outSet.Append(elem); //if elem isn't already in outSet, add it
+                        }
                     }
+                    if (!found)
+                        outSet.Append(elem); //if elem isn't already in outSet, add it
                 }
             }
-
+            instruction->outSet = outSet;
             //In'[TAC] = Out[TAC] - Kill[TAC] + Gen[TAC]
             List<string> inPrimeSet = outSet; //= Out[TAC]
             List<string> killSet = instruction->KillSet();
@@ -151,20 +181,18 @@ void CodeGenerator::livenessAnalysis(int begin)
                 if (!found)
                     inPrimeSet.Append(genSet.Nth(j));
             }
-            //TODO rest of algorithm
             
             List<string> tempInPrimeSet = inPrimeSet; 
             
             bool foundInOutSet = false;
             bool setsAreDifferent = false;
-             
-            for(int i=0; i< outSet.NumElements(); i++)
+            for(int j=0; j< instruction->inSet.NumElements(); j++)
             {
-            	for(int j=0; j<tempInPrimeSet.NumElements(); j++)
+            	for(int k=0; k<tempInPrimeSet.NumElements(); k++)
             	{
-            		if(outSet.Nth(i) == tempInPrimeSet.Nth(j))
+            		if(instruction->inSet.Nth(j) == tempInPrimeSet.Nth(k))
             		{
-            			tempInPrimeSet.RemoveAt(j); 
+            			tempInPrimeSet.RemoveAt(k); 
             			foundInOutSet = true; 
             			break;
             		}
@@ -184,12 +212,33 @@ void CodeGenerator::livenessAnalysis(int begin)
             
             if(setsAreDifferent || tempInPrimeSet.NumElements() != 0)
             {
-            	outSet = inPrimeSet; 
+            	instruction->inSet = inPrimeSet; 
             	changed = true; 
             }
             
         }
     }
+}
+
+bool CodeGenerator::deadCodeAnalysis(int begin)
+{
+    Instruction* instruction;
+    bool altered = false;
+    
+    for (int i = begin; i < code->NumElements(); i++)
+    {
+        List<string> outSet;
+        instruction = code->Nth(i);
+        if (instruction->isDead())
+        {
+            code->RemoveAt(i);
+            i--; //to prevent skipping instructions
+            altered = true;
+            deletedCode.push_back(instruction);
+        }
+        
+    }
+    return altered;
 }
 
 char *CodeGenerator::NewLabel()

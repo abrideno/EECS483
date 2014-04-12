@@ -28,8 +28,10 @@ class CodeGenerator {
     int curStackOffset, curGlobalOffset;
     BeginFunc *insideFn;
     unordered_map<string, Instruction*> labels;
+    vector<Instruction*> deletedCode;
     
     void livenessAnalysis(int begin);
+    bool deadCodeAnalysis(int begin);
 
   public:
            // Here are some class constants to remind you of the offsets
@@ -52,7 +54,7 @@ class CodeGenerator {
     //Create CFG for use in liveness analysis
     void createCFG(int begin);
     
-
+    int numInstructions() { return code->NumElements(); }
     
          // Assigns a new unique label name and returns it. Does not
          // generate any Tac instructions (see GenLabel below if needed)

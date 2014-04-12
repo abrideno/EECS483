@@ -7,6 +7,7 @@
 #include "mips.h"
 #include <string.h>
 #include <deque>
+#include <iostream>
 
 using namespace std;
 
@@ -38,6 +39,24 @@ LoadConstant::LoadConstant(Location *d, int v)
 void LoadConstant::EmitSpecific(Mips *mips) {
   mips->EmitLoadConstant(dst, val);
 }
+List<string> LoadConstant::KillSet()
+{
+    List<string> set;
+    string destination;
+    destination = dst->GetName();
+    set.Append(destination);
+    return set;
+}
+bool LoadConstant::isDead()
+{
+    string destination = dst->GetName();
+    for (int i = 0; i < outSet.NumElements(); i++)
+    {
+        if (outSet.Nth(i) == destination)
+            return false;
+    }
+    return true;
+}
 
 LoadStringConstant::LoadStringConstant(Location *d, const char *s)
   : dst(d) {
@@ -51,7 +70,24 @@ LoadStringConstant::LoadStringConstant(Location *d, const char *s)
 void LoadStringConstant::EmitSpecific(Mips *mips) {
   mips->EmitLoadStringConstant(dst, str);
 }
-
+List<string> LoadStringConstant::KillSet()
+{
+    List<string> set;
+    string destination;
+    destination = dst->GetName();
+    set.Append(destination);
+    return set;
+}
+bool LoadStringConstant::isDead()
+{
+    string destination = dst->GetName();
+    for (int i = 0; i < outSet.NumElements(); i++)
+    {
+        if (outSet.Nth(i) == destination)
+            return false;
+    }
+    return true;
+}
      
 
 LoadLabel::LoadLabel(Location *d, const char *l)
@@ -89,7 +125,16 @@ List<string> Assign::GenSet()
     set.Append(source);
     return set;
 }
-
+bool Assign::isDead()
+{
+    string destination = dst->GetName();
+    for (int i = 0; i < outSet.NumElements(); i++)
+    {
+        if (outSet.Nth(i) == destination)
+            return false;
+    }
+    return true;
+}
 
 Load::Load(Location *d, Location *s, int off)
   : dst(d), src(s), offset(off) {
@@ -155,7 +200,16 @@ List<string> BinaryOp::GenSet()
     set.Append(right);
     return set;
 }
-
+bool BinaryOp::isDead()
+{
+    string destination = dst->GetName();
+    for (int i = 0; i < outSet.NumElements(); i++)
+    {
+        if (outSet.Nth(i) == destination)
+            return false;
+    }
+    return true;
+}
 
 Label::Label(const char *l) : label(strdup(l)) {
   Assert(label != NULL);
@@ -247,7 +301,14 @@ PushParam::PushParam(Location *p)
 void PushParam::EmitSpecific(Mips *mips) {
   mips->EmitParam(param);
 } 
-
+List<string> PushParam::GenSet()
+{
+    List<string> set;
+    string par;
+    par = param->GetName();
+    set.Append(par);
+    return set;
+}
 
 PopParams::PopParams(int nb)
   :  numBytes(nb) {
@@ -270,7 +331,29 @@ void LCall::EmitSpecific(Mips *mips) {
    */
   mips->EmitLCall(dst, label);
 }
-
+List<string> LCall::KillSet()
+{
+    List<string> set;    
+    if (dst)
+    {
+        string destination;
+        destination = dst->GetName();
+        set.Append(destination);
+    }
+    return set;
+}
+bool LCall::isDead()
+{
+    if (!dst)
+        return false;
+    string destination = dst->GetName();
+    for (int i = 0; i < outSet.NumElements(); i++)
+    {
+        if (outSet.Nth(i) == destination)
+            return false;
+    }
+    return true;
+}
 
 ACall::ACall(Location *ma, Location *d)
   : dst(d), methodAddr(ma) {
@@ -284,7 +367,29 @@ void ACall::EmitSpecific(Mips *mips) {
    */
   mips->EmitACall(dst, methodAddr);
 } 
-
+List<string> ACall::KillSet()
+{
+    List<string> set;
+    if (dst)
+    {
+        string destination;
+        destination = dst->GetName();
+        set.Append(destination);
+    }
+    return set;
+}
+bool ACall::isDead()
+{
+    if (!dst)
+        return false;
+    string destination = dst->GetName();
+    for (int i = 0; i < outSet.NumElements(); i++)
+    {
+        if (outSet.Nth(i) == destination)
+            return false;
+    }
+    return true;
+}
 
 
 VTable::VTable(const char *l, List<const char *> *m)

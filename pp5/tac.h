@@ -80,6 +80,7 @@ class Instruction {
 
     public:
         List<string> inSet;
+        List<string> outSet;
 
         void addEdge(Instruction* instruction) { directedEdges.Append(instruction); }
         int getNumEdges() { return directedEdges.NumElements(); }
@@ -93,6 +94,7 @@ class Instruction {
   	    virtual void Emit(Mips *mips);
         virtual List<string> KillSet() { List<string> empty; return empty; }
         virtual List<string> GenSet() { List<string> empty; return empty; }
+        virtual bool isDead() { return false; }
 };
 
   
@@ -100,23 +102,23 @@ class Instruction {
   // for convenience, the instruction classes are listed here.
   // the interfaces for the classes follows below
   
-  class LoadConstant;
-  class LoadStringConstant;
+  class LoadConstant;//Has Kill isDead
+  class LoadStringConstant;//Has Kill isDead
   class LoadLabel;
-  class Assign; //Has Gen and Kill
+  class Assign; //Has Gen and Kill isDead
   class Load;
   class Store;
-  class BinaryOp; //Has Gen and Kill
+  class BinaryOp; //Has Gen and Kill isDead
   class Label;
   class Goto;
   class IfZ;
   class BeginFunc;
   class EndFunc;
   class Return; //Has Gen
-  class PushParam; //consider comment below
+  class PushParam; //Has Gen
   class RemoveParams;
-  class LCall; //Should LCall and ACall have kill? gen? maybe... gen==params, maybe push param has gen?
-  class ACall;
+  class LCall; //Has Kill isDead
+  class ACall; //Has Kill isDead
   class VTable;
 
 
@@ -128,6 +130,8 @@ class LoadConstant: public Instruction {
   public:
     LoadConstant(Location *dst, int val);
     void EmitSpecific(Mips *mips);
+    List<string> KillSet();
+    bool isDead();
 };
 
 class LoadStringConstant: public Instruction {
@@ -136,6 +140,8 @@ class LoadStringConstant: public Instruction {
   public:
     LoadStringConstant(Location *dst, const char *s);
     void EmitSpecific(Mips *mips);
+    List<string> KillSet();
+    bool isDead();
 };
     
 class LoadLabel: public Instruction {
@@ -153,6 +159,7 @@ class Assign: public Instruction {
     void EmitSpecific(Mips *mips);
     List<string> KillSet();
     List<string> GenSet();
+    bool isDead();
 };
 
 class Load: public Instruction {
@@ -185,6 +192,7 @@ class BinaryOp: public Instruction {
     void EmitSpecific(Mips *mips);
     List<string> KillSet();
     List<string> GenSet();
+    bool isDead();
 };
 
 class Label: public Instruction {
@@ -240,6 +248,7 @@ class PushParam: public Instruction {
   public:
     PushParam(Location *param);
     void EmitSpecific(Mips *mips);
+    List<string> GenSet();
 }; 
 
 class PopParams: public Instruction {
@@ -255,6 +264,8 @@ class LCall: public Instruction {
   public:
     LCall(const char *labe, Location *result);
     void EmitSpecific(Mips *mips);
+    List<string> KillSet();
+    bool isDead();
 };
 
 class ACall: public Instruction {
@@ -262,6 +273,8 @@ class ACall: public Instruction {
   public:
     ACall(Location *meth, Location *result);
     void EmitSpecific(Mips *mips);
+    List<string> KillSet();
+    bool isDead();
 };
 
 class VTable: public Instruction {
