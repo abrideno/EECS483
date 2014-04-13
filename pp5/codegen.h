@@ -27,8 +27,8 @@ class CodeGenerator {
     List<Instruction*> *code;
     int curStackOffset, curGlobalOffset;
     BeginFunc *insideFn;
-    unordered_map<string, Instruction*> labels;
-    vector<Instruction*> deletedCode;
+    unordered_map<string, Instruction*>* labels;
+    vector<Instruction*>* deletedCode;
     
     void livenessAnalysis(int begin);
     bool deadCodeAnalysis(int begin);

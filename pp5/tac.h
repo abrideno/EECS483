@@ -106,12 +106,12 @@ class Instruction {
   class LoadStringConstant;//Has Kill isDead
   class LoadLabel;
   class Assign; //Has Gen and Kill isDead
-  class Load;
-  class Store;
+  class Load; //Has Gen
+  class Store; //Has Gen
   class BinaryOp; //Has Gen and Kill isDead
   class Label;
   class Goto;
-  class IfZ;
+  class IfZ; //Has Gen
   class BeginFunc;
   class EndFunc;
   class Return; //Has Gen
@@ -168,6 +168,7 @@ class Load: public Instruction {
   public:
     Load(Location *dst, Location *src, int offset = 0);
     void EmitSpecific(Mips *mips);
+    List<string> GenSet();
 };
 
 class Store: public Instruction {
@@ -176,6 +177,7 @@ class Store: public Instruction {
   public:
     Store(Location *d, Location *s, int offset = 0);
     void EmitSpecific(Mips *mips);
+    List<string> GenSet();
 };
 
 class BinaryOp: public Instruction {
@@ -218,6 +220,7 @@ class IfZ: public Instruction {
     IfZ(Location *test, const char *label);
     void EmitSpecific(Mips *mips);
     string getLabel();
+    List<string> GenSet();
 };
 
 class BeginFunc: public Instruction {
@@ -265,7 +268,6 @@ class LCall: public Instruction {
     LCall(const char *labe, Location *result);
     void EmitSpecific(Mips *mips);
     List<string> KillSet();
-    bool isDead();
 };
 
 class ACall: public Instruction {
@@ -274,7 +276,6 @@ class ACall: public Instruction {
     ACall(Location *meth, Location *result);
     void EmitSpecific(Mips *mips);
     List<string> KillSet();
-    bool isDead();
 };
 
 class VTable: public Instruction {

@@ -147,7 +147,17 @@ Load::Load(Location *d, Location *s, int off)
 void Load::EmitSpecific(Mips *mips) {
   mips->EmitLoad(dst, src, offset);
 }
-
+List<string> Load::GenSet()
+{
+    List<string> set;
+    string source;
+    source = src->GetName();
+    set.Append(source);
+    string destination;
+    destination = dst->GetName();
+    set.Append(destination);
+    return set;
+}
 
 
 Store::Store(Location *d, Location *s, int off)
@@ -161,7 +171,17 @@ Store::Store(Location *d, Location *s, int off)
 void Store::EmitSpecific(Mips *mips) {
   mips->EmitStore(dst, src, offset);
 }
-
+List<string> Store::GenSet()
+{
+    List<string> set;
+    string source;
+    source = src->GetName();
+    set.Append(source);
+    string destination;
+    destination = dst->GetName();
+    set.Append(destination);
+    return set;
+}
  
 const char * const BinaryOp::opName[Mips::NumOps]  = {"+", "-", "*", "/", "%", "==", "<", "&&", "||"};;
 
@@ -251,7 +271,14 @@ string IfZ::getLabel()
     string s = label;
     return s;
 }
-
+List<string> IfZ::GenSet()
+{
+    List<string> set;
+    string t;
+    t = test->GetName();
+    set.Append(t);
+    return set;
+}
 
 BeginFunc::BeginFunc() {
   sprintf(printed,"BeginFunc (unassigned)");
@@ -342,18 +369,6 @@ List<string> LCall::KillSet()
     }
     return set;
 }
-bool LCall::isDead()
-{
-    if (!dst)
-        return false;
-    string destination = dst->GetName();
-    for (int i = 0; i < outSet.NumElements(); i++)
-    {
-        if (outSet.Nth(i) == destination)
-            return false;
-    }
-    return true;
-}
 
 ACall::ACall(Location *ma, Location *d)
   : dst(d), methodAddr(ma) {
@@ -377,18 +392,6 @@ List<string> ACall::KillSet()
         set.Append(destination);
     }
     return set;
-}
-bool ACall::isDead()
-{
-    if (!dst)
-        return false;
-    string destination = dst->GetName();
-    for (int i = 0; i < outSet.NumElements(); i++)
-    {
-        if (outSet.Nth(i) == destination)
-            return false;
-    }
-    return true;
 }
 
 

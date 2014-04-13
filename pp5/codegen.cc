@@ -19,6 +19,8 @@ using namespace std;
 CodeGenerator::CodeGenerator()
 {
   code = new List<Instruction*>();
+  labels = new unordered_map<string, Instruction*>;
+  deletedCode = new vector<Instruction*>;
   curGlobalOffset = 0;
 }
 
@@ -62,7 +64,7 @@ void CodeGenerator::createCFG(int begin)
         if (gt)
         {
             string s = gt->getLabel();
-            gt->addEdge(labels[s]);
+            gt->addEdge((*labels)[s]);
             continue;
         }
         
@@ -71,7 +73,7 @@ void CodeGenerator::createCFG(int begin)
         if (iz)
         {
             string s = iz->getLabel();
-            iz->addEdge(labels[s]);
+            iz->addEdge((*labels)[s]);
             
             iz->addEdge(code->Nth(i+1));
             continue;
@@ -88,13 +90,17 @@ void CodeGenerator::createCFG(int begin)
         livenessAnalysis(begin);
         for (int i = begin; i < code->NumElements(); i++)
         {
-            cout << code->Nth(i)->TACString() << endl;
+            //cout << code->Nth(i)->TACString() << endl;
             for (int j = 0; j < code->Nth(i)->outSet.NumElements(); j++)
-                cout << code->Nth(i)->outSet.Nth(j) << ' ';
-            cout << endl;
+            {
+                //cout << code->Nth(i)->outSet.Nth(j) << ' ';
+            } 
+            //cout << endl;
         }
     }
     while (deadCodeAnalysis(begin));
+
+    deletedCode->clear();
 }
 
 void CodeGenerator::livenessAnalysis(int begin)
@@ -121,9 +127,9 @@ void CodeGenerator::livenessAnalysis(int begin)
             {
                 edge = instruction->getEdge(j);
                 bool deleted = false;
-                for (int k = 0; k < deletedCode.size(); k++)
+                for (int k = 0; k < deletedCode->size(); k++)
                 {
-                    if (edge == deletedCode[k])
+                    if (edge == (*deletedCode)[k])
                     {
                         deleted = true;
                         break;
@@ -224,17 +230,19 @@ bool CodeGenerator::deadCodeAnalysis(int begin)
 {
     Instruction* instruction;
     bool altered = false;
-    
     for (int i = begin; i < code->NumElements(); i++)
     {
         List<string> outSet;
         instruction = code->Nth(i);
+        Assert(instruction);
         if (instruction->isDead())
         {
+            //cout << "removing" << endl;
             code->RemoveAt(i);
+            //cout << instruction->TACString() << endl;
             i--; //to prevent skipping instructions
             altered = true;
-            deletedCode.push_back(instruction);
+            deletedCode->push_back(instruction);
         }
         
     }
@@ -328,7 +336,7 @@ void CodeGenerator::GenLabel(const char *label)
   Instruction* instruction = new Label(label);
   code->Append(instruction);
   string s = label;
-  labels[s] = instruction;
+  (*labels)[s] = instruction;
 }
 
 void CodeGenerator::GenIfZ(Location *test, const char *label)

@@ -256,7 +256,6 @@ bool FnDecl::MatchesPrototype(FnDecl *other) {
 void FnDecl::Emit(CodeGenerator *cg) {
     if (body) {
         cg->GenLabel(GetFunctionLabel());
-        cout << GetName() << endl;
         int begin = cg->numInstructions();
         cg->GenBeginFunc(this);
         body->Emit(cg);
