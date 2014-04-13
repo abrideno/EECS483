@@ -314,8 +314,11 @@ List<string> Return::GenSet()
 {
     List<string> set;
     string value;
-    value = val->GetName();
-    set.Append(value);
+    if (val)
+    {
+        value = val->GetName();
+        set.Append(value);
+    }
     return set;
 }
 
