@@ -32,6 +32,7 @@ class CodeGenerator {
     
     void livenessAnalysis(int begin);
     bool deadCodeAnalysis(int begin);
+    void interferenceGraph(int begin);
 
   public:
            // Here are some class constants to remind you of the offsets

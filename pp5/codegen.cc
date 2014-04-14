@@ -100,6 +100,8 @@ void CodeGenerator::createCFG(int begin)
     }
     while (deadCodeAnalysis(begin));
 
+    interferenceGraph(begin);
+
     deletedCode->clear();
 }
 
@@ -111,7 +113,7 @@ void CodeGenerator::livenessAnalysis(int begin)
     BeginFunc* bf = dynamic_cast<BeginFunc*>(code->Nth(begin));
     Assert(bf);
     bool changed = true;
-    List<string> emptyList;
+    List<Location*> emptyList;
     for (int i = begin; i < code->NumElements(); i++)
         code->Nth(i)->inSet = emptyList; //inSets must be recomputed every time liveness is called
         
@@ -121,7 +123,7 @@ void CodeGenerator::livenessAnalysis(int begin)
 
         for (int i = begin; i < code->NumElements(); i++) //for each TAC in CFG:
         {
-            List<string> outSet;
+            List<Location*> outSet;
             instruction = code->Nth(i);
             for (int j = 0; j < instruction->getNumEdges(); j++) //Out[TAC] = Union(In[Succ(TAC)])
             {
@@ -140,7 +142,7 @@ void CodeGenerator::livenessAnalysis(int begin)
                     
                 for (int k = 0; k < edge->inSet.NumElements(); k++) //Union every elem into outSet
                 {
-                    string elem = edge->inSet.Nth(k);
+                    Location* elem = edge->inSet.Nth(k);
                     bool found = false;
                     for (int l = 0; l < outSet.NumElements(); l++)  //check to see if elem is already in outSet
                     {
@@ -156,9 +158,9 @@ void CodeGenerator::livenessAnalysis(int begin)
             }
             instruction->outSet = outSet;
             //In'[TAC] = Out[TAC] - Kill[TAC] + Gen[TAC]
-            List<string> inPrimeSet = outSet; //= Out[TAC]
-            List<string> killSet = instruction->KillSet();
-            List<string> genSet = instruction->GenSet();
+            List<Location*> inPrimeSet = outSet; //= Out[TAC]
+            List<Location*> killSet = instruction->KillSet();
+            List<Location*> genSet = instruction->GenSet();
 
             for (int j = 0; j < inPrimeSet.NumElements(); j++) //- Kill[TAC]
             {
@@ -188,7 +190,7 @@ void CodeGenerator::livenessAnalysis(int begin)
                     inPrimeSet.Append(genSet.Nth(j));
             }
             
-            List<string> tempInPrimeSet = inPrimeSet; 
+            List<Location*> tempInPrimeSet = inPrimeSet; 
             
             bool foundInOutSet = false;
             bool setsAreDifferent = false;
@@ -232,7 +234,6 @@ bool CodeGenerator::deadCodeAnalysis(int begin)
     bool altered = false;
     for (int i = begin; i < code->NumElements(); i++)
     {
-        List<string> outSet;
         instruction = code->Nth(i);
         Assert(instruction);
         if (instruction->isDead())
@@ -247,6 +248,27 @@ bool CodeGenerator::deadCodeAnalysis(int begin)
         
     }
     return altered;
+}
+
+void CodeGenerator::interferenceGraph(int begin)
+{
+    List<Location*> killSet, outSet;
+    for (int i = begin; i < code->NumElements(); i++)
+    {
+        outSet = code->Nth(i)->outSet;
+        killSet = code->Nth(i)->KillSet();
+        for (int j = 0; j < killSet.NumElements(); j++)
+        {
+            for (int k = 0; k < outSet.NumElements(); k++)
+            {
+                if (outSet.Nth(k) != killSet.Nth(j))
+                {
+                    // cout << outSet.Nth(k)->GetName() << " <-> " << killSet.Nth(j)->GetName() << endl;
+                    outSet.Nth(k)->addEdge(killSet.Nth(j));
+                }
+            }
+        }
+    }
 }
 
 char *CodeGenerator::NewLabel()

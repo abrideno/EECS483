@@ -12,7 +12,37 @@
 using namespace std;
 
 Location::Location(Segment s, int o, const char *name) :
-  variableName(strdup(name)), segment(s), offset(o), reference(NULL), reg(Mips::zero) {}
+  variableName(strdup(name)), segment(s), offset(o), reference(NULL), reg(Mips::zero) 
+  {
+    edges = new List<Location*>();
+  }
+
+void Location::addEdge(Location* edge, bool recall)
+{
+    if (!recall)
+    {
+        for (int i = 0; i < edges->NumElements(); i++)
+        {
+            if (edge == edges->Nth(i))
+                return;
+        }
+        edges->Append(edge); //add edge to current location
+        edge->addEdge(this, true); //two way edge
+    }
+    else
+        edges->Append(edge);
+
+}
+
+int Location::getNumEdges()
+{
+    return edges->NumElements();
+}
+
+Location* Location::getEdge(int n)
+{
+    return edges->Nth(n);
+}
 
 string Instruction::TACString()
 {
@@ -39,20 +69,17 @@ LoadConstant::LoadConstant(Location *d, int v)
 void LoadConstant::EmitSpecific(Mips *mips) {
   mips->EmitLoadConstant(dst, val);
 }
-List<string> LoadConstant::KillSet()
+List<Location*> LoadConstant::KillSet()
 {
-    List<string> set;
-    string destination;
-    destination = dst->GetName();
-    set.Append(destination);
+    List<Location*> set;
+    set.Append(dst);
     return set;
 }
 bool LoadConstant::isDead()
 {
-    string destination = dst->GetName();
     for (int i = 0; i < outSet.NumElements(); i++)
     {
-        if (outSet.Nth(i) == destination)
+        if (outSet.Nth(i) == dst)
             return false;
     }
     return true;
@@ -70,20 +97,17 @@ LoadStringConstant::LoadStringConstant(Location *d, const char *s)
 void LoadStringConstant::EmitSpecific(Mips *mips) {
   mips->EmitLoadStringConstant(dst, str);
 }
-List<string> LoadStringConstant::KillSet()
+List<Location*> LoadStringConstant::KillSet()
 {
-    List<string> set;
-    string destination;
-    destination = dst->GetName();
-    set.Append(destination);
+    List<Location*> set;
+    set.Append(dst);
     return set;
 }
 bool LoadStringConstant::isDead()
 {
-    string destination = dst->GetName();
     for (int i = 0; i < outSet.NumElements(); i++)
     {
-        if (outSet.Nth(i) == destination)
+        if (outSet.Nth(i) == dst)
             return false;
     }
     return true;
@@ -109,28 +133,23 @@ Assign::Assign(Location *d, Location *s)
 void Assign::EmitSpecific(Mips *mips) {
   mips->EmitCopy(dst, src);
 }
-List<string> Assign::KillSet()
+List<Location*> Assign::KillSet()
 {
-    List<string> set;
-    string destination;
-    destination = dst->GetName();
-    set.Append(destination);
+    List<Location*> set;
+    set.Append(dst);
     return set;
 }
-List<string> Assign::GenSet()
+List<Location*> Assign::GenSet()
 {
-    List<string> set;
-    string source;
-    source = src->GetName();
-    set.Append(source);
+    List<Location*> set;
+    set.Append(src);
     return set;
 }
 bool Assign::isDead()
 {
-    string destination = dst->GetName();
     for (int i = 0; i < outSet.NumElements(); i++)
     {
-        if (outSet.Nth(i) == destination)
+        if (outSet.Nth(i) == dst)
             return false;
     }
     return true;
@@ -147,15 +166,11 @@ Load::Load(Location *d, Location *s, int off)
 void Load::EmitSpecific(Mips *mips) {
   mips->EmitLoad(dst, src, offset);
 }
-List<string> Load::GenSet()
+List<Location*> Load::GenSet()
 {
-    List<string> set;
-    string source;
-    source = src->GetName();
-    set.Append(source);
-    string destination;
-    destination = dst->GetName();
-    set.Append(destination);
+    List<Location*> set;
+    set.Append(src);
+    set.Append(dst);
     return set;
 }
 
@@ -171,15 +186,11 @@ Store::Store(Location *d, Location *s, int off)
 void Store::EmitSpecific(Mips *mips) {
   mips->EmitStore(dst, src, offset);
 }
-List<string> Store::GenSet()
+List<Location*> Store::GenSet()
 {
-    List<string> set;
-    string source;
-    source = src->GetName();
-    set.Append(source);
-    string destination;
-    destination = dst->GetName();
-    set.Append(destination);
+    List<Location*> set;
+    set.Append(src);
+    set.Append(dst);
     return set;
 }
  
@@ -202,30 +213,24 @@ BinaryOp::BinaryOp(Mips::OpCode c, Location *d, Location *o1, Location *o2)
 void BinaryOp::EmitSpecific(Mips *mips) {	  
   mips->EmitBinaryOp(code, dst, op1, op2);
 }
-List<string> BinaryOp::KillSet()
+List<Location*> BinaryOp::KillSet()
 {
-    List<string> set;
-    string destination;
-    destination = dst->GetName();
-    set.Append(destination);
+    List<Location*> set;
+    set.Append(dst);
     return set;
 }
-List<string> BinaryOp::GenSet()
+List<Location*> BinaryOp::GenSet()
 {
-    List<string> set;
-    string left, right;
-    left = op1->GetName();
-    right = op2->GetName();
-    set.Append(left);
-    set.Append(right);
+    List<Location*> set;
+    set.Append(op1);
+    set.Append(op2);
     return set;
 }
 bool BinaryOp::isDead()
 {
-    string destination = dst->GetName();
     for (int i = 0; i < outSet.NumElements(); i++)
     {
-        if (outSet.Nth(i) == destination)
+        if (outSet.Nth(i) == dst)
             return false;
     }
     return true;
@@ -271,12 +276,10 @@ string IfZ::getLabel()
     string s = label;
     return s;
 }
-List<string> IfZ::GenSet()
+List<Location*> IfZ::GenSet()
 {
-    List<string> set;
-    string t;
-    t = test->GetName();
-    set.Append(t);
+    List<Location*> set;
+    set.Append(test);
     return set;
 }
 
@@ -310,14 +313,12 @@ Return::Return(Location *v) : val(v) {
 void Return::EmitSpecific(Mips *mips) {	  
   mips->EmitReturn(val);
 }
-List<string> Return::GenSet()
+List<Location*> Return::GenSet()
 {
-    List<string> set;
-    string value;
+    List<Location*> set;
     if (val)
     {
-        value = val->GetName();
-        set.Append(value);
+        set.Append(val);
     }
     return set;
 }
@@ -331,12 +332,10 @@ PushParam::PushParam(Location *p)
 void PushParam::EmitSpecific(Mips *mips) {
   mips->EmitParam(param);
 } 
-List<string> PushParam::GenSet()
+List<Location*> PushParam::GenSet()
 {
-    List<string> set;
-    string par;
-    par = param->GetName();
-    set.Append(par);
+    List<Location*> set;
+    set.Append(param);
     return set;
 }
 
@@ -361,14 +360,12 @@ void LCall::EmitSpecific(Mips *mips) {
    */
   mips->EmitLCall(dst, label);
 }
-List<string> LCall::KillSet()
+List<Location*> LCall::KillSet()
 {
-    List<string> set;    
+    List<Location*> set;    
     if (dst)
     {
-        string destination;
-        destination = dst->GetName();
-        set.Append(destination);
+        set.Append(dst);
     }
     return set;
 }
@@ -385,14 +382,12 @@ void ACall::EmitSpecific(Mips *mips) {
    */
   mips->EmitACall(dst, methodAddr);
 } 
-List<string> ACall::KillSet()
+List<Location*> ACall::KillSet()
 {
-    List<string> set;
+    List<Location*> set;
     if (dst)
     {
-        string destination;
-        destination = dst->GetName();
-        set.Append(destination);
+        set.Append(dst);
     }
     return set;
 }

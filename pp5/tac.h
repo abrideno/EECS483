@@ -46,6 +46,7 @@ class Location
     int offset;
     Location *reference;
     int refOffset;
+    List<Location*>* edges;
     
     // The register allocated to this location.
     // A "zero" indicates that no register has been allocated.
@@ -55,7 +56,7 @@ class Location
     Location(Segment seg, int offset, const char *name);
     Location(Location *base, int refOff) :
     variableName(base->variableName), segment(base->segment),
-	offset(base->offset), reference(base), refOffset(refOff) {}
+	offset(base->offset), reference(base), refOffset(refOff) { edges = new List<Location*>();}
  
     const char *GetName()           { return variableName; }
     Segment GetSegment()            { return segment; }
@@ -63,6 +64,10 @@ class Location
     bool IsReference()              { return reference != NULL; }
     Location *GetReference()        { return reference; }
     int GetRefOffset()              { return refOffset; }
+
+    void addEdge(Location* edge, bool recall = false);
+    int getNumEdges();
+    Location* getEdge(int n);
     
     void SetRegister(Mips::Register r)    { reg = r; }
     Mips::Register GetRegister()          { return reg; }
@@ -79,8 +84,8 @@ class Instruction {
         List<Instruction*> directedEdges;
 
     public:
-        List<string> inSet;
-        List<string> outSet;
+        List<Location*> inSet;
+        List<Location*> outSet;
 
         void addEdge(Instruction* instruction) { directedEdges.Append(instruction); }
         int getNumEdges() { return directedEdges.NumElements(); }
@@ -92,8 +97,8 @@ class Instruction {
   	    virtual void Print();
   	    virtual void EmitSpecific(Mips *mips) = 0;
   	    virtual void Emit(Mips *mips);
-        virtual List<string> KillSet() { List<string> empty; return empty; }
-        virtual List<string> GenSet() { List<string> empty; return empty; }
+        virtual List<Location*> KillSet() { List<Location*> empty; return empty; }
+        virtual List<Location*> GenSet() { List<Location*> empty; return empty; }
         virtual bool isDead() { return false; }
 };
 
@@ -130,7 +135,7 @@ class LoadConstant: public Instruction {
   public:
     LoadConstant(Location *dst, int val);
     void EmitSpecific(Mips *mips);
-    List<string> KillSet();
+    List<Location*> KillSet();
     bool isDead();
 };
 
@@ -140,7 +145,7 @@ class LoadStringConstant: public Instruction {
   public:
     LoadStringConstant(Location *dst, const char *s);
     void EmitSpecific(Mips *mips);
-    List<string> KillSet();
+    List<Location*> KillSet();
     bool isDead();
 };
     
@@ -157,8 +162,8 @@ class Assign: public Instruction {
   public:
     Assign(Location *dst, Location *src);
     void EmitSpecific(Mips *mips);
-    List<string> KillSet();
-    List<string> GenSet();
+    List<Location*> KillSet();
+    List<Location*> GenSet();
     bool isDead();
 };
 
@@ -168,7 +173,7 @@ class Load: public Instruction {
   public:
     Load(Location *dst, Location *src, int offset = 0);
     void EmitSpecific(Mips *mips);
-    List<string> GenSet();
+    List<Location*> GenSet();
 };
 
 class Store: public Instruction {
@@ -177,7 +182,7 @@ class Store: public Instruction {
   public:
     Store(Location *d, Location *s, int offset = 0);
     void EmitSpecific(Mips *mips);
-    List<string> GenSet();
+    List<Location*> GenSet();
 };
 
 class BinaryOp: public Instruction {
@@ -192,8 +197,8 @@ class BinaryOp: public Instruction {
   public:
     BinaryOp(Mips::OpCode c, Location *dst, Location *op1, Location *op2);
     void EmitSpecific(Mips *mips);
-    List<string> KillSet();
-    List<string> GenSet();
+    List<Location*> KillSet();
+    List<Location*> GenSet();
     bool isDead();
 };
 
@@ -220,7 +225,7 @@ class IfZ: public Instruction {
     IfZ(Location *test, const char *label);
     void EmitSpecific(Mips *mips);
     string getLabel();
-    List<string> GenSet();
+    List<Location*> GenSet();
 };
 
 class BeginFunc: public Instruction {
@@ -243,7 +248,7 @@ class Return: public Instruction {
   public:
     Return(Location *val);
     void EmitSpecific(Mips *mips);
-    List<string> GenSet();
+    List<Location*> GenSet();
 };   
 
 class PushParam: public Instruction {
@@ -251,7 +256,7 @@ class PushParam: public Instruction {
   public:
     PushParam(Location *param);
     void EmitSpecific(Mips *mips);
-    List<string> GenSet();
+    List<Location*> GenSet();
 }; 
 
 class PopParams: public Instruction {
@@ -267,7 +272,7 @@ class LCall: public Instruction {
   public:
     LCall(const char *labe, Location *result);
     void EmitSpecific(Mips *mips);
-    List<string> KillSet();
+    List<Location*> KillSet();
 };
 
 class ACall: public Instruction {
@@ -275,7 +280,7 @@ class ACall: public Instruction {
   public:
     ACall(Location *meth, Location *result);
     void EmitSpecific(Mips *mips);
-    List<string> KillSet();
+    List<Location*> KillSet();
 };
 
 class VTable: public Instruction {
