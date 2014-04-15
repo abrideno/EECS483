@@ -21,6 +21,7 @@ CodeGenerator::CodeGenerator()
   code = new List<Instruction*>();
   labels = new unordered_map<string, Instruction*>;
   deletedCode = new vector<Instruction*>;
+  interGraph = new List<Location*>();
   curGlobalOffset = 0;
 }
 
@@ -101,6 +102,16 @@ void CodeGenerator::createCFG(int begin)
     while (deadCodeAnalysis(begin));
 
     interferenceGraph(begin);
+
+    cout << "interGraph" << endl;
+    for (int i = 0; i < interGraph->NumElements(); i++)
+    {
+        cout << "---------- " << interGraph->Nth(i)->GetName() << " --------------" << endl;
+        for (int j = 0; j < interGraph->Nth(i)->getNumEdges(); j++)
+        {
+            cout << interGraph->Nth(i)->getEdge(j)->GetName() << endl;
+        }
+    }
 
     deletedCode->clear();
 }
@@ -257,6 +268,8 @@ void CodeGenerator::interferenceGraph(int begin)
     {
         outSet = code->Nth(i)->outSet;
         killSet = code->Nth(i)->KillSet();
+        interGraph->AppendAll(outSet);
+        interGraph->Unique();
         for (int j = 0; j < killSet.NumElements(); j++)
         {
             for (int k = 0; k < outSet.NumElements(); k++)

@@ -25,6 +25,7 @@ typedef enum { Alloc, ReadLine, ReadInteger, StringEqual,
 class CodeGenerator {
   private:
     List<Instruction*> *code;
+    List<Location*>* interGraph;
     int curStackOffset, curGlobalOffset;
     BeginFunc *insideFn;
     unordered_map<string, Instruction*>* labels;
