@@ -26,6 +26,8 @@ class CodeGenerator {
   private:
     List<Instruction*> *code;
     List<Location*>* interGraph;
+    List<Location*>* reInterGraph; 	// Rebuilding of InterGraph from stack ouput 
+
     int curStackOffset, curGlobalOffset;
     BeginFunc *insideFn;
     unordered_map<string, Instruction*>* labels;
@@ -34,7 +36,11 @@ class CodeGenerator {
     void livenessAnalysis(int begin);
     bool deadCodeAnalysis(int begin);
     void interferenceGraph(int begin);
-
+	void kColoring(List<Location*>* interGraph);
+	int  findNode(List<Location*>* interGraph, List<Location*> removed); 
+	int  findMaxKNode(List<Location*>* interGraph, List<Location*> removed); 
+	bool wasRemoved(Location* check, List<Location*> removed); 
+	
   public:
            // Here are some class constants to remind you of the offsets
            // used for globals, locals, and parameters. You will be
