@@ -92,31 +92,31 @@ void CodeGenerator::createCFG(int begin)
         livenessAnalysis(begin);
         for (int i = begin; i < code->NumElements(); i++)
         {
-            cout << code->Nth(i)->TACString() << "\n----\n";
-            cout << "OutSet" << endl; 
+            //cout << code->Nth(i)->TACString() << "\n----\n";
+            //cout << "OutSet" << endl; 
             for (int j = 0; j < code->Nth(i)->outSet.NumElements(); j++)
             {
-                cout << code->Nth(i)->outSet.Nth(j)->GetName() << ' ';
+                //cout << code->Nth(i)->outSet.Nth(j)->GetName() << ' ';
             } 
-            cout << endl << "KillSet" << endl;
+            //cout << endl << "KillSet" << endl;
             for (int j = 0; j < code->Nth(i)->KillSet().NumElements(); j++)
             {
-                cout << code->Nth(i)->KillSet().Nth(j)->GetName() << ' ';
+                //cout << code->Nth(i)->KillSet().Nth(j)->GetName() << ' ';
             }
-            cout << "\n\n";
+            //cout << "\n\n";
         }
     }
     while (deadCodeAnalysis(begin));
 
     interferenceGraph(begin);
 
-    cout << "interGraph" << endl;
+    //cout << "interGraph" << endl;
     for (int i = 0; i < interGraph->NumElements(); i++)
     {
-        cout << "---------- " << interGraph->Nth(i)->GetName() << " --------------" << endl;
+        //cout << "---------- " << interGraph->Nth(i)->GetName() << " --------------" << endl;
         for (int j = 0; j < interGraph->Nth(i)->getNumEdges(); j++)
         {
-            cout << interGraph->Nth(i)->getEdge(j)->GetName() << endl;
+            //cout << interGraph->Nth(i)->getEdge(j)->GetName() << endl;
         }
     }
 
@@ -318,9 +318,9 @@ void CodeGenerator::kColoring()
  	  	if(removed.NumElements() == interGraph->NumElements()) // Means K Colorable .. stack is full of all nodes 
 		{
 			Location *node = degree.top(); 
+			Assert(node);
 			degree.pop(); 
 			node->SetRegister(Mips::Register(7));	// Set first reg to t0 
-			reInterGraph->Append(node); 
 			bool foundSameReg = false;  // Indicator for whether found loc with same reg 
 			while(!degree.empty())		
 			{
@@ -351,18 +351,10 @@ void CodeGenerator::kColoring()
 				{
 					cout<<"Could not find K coloring which should not be happening. Fuck. "<<endl; 
 				}
-				else
-				{
-					reInterGraph->Append(node);  // reinterGraph defined in .h 
-				}
 			}
 			
-			for(int i=0; i<reInterGraph->NumElements(); i++)
-			{
-				//Mips mips; 
-				//mips.FillRegister(reInterGraph->Nth(i),reInterGraph->Nth(i)->GetRegister());
-				cout<<"Node Names "<< reInterGraph->Nth(i)->GetName()<<endl;
-			}
+			
+
 			canColor = true; 
 		
 		}
