@@ -320,7 +320,6 @@ void CodeGenerator::kColoring()
 			Location *node = degree.top(); 
 			degree.pop(); 
 			node->SetRegister(Mips::Register(7));	// Set first reg to t0 
-			reInterGraph->Append(node); 
 			bool foundSameReg = false;  // Indicator for whether found loc with same reg 
 			while(!degree.empty())		
 			{
@@ -353,16 +352,11 @@ void CodeGenerator::kColoring()
 				}
 				else
 				{
-					reInterGraph->Append(node);  // reinterGraph defined in .h 
+					cout<<"It Works"<<endl;
 				}
 			}
 			
-			for(int i=0; i<reInterGraph->NumElements(); i++)
-			{
-				//Mips mips; 
-				//mips.FillRegister(reInterGraph->Nth(i),reInterGraph->Nth(i)->GetRegister());
-				cout<<"Node Names "<< reInterGraph->Nth(i)->GetName()<<endl;
-			}
+			
 			canColor = true; 
 		
 		}
@@ -444,7 +438,7 @@ bool CodeGenerator::wasRemoved(Location* check,List<Location*> removed)	// Check
 {
 	for(int i=0; i<removed.NumElements() ; i++)
 	{
-		if(strcmp(check->GetName(),removed.Nth(i)->GetName()) == 0)
+		if(check == removed.Nth(i))
 		{
 			return true;
 		}
