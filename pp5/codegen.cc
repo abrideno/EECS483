@@ -13,6 +13,7 @@
 #include "errors.h"
 #include <vector>
 #include <string>
+#include <stack>
   
 using namespace std;
   
@@ -112,6 +113,7 @@ void CodeGenerator::createCFG(int begin)
             cout << interGraph->Nth(i)->getEdge(j)->GetName() << endl;
         }
     }
+    kColoring(interGraph);  // Calls kcoloring here after intergraph is made 
 
     deletedCode->clear();
 }
@@ -282,6 +284,171 @@ void CodeGenerator::interferenceGraph(int begin)
             }
         }
     }
+}
+
+
+void CodeGenerator::kColoring(List<Location*>* interGraph)
+{
+ 	  bool canColor = false; 			// Indicator to keep loop going until coloring found
+ 	  stack<Location*> degree;			// Stack to keep track of Nodes with degree under K 
+ 	  List<Location*> removed; 			// Keep track of locations that have been "removed" from interGraph 
+ 	  while(!canColor)
+ 	  {
+ 	  	int temp; 
+ 	  	while((temp = findNode(interGraph,removed)) != -1) // degree satisfies 
+ 	  	{
+ 	  		Location* satisfies = interGraph->Nth(temp); 	
+ 	  		removed.Append(satisfies); 					// Add node to removed 
+ 	  		
+ 	  		//Check and remove associated edges
+ 	  		for(int i=0; i< satisfies->getNumEdges(); i++)
+ 	  		{
+ 	  			for(int j=0; j<interGraph->NumElements(); j++)
+ 	  			{	
+ 	  				if(strcmp(satisfies->getEdge(i)->GetName(), interGraph->Nth(j)->GetName()) == 0 && !wasRemoved(satisfies->getEdge(i),removed))	
+ 	  				{
+ 	  					removed.Append(satisfies->getEdge(i)); 	// Add all edges that have not already been removed and are part of interGraph 
+ 	  					break;
+ 	  				}	
+ 	  			}
+ 	  		}
+ 	  		 degree.push(satisfies);  // push node to stack to be setReg later 
+ 	  	}
+ 	  	
+ 	  	if(removed.NumElements() == interGraph->NumElements()) // Means K Colorable .. stack is full of all nodes 
+		{
+			Location *node = degree.top(); 
+			degree.pop(); 
+			node->SetRegister(Mips::Register(7));	// Set first reg to t0 
+			reInterGraph->Append(node); 
+			bool foundSameReg = false;  // Indicator for whether found loc with same reg 
+			while(!degree.empty())		
+			{
+				node = degree.top(); 
+				degree.pop(); 
+				for(int i=7; i<25; i++) // best way to filter out gp regs? 
+				{
+					for(int j=0; j<node->getNumEdges(); j++)
+					{
+						if(node->getEdge(j)->GetRegister() == Mips::Register(i))	// Check with edge nodes if any adjacent have the same reg 
+							foundSameReg = true; 
+							break; 
+					}
+					if(foundSameReg)
+					{
+						foundSameReg = false; 
+						continue; 
+					}
+					else 
+					{
+						node->SetRegister(Mips::Register(i)); 
+					}				
+				}
+				
+				if(node->GetRegister() == Mips::Register(0))
+				{
+					cout<<"Could not find K coloring which should not be happening. Fuck. "<<endl; 
+				}
+				else
+				{
+					reInterGraph->Append(node);  // reinterGraph defined in .h 
+				}
+			}
+			
+			for(int i=0; i<reInterGraph->NumElements(); i++)
+			{
+				//Mips mips; 
+				//mips.FillRegister(reInterGraph->Nth(i),reInterGraph->Nth(i)->GetRegister());
+				cout<<"Node Names "<< reInterGraph->Nth(i)->GetName()<<endl;
+			}
+			canColor = true; 
+		
+		}
+		else // Cant be Kcolored
+		{	
+			int index = findMaxKNode(interGraph,removed); 	//Returns largest degree index 
+			if(index != -1)
+			{
+				cout<<"Good index .. spilling "<<interGraph->Nth(index)->GetName()<<endl; 
+				removed.Append(interGraph->Nth(index));	// Append to remove list 
+			//	Mips mips; 
+			//	mips.SpillRegister(interGraph->Nth(index),interGraph->Nth(index)->GetRegister()); 	// Not sure if this is right but spill the largest degreed reg 
+			}
+			else
+			{
+				cout<<"Bad Index"<<endl; 	// Checker 
+			}
+		}
+ 	 }
+}
+
+
+int CodeGenerator::findNode(List<Location*>* interGraph,List<Location*> removed)
+{
+	int count = 0; 
+	for(int i=0; i<interGraph->NumElements(); i++)
+	{
+		int numEdges = interGraph->Nth(i)->getNumEdges();
+		
+		if(wasRemoved(interGraph->Nth(i),removed))      // Has this location been removed already  
+			continue;
+			 
+		if(numEdges < Mips::NumGeneralPurposeRegs) // if it is already below the max num then it can return here 
+		{
+			return i; 
+		}
+		else
+		{
+			for(int j= 0; j<numEdges; j++)	
+			{
+				if(!wasRemoved(interGraph->Nth(i)->getEdge(j),removed))	// Checks if it was not removed .. if so, add to count 
+					count++;
+			}
+			
+			if(count < Mips::NumGeneralPurposeRegs)	// Check count
+				return i;
+		}
+	}
+	
+	return -1; 
+}
+
+int CodeGenerator::findMaxKNode(List<Location*>* interGraph, List<Location*> removed) //Like find node but for max node 
+{
+	int max = -1;
+	int count = 0;
+	int index = -1;  
+	for(int i=0; i<interGraph->NumElements(); i++)
+	{
+		for(int j=0; j<interGraph->Nth(i)->getNumEdges(); j++)
+		{
+			if(wasRemoved(interGraph->Nth(i)->getEdge(j),removed))
+				continue; 
+			else
+				count ++; 
+		}
+		
+		if(count > max)
+		{
+			max = count; 
+			index = i; 
+		}	
+	}
+
+	return index; 
+}
+
+bool CodeGenerator::wasRemoved(Location* check,List<Location*> removed)	// Checks to see if location exists in removed list 
+{
+	for(int i=0; i<removed.NumElements() ; i++)
+	{
+		if(strcmp(check->GetName(),removed.Nth(i)->GetName()) == 0)
+		{
+			return true;
+		}
+	}
+	
+	return false; 
 }
 
 char *CodeGenerator::NewLabel()
