@@ -299,20 +299,7 @@ void CodeGenerator::kColoring(List<Location*>* interGraph)
  	  	{
  	  		Location* satisfies = interGraph->Nth(temp); 	
  	  		removed.Append(satisfies); 					// Add node to removed 
- 	  		
- 	  		//Check and remove associated edges
- 	  		for(int i=0; i< satisfies->getNumEdges(); i++)
- 	  		{
- 	  			for(int j=0; j<interGraph->NumElements(); j++)
- 	  			{	
- 	  				if(strcmp(satisfies->getEdge(i)->GetName(), interGraph->Nth(j)->GetName()) == 0 && !wasRemoved(satisfies->getEdge(i),removed))	
- 	  				{
- 	  					removed.Append(satisfies->getEdge(i)); 	// Add all edges that have not already been removed and are part of interGraph 
- 	  					break;
- 	  				}	
- 	  			}
- 	  		}
- 	  		 degree.push(satisfies);  // push node to stack to be setReg later 
+ 	  		degree.push(satisfies);  // push node to stack to be setReg later 
  	  	}
  	  	
  	  	if(removed.NumElements() == interGraph->NumElements()) // Means K Colorable .. stack is full of all nodes 
@@ -326,13 +313,15 @@ void CodeGenerator::kColoring(List<Location*>* interGraph)
 			{
 				node = degree.top(); 
 				degree.pop(); 
-				for(int i=7; i<25; i++) // best way to filter out gp regs? 
+				for(int i=8; i<=25; i++) // best way to filter out gp regs? 
 				{
 					for(int j=0; j<node->getNumEdges(); j++)
 					{
 						if(node->getEdge(j)->GetRegister() == Mips::Register(i))	// Check with edge nodes if any adjacent have the same reg 
+						{
 							foundSameReg = true; 
 							break; 
+						}
 					}
 					if(foundSameReg)
 					{
