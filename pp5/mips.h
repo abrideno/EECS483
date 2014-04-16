@@ -27,6 +27,11 @@ class Mips {
   public:
     typedef enum {Add, Sub, Mul, Div, Mod, Eq, Less, And, Or, NumOps} OpCode;
 
+    /*
+     * Chun says: t0-t9, s0-s7 general purpose (use these)
+     * v0, v1 are return value registers, v1 is never used in decaf (32 bit)
+     * a0-a3 are used for built in functions, save/restore them before use
+     */
     typedef enum {zero, at, v0, v1, a0, a1, a2, a3,
 			t0, t1, t2, t3, t4, t5, t6, t7,
 			s0, s1, s2, s3, s4, s5, s6, s7,

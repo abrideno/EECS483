@@ -92,12 +92,18 @@ void CodeGenerator::createCFG(int begin)
         livenessAnalysis(begin);
         for (int i = begin; i < code->NumElements(); i++)
         {
-            //cout << code->Nth(i)->TACString() << endl;
+            cout << code->Nth(i)->TACString() << "\n----\n";
+            cout << "OutSet" << endl; 
             for (int j = 0; j < code->Nth(i)->outSet.NumElements(); j++)
             {
-                //cout << code->Nth(i)->outSet.Nth(j) << ' ';
+                cout << code->Nth(i)->outSet.Nth(j)->GetName() << ' ';
             } 
-            //cout << endl;
+            cout << endl << "KillSet" << endl;
+            for (int j = 0; j < code->Nth(i)->KillSet().NumElements(); j++)
+            {
+                cout << code->Nth(i)->KillSet().Nth(j)->GetName() << ' ';
+            }
+            cout << "\n\n";
         }
     }
     while (deadCodeAnalysis(begin));
@@ -251,9 +257,9 @@ bool CodeGenerator::deadCodeAnalysis(int begin)
         Assert(instruction);
         if (instruction->isDead())
         {
-            //cout << "removing" << endl;
+            ////cout << "removing" << endl;
             code->RemoveAt(i);
-            //cout << instruction->TACString() << endl;
+            ////cout << instruction->TACString() << endl;
             i--; //to prevent skipping instructions
             altered = true;
             deletedCode->push_back(instruction);
@@ -278,7 +284,7 @@ void CodeGenerator::interferenceGraph(int begin)
             {
                 if (outSet.Nth(k) != killSet.Nth(j))
                 {
-                    // cout << outSet.Nth(k)->GetName() << " <-> " << killSet.Nth(j)->GetName() << endl;
+                    // //cout << outSet.Nth(k)->GetName() << " <-> " << killSet.Nth(j)->GetName() << endl;
                     outSet.Nth(k)->addEdge(killSet.Nth(j));
                 }
             }

@@ -111,7 +111,7 @@ class Instruction {
   class LoadStringConstant;//Has Kill isDead
   class LoadLabel;
   class Assign; //Has Gen and Kill isDead
-  class Load; //Has Gen
+  class Load; //Has Gen and Kill
   class Store; //Has Gen
   class BinaryOp; //Has Gen and Kill isDead
   class Label;
@@ -173,6 +173,7 @@ class Load: public Instruction {
   public:
     Load(Location *dst, Location *src, int offset = 0);
     void EmitSpecific(Mips *mips);
+    List<Location*> KillSet();
     List<Location*> GenSet();
 };
 

@@ -173,6 +173,12 @@ List<Location*> Load::GenSet()
     set.Append(dst);
     return set;
 }
+List<Location*> Load::KillSet()
+{
+    List<Location*> set;
+    set.Append(dst);
+    return set;
+}
 
 
 Store::Store(Location *d, Location *s, int off)
@@ -358,7 +364,17 @@ void LCall::EmitSpecific(Mips *mips) {
   /* pp5: need to save registers before a function call
    * and restore them back after the call.
    */
-  mips->EmitLCall(dst, label);
+    for (int i = 0; i < outSet.NumElements(); i++)
+    {
+        mips->SaveCaller(outSet.Nth(i));
+    }
+
+    mips->EmitLCall(dst, label);
+
+    for (int i = 0; i < outSet.NumElements(); i++)
+    {
+        mips->RestoreCaller(outSet.Nth(i));
+    }
 }
 List<Location*> LCall::KillSet()
 {
@@ -380,7 +396,17 @@ void ACall::EmitSpecific(Mips *mips) {
   /* pp5: need to save registers before a function call
    * and restore them back after the call.
    */
-  mips->EmitACall(dst, methodAddr);
+    for (int i = 0; i < outSet.NumElements(); i++)
+    {
+        mips->SaveCaller(outSet.Nth(i));
+    }
+
+    mips->EmitACall(dst, methodAddr);
+
+    for (int i = 0; i < outSet.NumElements(); i++)
+    {
+        mips->RestoreCaller(outSet.Nth(i));
+    }
 } 
 List<Location*> ACall::KillSet()
 {
