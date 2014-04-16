@@ -351,10 +351,12 @@ void CodeGenerator::kColoring()
 				{
 					cout<<"Could not find K coloring which should not be happening. Fuck. "<<endl; 
 				}
+				else
+				{
+					cout<<"It Works"<<endl;
+				}
 			}
 			
-			
-
 			canColor = true; 
 		
 		}
@@ -436,7 +438,7 @@ bool CodeGenerator::wasRemoved(Location* check,List<Location*> removed)	// Check
 {
 	for(int i=0; i<removed.NumElements() ; i++)
 	{
-		if(strcmp(check->GetName(),removed.Nth(i)->GetName()) == 0)
+		if(check == removed.Nth(i))
 		{
 			return true;
 		}

@@ -26,7 +26,6 @@ class CodeGenerator {
   private:
     List<Instruction*> *code;
     List<Location*>* interGraph;
-    List<Location*>* reInterGraph; 	// Rebuilding of InterGraph from stack ouput 
 
     int curStackOffset, curGlobalOffset;
     BeginFunc *insideFn;
