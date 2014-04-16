@@ -271,8 +271,16 @@ bool CodeGenerator::deadCodeAnalysis(int begin)
 
 void CodeGenerator::interferenceGraph(int begin)
 {
-    List<Location*> killSet, outSet;
-    for (int i = begin; i < code->NumElements(); i++)
+    List<Location*> killSet, inSet, outSet;
+    inSet = code->Nth(begin)->inSet;
+    for (int i = 0; i < inSet.NumElements(); i++)
+    {
+        for (int j = i + 1; j < inSet.NumElements(); j++)
+        {
+            inSet.Nth(i)->addEdge(inSet.Nth(j));
+        }
+    }
+    for (int i = begin + 1; i < code->NumElements(); i++)
     {
         outSet = code->Nth(i)->outSet;
         killSet = code->Nth(i)->KillSet();
