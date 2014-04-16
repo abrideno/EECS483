@@ -36,9 +36,8 @@ class CodeGenerator {
     void livenessAnalysis(int begin);
     bool deadCodeAnalysis(int begin);
     void interferenceGraph(int begin);
-	void kColoring(List<Location*>* interGraph);
-	int  findNode(List<Location*>* interGraph, List<Location*> removed); 
-	int  findMaxKNode(List<Location*>* interGraph, List<Location*> removed); 
+	int  findNode(List<Location*> removed); 
+	int  findMaxKNode(List<Location*> removed); 
 	bool wasRemoved(Location* check, List<Location*> removed); 
 	
   public:
@@ -61,6 +60,10 @@ class CodeGenerator {
     
     //Create CFG for use in liveness analysis
     void createCFG(int begin);
+    
+    //Get Kcoloring
+    void kColoring();
+
     
     int numInstructions() { return code->NumElements(); }
     

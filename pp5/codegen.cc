@@ -119,7 +119,6 @@ void CodeGenerator::createCFG(int begin)
             cout << interGraph->Nth(i)->getEdge(j)->GetName() << endl;
         }
     }
-    kColoring(interGraph);  // Calls kcoloring here after intergraph is made 
 
     deletedCode->clear();
 }
@@ -301,7 +300,7 @@ void CodeGenerator::interferenceGraph(int begin)
 }
 
 
-void CodeGenerator::kColoring(List<Location*>* interGraph)
+void CodeGenerator::kColoring()
 {
  	  bool canColor = false; 			// Indicator to keep loop going until coloring found
  	  stack<Location*> degree;			// Stack to keep track of Nodes with degree under K 
@@ -309,7 +308,7 @@ void CodeGenerator::kColoring(List<Location*>* interGraph)
  	  while(!canColor)
  	  {
  	  	int temp; 
- 	  	while((temp = findNode(interGraph,removed)) != -1) // degree satisfies 
+ 	  	while((temp = findNode(removed)) != -1) // degree satisfies 
  	  	{
  	  		Location* satisfies = interGraph->Nth(temp); 	
  	  		removed.Append(satisfies); 					// Add node to removed 
@@ -369,7 +368,7 @@ void CodeGenerator::kColoring(List<Location*>* interGraph)
 		}
 		else // Cant be Kcolored
 		{	
-			int index = findMaxKNode(interGraph,removed); 	//Returns largest degree index 
+			int index = findMaxKNode(removed); 	//Returns largest degree index 
 			if(index != -1)
 			{
 				cout<<"Good index .. spilling "<<interGraph->Nth(index)->GetName()<<endl; 
@@ -386,7 +385,7 @@ void CodeGenerator::kColoring(List<Location*>* interGraph)
 }
 
 
-int CodeGenerator::findNode(List<Location*>* interGraph,List<Location*> removed)
+int CodeGenerator::findNode(List<Location*> removed)
 {
 	int count = 0; 
 	for(int i=0; i<interGraph->NumElements(); i++)
@@ -416,7 +415,7 @@ int CodeGenerator::findNode(List<Location*>* interGraph,List<Location*> removed)
 	return -1; 
 }
 
-int CodeGenerator::findMaxKNode(List<Location*>* interGraph, List<Location*> removed) //Like find node but for max node 
+int CodeGenerator::findMaxKNode(List<Location*> removed) //Like find node but for max node 
 {
 	int max = -1;
 	int count = 0;
