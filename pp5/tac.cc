@@ -300,11 +300,28 @@ void BeginFunc::EmitSpecific(Mips *mips) {
   mips->EmitBeginFunction(frameSize);
   /* pp5: need to load all parameters to the allocated registers.
    */
-  //TODO: CURRENTLY DOES NOT LOAD PARAMS IN ORDER, FIX
-  Location* loc = new Location(fpRelative, -8-frameSize, "stackPointer");
+  Location* loc = new Location(fpRelative, -800-frameSize, "stackPointer");
   loc->SetRegister(Mips::Register(29));
-  for (int i = 0; i < inSet.NumElements(); i++)
-    mips->EmitLoad(inSet.Nth(i), loc, i*4 + 12 + frameSize);
+
+  Mips::Register reg;
+  int numLoaded = 0;
+  Mips::Register lastReg;
+  while (numLoaded != inSet.NumElements()) //uses the fact that the first parameter is (always?) the highest register
+  {
+    reg = Mips::Register(0);
+    Location* param;
+    for (int i = 0; i < inSet.NumElements(); i++)
+    {
+      if (inSet.Nth(i)->GetRegister() > reg && inSet.Nth(i)->GetRegister() < lastReg)
+      {
+        reg = inSet.Nth(i)->GetRegister();
+        param = inSet.Nth(i);
+      }
+    }
+    mips->EmitLoad(param, loc, numLoaded*4 + 12 + frameSize);
+    numLoaded++;
+    lastReg = reg;
+  }
 }
 
 

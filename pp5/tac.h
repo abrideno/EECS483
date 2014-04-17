@@ -231,11 +231,13 @@ class IfZ: public Instruction {
 
 class BeginFunc: public Instruction {
     int frameSize;
+    List<Location*> parameters;
   public:
     BeginFunc();
     // used to backpatch the instruction with frame size once known
     void SetFrameSize(int numBytesForAllLocalsAndTemps);
     void EmitSpecific(Mips *mips);
+    void addParameter(Location* param);
 };
 
 class EndFunc: public Instruction {
