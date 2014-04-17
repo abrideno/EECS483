@@ -170,7 +170,6 @@ List<Location*> Load::GenSet()
 {
     List<Location*> set;
     set.Append(src);
-    set.Append(dst);
     return set;
 }
 List<Location*> Load::KillSet()
@@ -301,6 +300,11 @@ void BeginFunc::EmitSpecific(Mips *mips) {
   mips->EmitBeginFunction(frameSize);
   /* pp5: need to load all parameters to the allocated registers.
    */
+  //TODO: CURRENTLY DOES NOT LOAD PARAMS IN ORDER, FIX
+  Location* loc = new Location(fpRelative, -8-frameSize, "stackPointer");
+  loc->SetRegister(Mips::Register(29));
+  for (int i = 0; i < inSet.NumElements(); i++)
+    mips->EmitLoad(inSet.Nth(i), loc, i*4 + 12 + frameSize);
 }
 
 
@@ -364,16 +368,16 @@ void LCall::EmitSpecific(Mips *mips) {
   /* pp5: need to save registers before a function call
    * and restore them back after the call.
    */
-    for (int i = 0; i < outSet.NumElements(); i++)
+    for (int i = 0; i < inSet.NumElements(); i++)
     {
-        mips->SaveCaller(outSet.Nth(i));
+        mips->SaveCaller(inSet.Nth(i));
     }
 
     mips->EmitLCall(dst, label);
 
-    for (int i = 0; i < outSet.NumElements(); i++)
+    for (int i = 0; i < inSet.NumElements(); i++)
     {
-        mips->RestoreCaller(outSet.Nth(i));
+        mips->RestoreCaller(inSet.Nth(i));
     }
 }
 List<Location*> LCall::KillSet()

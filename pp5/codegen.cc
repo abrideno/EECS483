@@ -92,31 +92,36 @@ void CodeGenerator::createCFG(int begin)
         livenessAnalysis(begin);
         for (int i = begin; i < code->NumElements(); i++)
         {
-            //cout << code->Nth(i)->TACString() << "\n----\n";
-            //cout << "OutSet" << endl; 
+            // cout << code->Nth(i)->TACString() << "\n----\n";
+            // cout << "OutSet" << endl; 
             for (int j = 0; j < code->Nth(i)->outSet.NumElements(); j++)
             {
-                //cout << code->Nth(i)->outSet.Nth(j)->GetName() << ' ';
+                // cout << code->Nth(i)->outSet.Nth(j)->GetName() << ' ';
             } 
-            //cout << endl << "KillSet" << endl;
+            // cout << endl << "KillSet" << endl;
             for (int j = 0; j < code->Nth(i)->KillSet().NumElements(); j++)
             {
-                //cout << code->Nth(i)->KillSet().Nth(j)->GetName() << ' ';
+                // cout << code->Nth(i)->KillSet().Nth(j)->GetName() << ' ';
             }
-            //cout << "\n\n";
+            // cout << endl << "InSet" << endl;
+            for (int j = 0; j < code->Nth(i)->inSet.NumElements(); j++)
+            {
+                // cout << code->Nth(i)->inSet.Nth(j)->GetName() << ' ';
+            }
+            // cout << "\n\n";
         }
     }
     while (deadCodeAnalysis(begin));
 
     interferenceGraph(begin);
 
-    //cout << "interGraph" << endl;
+    // cout << "interGraph" << endl;
     for (int i = 0; i < interGraph->NumElements(); i++)
     {
-        //cout << "---------- " << interGraph->Nth(i)->GetName() << " --------------" << endl;
+        // cout << "---------- " << interGraph->Nth(i)->GetName() << " --------------" << endl;
         for (int j = 0; j < interGraph->Nth(i)->getNumEdges(); j++)
         {
-            //cout << interGraph->Nth(i)->getEdge(j)->GetName() << endl;
+            // cout << interGraph->Nth(i)->getEdge(j)->GetName() << endl;
         }
     }
 
@@ -256,9 +261,9 @@ bool CodeGenerator::deadCodeAnalysis(int begin)
         Assert(instruction);
         if (instruction->isDead())
         {
-            ////cout << "removing" << endl;
+            // cout << "removing" << endl;
             code->RemoveAt(i);
-            ////cout << instruction->TACString() << endl;
+            // cout << instruction->TACString() << endl;
             i--; //to prevent skipping instructions
             altered = true;
             deletedCode->push_back(instruction);
@@ -272,6 +277,8 @@ void CodeGenerator::interferenceGraph(int begin)
 {
     List<Location*> killSet, inSet, outSet;
     inSet = code->Nth(begin)->inSet;
+    interGraph->AppendAll(inSet);
+    interGraph->Unique();
     for (int i = 0; i < inSet.NumElements(); i++)
     {
         for (int j = i + 1; j < inSet.NumElements(); j++)
@@ -291,7 +298,7 @@ void CodeGenerator::interferenceGraph(int begin)
             {
                 if (outSet.Nth(k) != killSet.Nth(j))
                 {
-                    // //cout << outSet.Nth(k)->GetName() << " <-> " << killSet.Nth(j)->GetName() << endl;
+                    // cout << outSet.Nth(k)->GetName() << " <-> " << killSet.Nth(j)->GetName() << endl;
                     outSet.Nth(k)->addEdge(killSet.Nth(j));
                 }
             }
@@ -311,16 +318,18 @@ void CodeGenerator::kColoring()
  	  	while((temp = findNode(removed)) != -1) // degree satisfies 
  	  	{
  	  		Location* satisfies = interGraph->Nth(temp); 	
- 	  		removed.Append(satisfies); 					// Add node to removed 
+ 	  		removed.Append(satisfies); 					// Add node to removed
+            // cout << satisfies->GetName() << " REMOVED" << endl; 
  	  		degree.push(satisfies);  // push node to stack to be setReg later 
  	  	}
- 	  	
+ 	  	// cout << degree.top()->GetName() << endl;
  	  	if(removed.NumElements() == interGraph->NumElements()) // Means K Colorable .. stack is full of all nodes 
 		{
 			Location *node = degree.top(); 
 			Assert(node);
 			degree.pop(); 
-			node->SetRegister(Mips::Register(7));	// Set first reg to t0 
+			node->SetRegister(Mips::Register(8));	// Set first reg to t0 
+            // cout << node->GetName() << "=" << node->GetRegister() << endl;
 			bool foundSameReg = false;  // Indicator for whether found loc with same reg 
 			while(!degree.empty())		
 			{
@@ -343,17 +352,19 @@ void CodeGenerator::kColoring()
 					}
 					else 
 					{
-						node->SetRegister(Mips::Register(i)); 
+                        node->SetRegister(Mips::Register(i)); 
+                        // cout << node->GetName() << "=" << node->GetRegister() << endl;
+                        break;
 					}				
 				}
 				
 				if(node->GetRegister() == Mips::Register(0))
 				{
-					cout<<"Could not find K coloring which should not be happening. Fuck. "<<endl; 
+					// cout<<"Could not find K coloring which should not be happening. Fuck. "<<endl; 
 				}
 				else
 				{
-					cout<<"It Works"<<endl;
+					// cout<<"It Works"<<endl;
 				}
 			}
 			
@@ -365,14 +376,14 @@ void CodeGenerator::kColoring()
 			int index = findMaxKNode(removed); 	//Returns largest degree index 
 			if(index != -1)
 			{
-				cout<<"Good index .. spilling "<<interGraph->Nth(index)->GetName()<<endl; 
+				// cout<<"Good index .. spilling "<<interGraph->Nth(index)->GetName()<<endl; 
 				removed.Append(interGraph->Nth(index));	// Append to remove list 
 			//	Mips mips; 
 			//	mips.SpillRegister(interGraph->Nth(index),interGraph->Nth(index)->GetRegister()); 	// Not sure if this is right but spill the largest degreed reg 
 			}
 			else
 			{
-				cout<<"Bad Index"<<endl; 	// Checker 
+				// cout<<"Bad Index"<<endl; 	// Checker 
 			}
 		}
  	 }
