@@ -314,7 +314,7 @@ void BeginFunc::EmitSpecific(Mips *mips) {
     {
       if (!strcmp(inSet.Nth(i)->GetName(), "this"))
       {
-        mips->EmitLoad(inSet.Nth(i), fp, 0);
+        mips->EmitLoad(inSet.Nth(i), fp, 4);
       }
     }
   }
