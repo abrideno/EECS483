@@ -566,14 +566,19 @@ void CodeGenerator::GenReturn(Location *val)
 
 BeginFunc *CodeGenerator::GenBeginFunc(FnDecl *fn)
 {
-  BeginFunc *result = new BeginFunc;
+  BeginFunc *result = new BeginFunc();
   code->Append(insideFn = result);
   List<VarDecl*> *formals = fn->GetFormals();
   int start = OffsetToFirstParam;
   if (fn->IsMethodDecl()) start += VarSize;
   for (int i = 0; i < formals->NumElements(); i++)
-    formals->Nth(i)->rtLoc = new Location(fpRelative, i*VarSize + start, formals->Nth(i)->GetName());
+  {
+    Location* param = new Location(fpRelative, i*VarSize + start, formals->Nth(i)->GetName());
+    formals->Nth(i)->rtLoc = param;
+    result->addParameter(param);
+  }
   curStackOffset = OffsetToFirstLocal;
+  result->checkMethod(fn);
   return result;
 }
 

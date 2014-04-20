@@ -300,28 +300,52 @@ void BeginFunc::EmitSpecific(Mips *mips) {
   mips->EmitBeginFunction(frameSize);
   /* pp5: need to load all parameters to the allocated registers.
    */
-  Location* loc = new Location(fpRelative, -800-frameSize, "stackPointer");
-  loc->SetRegister(Mips::Register(29));
+  Location* fp = new Location(fpRelative, -800-frameSize, "framePointer");
+  fp->SetRegister(Mips::Register(30));
 
-  Mips::Register reg;
-  int numLoaded = 0;
-  Mips::Register lastReg;
-  while (numLoaded != inSet.NumElements()) //uses the fact that the first parameter is (always?) the highest register
+  if (isMethod)
   {
-    reg = Mips::Register(0);
-    Location* param;
     for (int i = 0; i < inSet.NumElements(); i++)
     {
-      if (inSet.Nth(i)->GetRegister() > reg && inSet.Nth(i)->GetRegister() < lastReg)
+      if (!strcmp(inSet.Nth(i)->GetName(), "this"))
       {
-        reg = inSet.Nth(i)->GetRegister();
-        param = inSet.Nth(i);
+        mips->EmitLoad(inSet.Nth(i), fp, 0);
       }
     }
-    mips->EmitLoad(param, loc, numLoaded*4 + 12 + frameSize);
-    numLoaded++;
-    lastReg = reg;
   }
+
+  for (int i = 0; i < parameters.NumElements(); i++)
+  {
+    mips->EmitLoad(parameters.Nth(i), fp, i*4 + 4 + 4*isMethod);
+    // cout << parameters.Nth(i)->GetName() << endl;
+  }
+//   Mips::Register reg;
+//   int numLoaded = 0;
+//   Mips::Register lastReg;
+//   while (numLoaded != inSet.NumElements()) //uses the fact that the first parameter is (always?) the highest register
+//   {
+//     reg = Mips::Register(0);
+//     Location* param;
+//     for (int i = 0; i < inSet.NumElements(); i++)
+//     {
+//       if (inSet.Nth(i)->GetRegister() > reg && inSet.Nth(i)->GetRegister() < lastReg)
+//       {
+//         reg = inSet.Nth(i)->GetRegister();
+//         param = inSet.Nth(i);
+//       }
+//     }
+//     mips->EmitLoad(param, loc, numLoaded*4 + 12 + frameSize);
+//     numLoaded++;
+//     lastReg = reg;
+//   }
+}
+void BeginFunc::addParameter(Location* param)
+{
+  parameters.Append(param);
+}
+void BeginFunc::checkMethod(FnDecl* fn)
+{
+  isMethod = fn->IsMethodDecl();
 }
 
 

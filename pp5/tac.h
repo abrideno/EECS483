@@ -25,6 +25,7 @@
 
 #include "list.h" // for VTable
 #include "mips.h"
+#include "ast_decl.h"
 
     // A Location object is used to identify the operands to the
     // various TAC instructions. A Location is either fp or gp
@@ -232,12 +233,14 @@ class IfZ: public Instruction {
 class BeginFunc: public Instruction {
     int frameSize;
     List<Location*> parameters;
+    bool isMethod;
   public:
     BeginFunc();
     // used to backpatch the instruction with frame size once known
     void SetFrameSize(int numBytesForAllLocalsAndTemps);
     void EmitSpecific(Mips *mips);
     void addParameter(Location* param);
+    void checkMethod(FnDecl* fn);
 };
 
 class EndFunc: public Instruction {
