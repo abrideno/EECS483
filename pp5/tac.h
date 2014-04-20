@@ -287,6 +287,7 @@ class ACall: public Instruction {
   public:
     ACall(Location *meth, Location *result);
     void EmitSpecific(Mips *mips);
+    List<Location*> GenSet();
     List<Location*> KillSet();
 };
 

@@ -448,16 +448,24 @@ void ACall::EmitSpecific(Mips *mips) {
    */
     for (int i = 0; i < outSet.NumElements(); i++)
     {
-        mips->SaveCaller(outSet.Nth(i));
+        if (outSet.Nth(i) != dst)
+            mips->SaveCaller(outSet.Nth(i));
     }
 
     mips->EmitACall(dst, methodAddr);
 
     for (int i = 0; i < outSet.NumElements(); i++)
     {
-        mips->RestoreCaller(outSet.Nth(i));
+        if (outSet.Nth(i) != dst)
+            mips->RestoreCaller(outSet.Nth(i));
     }
 } 
+List<Location*> ACall::GenSet()
+{
+    List<Location*> set;
+    set.Append(methodAddr);
+    return set;
+}
 List<Location*> ACall::KillSet()
 {
     List<Location*> set;
