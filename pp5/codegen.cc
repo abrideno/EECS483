@@ -125,6 +125,15 @@ void CodeGenerator::createCFG(int begin)
         }
     }
 
+    for (int i = 0; i < interGraph->NumElements(); i++)
+    {
+        // cout << interGraph->Nth(i)->GetName() << ' ' << interGraph->Nth(i) << endl;
+    }
+
+    kColoring();
+
+
+    interGraph->Clear();
     deletedCode->clear();
 }
 
@@ -329,12 +338,23 @@ void CodeGenerator::kColoring()
 			Assert(node);
 			degree.pop(); 
 			node->SetRegister(Mips::Register(8));	// Set first reg to t0 
+            if (!strcmp(node->GetName(), "this"))
+                node->SetRegister(Mips::Register(3));
             // cout << node->GetName() << "=" << node->GetRegister() << endl;
 			bool foundSameReg = false;  // Indicator for whether found loc with same reg 
 			while(!degree.empty())		
 			{
 				node = degree.top(); 
 				degree.pop(); 
+
+
+                
+                if (!strcmp(node->GetName(), "this"))
+                {
+                    node->SetRegister(Mips::Register(3));
+                    // cout << node->GetName() << "=" << node->GetRegister() << endl;
+                    continue;
+                }
 				for(int i=8; i<=25; i++) // best way to filter out gp regs? 
 				{
 					for(int j=0; j<node->getNumEdges(); j++)
@@ -357,7 +377,7 @@ void CodeGenerator::kColoring()
                         break;
 					}				
 				}
-				
+
 				if(node->GetRegister() == Mips::Register(0))
 				{
 					// cout<<"Could not find K coloring which should not be happening. Fuck. "<<endl; 

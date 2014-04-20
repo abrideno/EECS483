@@ -69,6 +69,7 @@ class Location
     void addEdge(Location* edge, bool recall = false);
     int getNumEdges();
     Location* getEdge(int n);
+    void removeAllEdges();
     
     void SetRegister(Mips::Register r)    { reg = r; }
     Mips::Register GetRegister()          { return reg; }

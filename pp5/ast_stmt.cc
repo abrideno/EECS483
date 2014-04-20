@@ -36,7 +36,7 @@ void Program::Emit() {
     }
     CodeGenerator *cg = new CodeGenerator();
     decls->EmitAll(cg);
-    cg->kColoring();  // Calls kcoloring here after all intergraphs is made 
+    //cg->kColoring();  // Calls kcoloring here after all intergraphs is made 
 
     if (ReportError::NumErrors() == 0)
         cg->DoFinalCodeGen();

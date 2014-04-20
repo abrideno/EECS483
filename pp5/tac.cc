@@ -44,6 +44,11 @@ Location* Location::getEdge(int n)
     return edges->Nth(n);
 }
 
+void Location::removeAllEdges()
+{
+    edges->Clear();
+}
+
 string Instruction::TACString()
 {
     string s = printed;
